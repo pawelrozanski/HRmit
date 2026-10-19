@@ -4,6 +4,7 @@ import {
   aiSettingsSchema,
   anonymize,
   candidateInputSchema,
+  evaluationSchema,
   fixtures,
   interviewQuestionInputSchema,
   jobInputSchema,
@@ -16,6 +17,7 @@ import {
   type Health,
   type InterviewQuestionInput,
   type QuestionsProposal,
+  type Scorecard,
 } from '@hrmit/shared'
 import { save, store } from './store.ts'
 
@@ -33,14 +35,33 @@ const jobQuestions = (jobId: number) =>
   store.questions
     .filter((q) => q.jobId === jobId)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-/** Same contract as the server: the whole list is replaced, sortOrder is the index. */
+/**
+ * Same contract as the server: the whole list is replaced, sortOrder is the index, rows with
+ * unchanged text keep their id (and their evaluations), the rest are dropped with theirs.
+ */
 function replaceQuestions(jobId: number, inputs: InterviewQuestionInput[]) {
-  store.questions = store.questions.filter((q) => q.jobId !== jobId)
+  const key = (q: InterviewQuestionInput) => `${q.competency}\n${q.question}`
+  const existing = new Map(jobQuestions(jobId).map((q) => [key(q), q]))
   let id = nextId(store.questions)
-  store.questions.push(...inputs.map((q, sortOrder) => ({ id: id++, jobId, sortOrder, ...q })))
+  const next = inputs.map((q, sortOrder) => {
+    const row = existing.get(key(q))
+    existing.delete(key(q))
+    return row ? { ...row, sortOrder } : { id: id++, jobId, sortOrder, ...q }
+  })
+  store.questions = [...store.questions.filter((q) => q.jobId !== jobId), ...next]
+  const live = new Set(store.questions.map((q) => q.id))
+  store.evaluations = store.evaluations.filter((e) => live.has(e.questionId))
   save()
   return jobQuestions(jobId)
 }
+
+const scorecard = (candidateId: number, jobId: number): Scorecard => ({
+  candidateId,
+  evaluations: jobQuestions(jobId).map(({ id, competency, question }) => {
+    const e = store.evaluations.find((x) => x.candidateId === candidateId && x.questionId === id)
+    return { questionId: id, competency, question, score: e?.score ?? null, note: e?.note ?? '' }
+  }),
+})
 
 /** One handler per server route. Must return shapes that pass the shared zod schemas. */
 export const handlers = [
@@ -118,6 +139,7 @@ export const handlers = [
     const i = store.candidates.findIndex((c) => c.id === Number(params.id))
     if (i < 0) return notFound()
     store.candidates.splice(i, 1)
+    store.evaluations = store.evaluations.filter((e) => e.candidateId !== Number(params.id))
     save()
     return new HttpResponse(null, { status: 204 })
   }),
@@ -145,6 +167,29 @@ export const handlers = [
   }),
   // No files are stored in the demo, so there is nothing to download.
   http.get(`${base}/api/candidates/:id/cv`, () => notFound()),
+  http.get(`${base}/api/candidates/:id/scorecard`, ({ params }) => {
+    const candidate = store.candidates.find((c) => c.id === Number(params.id))
+    if (!candidate) return notFound()
+    return HttpResponse.json(scorecard(candidate.id, candidate.jobId))
+  }),
+  http.put(`${base}/api/candidates/:id/scorecard`, async ({ params, request }) => {
+    const body = evaluationSchema.array().safeParse(await request.json())
+    if (!body.success) return invalid()
+    const candidate = store.candidates.find((c) => c.id === Number(params.id))
+    if (!candidate) return notFound()
+    const valid = new Set(jobQuestions(candidate.jobId).map((q) => q.id))
+    if (body.data.some((e) => !valid.has(e.questionId)))
+      return HttpResponse.json({ error: 'question not in this job' }, { status: 400 })
+    for (const e of body.data) {
+      const row = store.evaluations.find(
+        (x) => x.candidateId === candidate.id && x.questionId === e.questionId,
+      )
+      if (row) Object.assign(row, e)
+      else store.evaluations.push({ candidateId: candidate.id, ...e })
+    }
+    save()
+    return HttpResponse.json(scorecard(candidate.id, candidate.jobId))
+  }),
   http.get(`${base}/api/settings/ai`, () => HttpResponse.json(store.aiSettings)),
   // Same key rules as the server, but only the boolean is kept: the demo never stores a key.
   http.put(`${base}/api/settings/ai`, async ({ request }) => {

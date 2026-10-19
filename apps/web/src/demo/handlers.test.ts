@@ -8,6 +8,7 @@ import {
   interviewQuestionSchema,
   jobSchema,
   questionsProposalSchema,
+  scorecardSchema,
 } from '@hrmit/shared'
 import { setupServer } from 'msw/node'
 import { afterAll, beforeAll, expect, test, vi } from 'vitest'
@@ -28,6 +29,7 @@ type Store = {
   jobs: unknown[]
   questions?: { jobId: number; question: string }[]
   candidates: { id: number; aiSummaryJson?: unknown }[]
+  evaluations?: { candidateId: number; questionId: number }[]
   aiSettings?: unknown
 }
 
@@ -216,3 +218,48 @@ test('demo questions: seeded per job, replaced in order, generated only onto an 
   expect(stored.map((q) => q.question)).toEqual(fixtures.questions[1]!.map((q) => q.question))
   expect((await send('POST', '/api/ai/questions/9999', { lang: 'en' })).status).toBe(404)
 }, 10_000)
+
+test('demo scorecard: full list per candidate, upsert, foreign question rejected, cascades', async () => {
+  const card = (id: number) => get(`/api/candidates/${id}/scorecard`).then(scorecardSchema.parse)
+  // Beatrice (7) is seeded with four scores on job 2's fixture questions (job 1 was re-seeded).
+  const seeded = await card(7)
+  expect(
+    seeded.evaluations.map(({ questionId, score, note }) => ({ questionId, score, note })),
+  ).toEqual(fixtures.evaluations[7])
+  expect((await fetch('http://localhost/api/candidates/9999/scorecard')).status).toBe(404)
+
+  // Job 1's questions were re-seeded by the questions test above; candidate 6 is unscored.
+  const blank = await card(6)
+  expect(blank.evaluations.every((e) => e.score === null && e.note === '')).toBe(true)
+  const [q1, q2] = blank.evaluations
+  const put = await send('PUT', '/api/candidates/6/scorecard', [
+    { questionId: q1!.questionId, score: 3, note: 'ok' },
+  ])
+  expect(scorecardSchema.parse(await put.json()).evaluations[0]).toMatchObject({
+    score: 3,
+    note: 'ok',
+  })
+  const again = await send('PUT', '/api/candidates/6/scorecard', [
+    { questionId: q1!.questionId, score: 5, note: 'better' },
+    { questionId: q2!.questionId, score: null, note: 'skipped' },
+  ])
+  const updated = scorecardSchema.parse(await again.json())
+  expect(updated.evaluations.slice(0, 2).map((e) => e.score)).toEqual([5, null])
+  expect(await card(6)).toEqual(updated)
+  expect(persisted().evaluations?.filter((e) => e.candidateId === 6)).toHaveLength(2)
+
+  const foreign = seeded.evaluations[0]!.questionId
+  const bad = (body: unknown) => send('PUT', '/api/candidates/6/scorecard', body)
+  expect((await bad([{ questionId: foreign, score: 1, note: '' }])).status).toBe(400)
+  expect((await bad([{ questionId: q1!.questionId, score: 9, note: '' }])).status).toBe(400)
+
+  // Reorder keeps evaluations, a shorter list drops the orphans, deletion drops them all.
+  const inputs = blank.evaluations.map(({ competency, question }) => ({ competency, question }))
+  await send('PUT', '/api/jobs/1/questions', [...inputs].reverse())
+  expect((await card(6)).evaluations.filter((e) => e.note !== '')).toHaveLength(2)
+  await send('PUT', '/api/jobs/1/questions', inputs.slice(1))
+  expect((await card(6)).evaluations).toHaveLength(inputs.length - 1)
+  expect(persisted().evaluations?.filter((e) => e.candidateId === 6)).toHaveLength(1)
+  await fetch('http://localhost/api/candidates/6', { method: 'DELETE' })
+  expect(persisted().evaluations?.some((e) => e.candidateId === 6)).toBe(false)
+})

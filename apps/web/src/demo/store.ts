@@ -3,6 +3,7 @@ import {
   fixtures,
   type AiSettingsView,
   type Candidate,
+  type Evaluation,
   type InterviewQuestion,
   type Job,
 } from '@hrmit/shared'
@@ -13,16 +14,14 @@ type Store = {
   jobs: Job[]
   candidates: Candidate[]
   questions: InterviewQuestion[]
+  evaluations: (Evaluation & { candidateId: number })[]
   aiSettings: AiSettingsView
 }
 
-/** Fixture question sets flattened into rows, ids counted across jobs like autoincrement. */
-const seedQuestions = (): InterviewQuestion[] =>
-  Object.entries(fixtures.questions)
-    .flatMap(([jobId, set]) =>
-      set.map((q, sortOrder) => ({ id: 0, jobId: Number(jobId), sortOrder, ...q })),
-    )
-    .map((q, i) => ({ ...q, id: i + 1 }))
+const seedEvaluations = () =>
+  Object.entries(fixtures.evaluations).flatMap(([candidateId, list]) =>
+    list.map((e) => ({ candidateId: Number(candidateId), ...e })),
+  )
 
 function load(): Store {
   try {
@@ -31,7 +30,8 @@ function load(): Store {
     if (raw)
       return {
         aiSettings: AI_SETTINGS_DEFAULTS,
-        questions: seedQuestions(),
+        questions: structuredClone(fixtures.questionRows),
+        evaluations: seedEvaluations(),
         ...(JSON.parse(raw) as Partial<Store>),
       } as Store
   } catch {
@@ -40,7 +40,8 @@ function load(): Store {
   return {
     jobs: structuredClone(fixtures.jobs),
     candidates: structuredClone(fixtures.candidates),
-    questions: seedQuestions(),
+    questions: structuredClone(fixtures.questionRows),
+    evaluations: seedEvaluations(),
     aiSettings: AI_SETTINGS_DEFAULTS,
   }
 }
