@@ -102,6 +102,8 @@ _(done 2026-10-19; one `PUT /api/jobs/:id/questions` replaces the whole list and
 
 ## Stage 8: Scorecard
 
+_(done 2026-10-19; `GET /api/candidates/:id/scorecard` returns the job's questions in guide order joined with the candidate's evaluation, so the UI never needs a second call, and `PUT` takes the `evaluations` array and upserts per question, rejecting a question of another job with 400; `score` is nullable, a note can be written before a score; evaluations cascade with the candidate and with the question, and `PUT /api/jobs/:id/questions` now keeps rows whose text is unchanged so a reorder of the guide does not wipe the job's scorecards, while an edited question starts without scores; the scorecard is a section of the candidate drawer, not a separate page, with a native radio group of five per question and averages per competency with the scored count; three fixture candidates are seeded with scores; verified locally on two candidates of job 1 after a reload, in blind mode, and in the demo build in the embedded browser)_
+
 - Schema: `evaluations`. Routes: get/put per candidate.
 - UI: scorecard on the candidate page with the job's questions, 1 to 5 score and note per question, totals shown per competency, never as a single ranking number. Works in blind mode.
 - **Done when:** two candidates for the same job are scored on identical criteria and the result persists.

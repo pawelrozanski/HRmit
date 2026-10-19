@@ -114,7 +114,7 @@ erDiagram
     int id PK
     int candidate_id FK
     int question_id FK
-    int score "1-5"
+    int score "1-5, null until scored"
     text note
   }
   emails {
@@ -178,7 +178,7 @@ Calling `api.api.candidates.$get()` in the UI is type-checked against the server
 | candidates  | list (filter by job and stage), create, update, delete, move stage, upload CV, download CV                                                                                                 |
 | ai          | `POST /ai/summarize/:candidateId`, `POST /ai/competencies/:candidateId`, `POST /ai/questions/:jobId`, `GET /ai/preview/:candidateId` (anonymized text), `POST /ai/test` (connection check) |
 | questions   | list by job, update, reorder                                                                                                                                                               |
-| evaluations | get and put per candidate                                                                                                                                                                  |
+| evaluations | `GET /candidates/:id/scorecard` (questions joined with evaluations), `PUT` (upsert)                                                                                                        |
 | emails      | list by candidate, send from template, preview                                                                                                                                             |
 | meetings    | create (generates Jitsi link and sends the `.ics` invite)                                                                                                                                  |
 | settings    | get (secrets masked), update                                                                                                                                                               |
