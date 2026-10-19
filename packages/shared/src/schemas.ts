@@ -134,3 +134,12 @@ export const aiTestResultSchema = z.discriminatedUnion('ok', [
   z.object({ ok: z.literal(false), error: z.string() }),
 ])
 export type AiTestResult = z.infer<typeof aiTestResultSchema>
+
+/** GET /api/ai/preview/:candidateId: what a cloud provider would receive, next to the original. */
+export const aiPreviewSchema = z.object({
+  original: z.string(),
+  anonymized: z.string(),
+  replacements: z.array(z.object({ kind: z.string(), count: z.number().int() })),
+  provider: z.enum(['local', 'cloud']),
+})
+export type AiPreview = z.infer<typeof aiPreviewSchema>
