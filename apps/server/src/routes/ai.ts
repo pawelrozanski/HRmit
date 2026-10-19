@@ -5,8 +5,11 @@ import { Hono } from 'hono'
 import type { z } from 'zod'
 import {
   aiActionBodySchema,
+  anonymize,
   competenciesSchema,
   cvSummarySchema,
+  isLocalProvider,
+  type AiPreview,
   type AiSummary,
   type AiTestResult,
 } from '@hrmit/shared'
@@ -28,10 +31,33 @@ function sanitize(err: unknown, apiKey: string | null): string {
 
 const byId = (id: string) => eq(candidates.id, Number(id))
 
+/** Everything an action or the preview needs: the structured fields feed anonymize() only. */
+const loadCandidate = (id: string) =>
+  db
+    .select({
+      id: candidates.id,
+      firstName: candidates.firstName,
+      lastName: candidates.lastName,
+      email: candidates.email,
+      phone: candidates.phone,
+      cvText: candidates.cvText,
+      aiSummaryJson: candidates.aiSummaryJson,
+      title: jobs.title,
+      description: jobs.description,
+    })
+    .from(candidates)
+    .innerJoin(jobs, eq(jobs.id, candidates.jobId))
+    .where(byId(id))
+    .then((rows) => rows[0])
+
+/** Prompt debugging is opt-in and only ever sees the anonymized text (ADR 0005). */
+const LOG_PROMPTS = process.env.HRMIT_LOG_PROMPTS === '1'
+
 /**
  * One AI action: load the CV and the job, ask the model for the shared schema, merge the
  * result into aiSummaryJson. Only cvText and the job text reach the prompt (ADR 0004, stage 5
- * security note): no name, email, phone or notes.
+ * security note): no name, email, phone or notes. A cloud provider gets both anonymized
+ * (docs/ARCHITECTURE.md §5.2); a local one gets the full text.
  */
 const action = <K extends keyof AiSummary, S extends z.ZodType<object>>(
   key: K,
@@ -40,26 +66,26 @@ const action = <K extends keyof AiSummary, S extends z.ZodType<object>>(
 ) =>
   new Hono().post('/:candidateId', zValidator('json', aiActionBodySchema), async (c) => {
     const where = byId(c.req.param('candidateId'))
-    const [row] = await db
-      .select({
-        cvText: candidates.cvText,
-        aiSummaryJson: candidates.aiSummaryJson,
-        title: jobs.title,
-        description: jobs.description,
-      })
-      .from(candidates)
-      .innerJoin(jobs, eq(jobs.id, candidates.jobId))
-      .where(where)
+    const row = await loadCandidate(c.req.param('candidateId'))
     if (!row) return c.json({ error: 'not found' }, 404)
     if (!row.cvText) return c.json({ error: 'no cv text' }, 422)
 
     const settings = await getAiSettings()
+    const local = isLocalProvider(settings)
+    const lang = c.req.valid('json').lang
+    const safe = prompt(
+      { title: row.title, description: anonymize(row.description, row).text },
+      anonymize(row.cvText, row).text,
+      lang,
+    )
+    if (LOG_PROMPTS)
+      log.info('ai prompt', { action: key, provider: settings.provider, prompt: safe })
     let object: z.infer<S>
     try {
       ;({ object } = await generateObject({
         model: createModel(settings),
         schema,
-        prompt: prompt(row, row.cvText, c.req.valid('json').lang),
+        prompt: local ? prompt(row, row.cvText, lang) : safe,
       }))
     } catch (err) {
       const error = sanitize(err, settings.apiKey)
@@ -104,6 +130,15 @@ export const aiRoute = new Hono()
   })
   .route('/summarize', action('summary', cvSummarySchema, summarizePrompt))
   .route('/competencies', action('competencies', competenciesSchema, competenciesPrompt))
+  // What a cloud provider would see, next to the original. Never logged.
+  .get('/preview/:candidateId', async (c) => {
+    const row = await loadCandidate(c.req.param('candidateId'))
+    if (!row) return c.json({ error: 'not found' }, 404)
+    if (!row.cvText) return c.json({ error: 'no cv text' }, 422)
+    const { text, replacements } = anonymize(row.cvText, row)
+    const provider = isLocalProvider(await getAiSettings()) ? 'local' : 'cloud'
+    return c.json<AiPreview>({ original: row.cvText, anonymized: text, replacements, provider })
+  })
   // Discard: the human decides what stays. Clears both actions' output at once.
   .delete('/summary/:candidateId', async (c) => {
     const [candidate] = await db

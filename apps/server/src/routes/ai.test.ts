@@ -1,11 +1,19 @@
 import { expect, test, vi } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { aiTestResultSchema, candidateSchema, fixtures } from '@hrmit/shared'
+import {
+  AI_SETTINGS_DEFAULTS,
+  aiPreviewSchema,
+  aiTestResultSchema,
+  candidateSchema,
+  fixtures,
+} from '@hrmit/shared'
 
 // No Ollama in CI: the model call is mocked, the route and its sanitizer are real.
 const generateText = vi.fn()
 const generateObject = vi.fn()
 vi.mock('ai', () => ({ generateText, generateObject }))
+// Opt-in prompt log: must be set before the route module reads it.
+process.env.HRMIT_LOG_PROMPTS = '1'
 const { app } = await import('../app.ts')
 const { db } = await import('../db/index.ts')
 const { candidates } = await import('../db/schema.ts')
@@ -13,6 +21,19 @@ const { candidates } = await import('../db/schema.ts')
 const KEY = 'sk-live-secret-123'
 const testAi = async () =>
   aiTestResultSchema.parse(await (await app.request('/api/ai/test', { method: 'POST' })).json())
+const putSettings = (json: object) =>
+  app.request('/api/settings/ai', {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(json),
+  })
+const CLOUD = { provider: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', model: 'm' }
+const amelia = fixtures.candidates[0]!
+// The CV as a real one would look: the fixture text plus a header with the contact details.
+const CV = `${amelia.firstName} ${amelia.lastName}
+${amelia.email} | ${amelia.phone}
+
+${fixtures.cvText}`
 
 test('POST /api/ai/test reports ok with the model and latency', async () => {
   generateText.mockResolvedValueOnce({ text: 'OK' })
@@ -23,16 +44,7 @@ test('POST /api/ai/test reports ok with the model and latency', async () => {
 })
 
 test('POST /api/ai/test sanitizes failures: no key, no stack, no URL credentials', async () => {
-  await app.request('/api/settings/ai', {
-    method: 'PUT',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      provider: 'openai-compatible',
-      baseUrl: 'https://api.example.com/v1',
-      model: 'm',
-      apiKey: KEY,
-    }),
-  })
+  await putSettings({ ...CLOUD, apiKey: KEY })
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
   generateText.mockRejectedValueOnce(
     new Error(
@@ -60,8 +72,10 @@ const act = (kind: string, id: number) =>
 test('AI actions: 404, 422 without CV text, then summary and competencies merged and discarded', async () => {
   expect((await act('summarize', 9999)).status).toBe(404)
   expect((await act('summarize', 1)).status).toBe(422)
-  await db.update(candidates).set({ cvText: fixtures.cvText }).where(eq(candidates.id, 1))
+  expect((await app.request('/api/ai/preview/1')).status).toBe(422)
+  await db.update(candidates).set({ cvText: CV }).where(eq(candidates.id, 1))
 
+  // Cloud provider (set by the previous test): the captured prompt is anonymized.
   const summary = fixtures.ai[1]!.summary
   generateObject.mockResolvedValueOnce({ object: summary })
   const res = await act('summarize', 1)
@@ -69,14 +83,15 @@ test('AI actions: 404, 422 without CV text, then summary and competencies merged
   const c1 = candidateSchema.parse(await res.json())
   expect(c1.aiSummaryJson?.summary).toMatchObject({ ...summary, model: 'm' })
   expect(c1.aiSummaryJson?.competencies).toBeUndefined()
-  // Prompt hygiene: CV, job text and the language, nothing personal.
   const prompt = generateObject.mock.calls[0]?.[0].prompt as string
   expect(prompt).toContain(fixtures.cvText)
   expect(prompt).toContain(fixtures.jobs[0]!.title)
   expect(prompt).toContain('Polish')
-  expect(prompt).not.toContain(fixtures.candidates[0]!.email)
-  expect(prompt).not.toContain(fixtures.candidates[0]!.lastName)
-  expect(prompt).not.toContain(fixtures.candidates[0]!.notes)
+  expect(prompt).toContain('Candidate #1')
+  expect(prompt).toContain('[email]')
+  expect(prompt).toContain('[phone]')
+  for (const pii of [amelia.firstName, amelia.lastName, amelia.email, amelia.phone, amelia.notes])
+    expect(prompt).not.toContain(pii)
 
   const competencies = fixtures.ai[1]!.competencies
   generateObject.mockResolvedValueOnce({ object: competencies })
@@ -91,7 +106,38 @@ test('AI actions: 404, 422 without CV text, then summary and competencies merged
   expect(await failed.json()).toEqual({ error: 'ECONNREFUSED 127.0.0.1:11434' })
   warn.mockRestore()
 
+  // Local provider: the full CV is sent, nothing is replaced. The debug log still only
+  // ever sees the anonymized prompt.
+  await putSettings(AI_SETTINGS_DEFAULTS)
+  const logged = vi.spyOn(console, 'log').mockImplementation(() => {})
+  generateObject.mockResolvedValueOnce({ object: summary })
+  await act('summarize', 1)
+  const localPrompt = generateObject.mock.calls.at(-1)?.[0].prompt as string
+  expect(localPrompt).toContain(CV)
+  expect(localPrompt).not.toContain('Candidate #1')
+  const line = logged.mock.calls.map((c) => String(c[0])).find((l) => l.includes('ai prompt'))
+  expect(line).toContain('Candidate #1')
+  expect(line).not.toContain(amelia.lastName)
+  logged.mockRestore()
+
   const gone = await app.request('/api/ai/summary/1', { method: 'DELETE' })
   expect(candidateSchema.parse(await gone.json()).aiSummaryJson).toBeNull()
   expect((await app.request('/api/ai/summary/9999', { method: 'DELETE' })).status).toBe(404)
+})
+
+test('GET /api/ai/preview/:id shows original next to anonymized and names the provider', async () => {
+  expect((await app.request('/api/ai/preview/9999')).status).toBe(404)
+  const local = aiPreviewSchema.parse(await (await app.request('/api/ai/preview/1')).json())
+  expect(local.provider).toBe('local')
+  expect(local.original).toBe(CV)
+  expect(local.anonymized).toContain('Candidate #1')
+  expect(local.anonymized).not.toContain(amelia.lastName)
+  expect(local.replacements).toEqual([
+    { kind: 'email', count: 1 },
+    { kind: 'phone', count: 1 },
+    { kind: 'name', count: 1 },
+  ])
+  await putSettings(CLOUD)
+  const cloud = aiPreviewSchema.parse(await (await app.request('/api/ai/preview/1')).json())
+  expect(cloud.provider).toBe('cloud')
 })
