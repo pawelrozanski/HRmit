@@ -132,6 +132,8 @@ _(done 2026-10-19; `GET /api/candidates/:id/meetings/preview?startsAt=…` gener
 
 ## Stage 11: Polish and release 0.1
 
+_(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were taken with Playwright against the local build on a throwaway data dir, with one fictional CV summarized by Ollama; the Docker image runs the TypeScript source with tsx and a production-only install, with `HOST` (default `127.0.0.1`, `0.0.0.0` inside the container) and `OLLAMA_BASE_URL` as new env vars, and it was replayed locally in a temp dir but not run with Docker, which is not installed; the Playwright smoke test builds and serves the demo itself and doubles as the axe run, so there is no separate accessibility script; the accessibility pass moved the shadcn `primary` token from `brand` to `brand-dark`, since white on `#F26B1D` is 3.1:1, and made the app header the `h1`; the security review added a loopback check on `Origin` and `Host` for `/api/*`, upgraded vitest to 5 for the tinypool advisory and moved the shadcn CLI to devDependencies, the remaining advisories are documented in `docs/SECURITY.md`; the GitHub release was not created because no authenticated GitHub client was available, only the annotated tag was pushed)_
+
 - Landing page final copy and logo, README screenshots, demo walkthrough.
 - `docker-compose.yml` as an alternative run path.
 - Playwright smoke test of the demo build in CI.
