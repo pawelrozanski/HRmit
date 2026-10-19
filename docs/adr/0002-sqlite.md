@@ -20,3 +20,7 @@ The product promise is "your recruitment data stays home". A single recruiter ru
 - Single-writer database. Fine for one user; a team edition would need Postgres, which Drizzle also supports, so the query code would mostly survive.
 - WAL mode is enabled for the few concurrent reads the UI makes.
 - Deleting a candidate must delete both the row and the file; this is one transaction plus one `unlink`, and the roadmap's security review checks it.
+
+## Amendment (2026-10-19, stage 1)
+
+Drizzle 0.45 ships no `node:sqlite` driver (only `better-sqlite3`, `libsql`, `bun:sqlite` and friends). Rather than add a native addon, the server wires Node's `DatabaseSync` into Drizzle through `drizzle-orm/sqlite-proxy`, a ten-line callback in `apps/server/src/db/index.ts`. Queries are async at the Drizzle level and synchronous underneath. Switch to the official driver when one appears; nothing outside that file changes.
