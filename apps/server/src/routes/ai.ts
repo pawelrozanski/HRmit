@@ -2,20 +2,24 @@ import { generateObject, generateText } from 'ai'
 import { eq } from 'drizzle-orm'
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
-import type { z } from 'zod'
+import { z } from 'zod'
 import {
   aiActionBodySchema,
   anonymize,
   competenciesSchema,
+  cvContactSchema,
   cvSummarySchema,
+  extractContact,
   isLocalProvider,
   questionsGenerationSchema,
   type AiPreview,
   type AiSummary,
   type AiTestResult,
+  type CvImport,
   type QuestionsProposal,
 } from '@hrmit/shared'
 import { competenciesPrompt } from '../ai/prompts/competencies.ts'
+import { contactPrompt } from '../ai/prompts/contact.ts'
 import { questionsPrompt } from '../ai/prompts/questions.ts'
 import { summarizePrompt } from '../ai/prompts/summarize.ts'
 import { listQuestions, replaceQuestions } from './jobs.ts'
@@ -23,6 +27,7 @@ import { createModel } from '../ai/provider.ts'
 import { db } from '../db/index.ts'
 import { candidateColumns, candidates, jobs } from '../db/schema.ts'
 import { log } from '../log.ts'
+import { extractCvText, validateCv } from '../security/upload.ts'
 import { getAiSettings } from '../settings.ts'
 
 /** Error text safe for the UI and the log: no key, no stack, no credentials inside URLs. */
@@ -166,6 +171,51 @@ export const aiRoute = new Hono()
     const applied = (await listQuestions(jobId)).length === 0
     if (applied) await replaceQuestions(jobId, object.questions)
     return c.json<QuestionsProposal>({ questions: object.questions, applied })
+  })
+  // Prefill for the new-candidate form. Nothing is stored here: the file is parsed and the
+  // fields returned; the client uploads the same file once the candidate exists. The CV of a
+  // person not yet in the database cannot be anonymized (no name to match), so only a local
+  // model ever reads it; with a cloud provider the regex heuristic answers instead.
+  .post('/parse-cv', zValidator('form', z.object({ file: z.instanceof(File) })), async (c) => {
+    const { file } = c.req.valid('form')
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const ext = validateCv(file.name, bytes)
+    if (ext === 'too_large') return c.json({ error: ext }, 413)
+    if (ext === 'bad_type') return c.json({ error: ext }, 415)
+    const cvText = await extractCvText(ext, bytes)
+    if (!cvText) return c.json({ error: 'no cv text' }, 422)
+
+    const heuristic = extractContact(cvText)
+    const settings = await getAiSettings()
+    if (!isLocalProvider(settings))
+      return c.json<CvImport>({ fields: heuristic, cvText, source: 'heuristic' })
+    try {
+      const { object } = await generateObject({
+        model: createModel(settings),
+        schema: cvContactSchema,
+        prompt: contactPrompt(cvText),
+      })
+      // Regexes copy emails and numbers more reliably than a 7B model. The model is better at
+      // spotting the name, but it also invents spellings: a name that is not in the text loses
+      // to the heuristic.
+      const inText = (s: string) => s !== '' && cvText.toLowerCase().includes(s.toLowerCase())
+      const trustName = inText(object.firstName) && inText(object.lastName)
+      const fields = {
+        firstName: trustName ? object.firstName : heuristic.firstName || object.firstName,
+        lastName: trustName ? object.lastName : heuristic.lastName || object.lastName,
+        email: heuristic.email || object.email,
+        phone: heuristic.phone || object.phone,
+      }
+      return c.json<CvImport>({ fields, cvText, source: 'ai' })
+    } catch (err) {
+      log.warn('ai action failed', {
+        action: 'parse-cv',
+        provider: settings.provider,
+        model: settings.model,
+        error: sanitize(err, settings.apiKey),
+      })
+      return c.json<CvImport>({ fields: heuristic, cvText, source: 'heuristic' })
+    }
   })
   // What a cloud provider would see, next to the original. Never logged.
   .get('/preview/:candidateId', async (c) => {
