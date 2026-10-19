@@ -1,14 +1,24 @@
 import {
   aiProviderSchema,
+  isLocalProvider,
   type AiProvider,
   type AiSettingsView,
   type AiTestResult,
 } from '@hrmit/shared'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
 import { Button } from '@/components/ui/button.tsx'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
 
@@ -39,6 +49,23 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
   const [apiKey, setApiKey] = useState('')
   const [status, setStatus] = useState<'idle' | 'saving' | 'testing' | 'saved' | 'failed'>('idle')
   const [result, setResult] = useState<AiTestResult>()
+  // ADR 0005: a cloud endpoint is opt-in. The action waits here until the user confirms.
+  const [pending, setPending] = useState<(() => Promise<void>) | null>(null)
+  const needsConsent =
+    !isLocalProvider(form) && (form.provider !== view.provider || form.baseUrl !== view.baseUrl)
+  const guarded = (run: () => Promise<void>) => (needsConsent ? setPending(() => run) : run())
+  const confirm = async () => {
+    const run = pending
+    setPending(null)
+    await run?.()
+  }
+  const host = (() => {
+    try {
+      return new URL(form.baseUrl).host
+    } catch {
+      return form.baseUrl
+    }
+  })()
 
   const changeProvider = (provider: AiProvider) =>
     setForm((f) => ({
@@ -61,19 +88,22 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
     return true
   }
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault()
-    await save(apiKey || undefined)
+    guarded(async () => {
+      await save(apiKey || undefined)
+    })
   }
 
   // Tests what the server has, so unsaved edits are saved first.
-  const test = async () => {
-    if (!(await save(apiKey || undefined))) return
-    setStatus('testing')
-    const res = await api.api.ai.test.$post()
-    setResult(await res.json())
-    setStatus('idle')
-  }
+  const test = () =>
+    guarded(async () => {
+      if (!(await save(apiKey || undefined))) return
+      setStatus('testing')
+      const res = await api.api.ai.test.$post()
+      setResult(await res.json())
+      setStatus('idle')
+    })
 
   const busy = status === 'saving' || status === 'testing'
 
@@ -179,6 +209,49 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
             : t('settings.testFailed', { error: result.error })}
         </p>
       )}
+
+      <Dialog open={pending !== null} onOpenChange={(o) => !o && setPending(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {t('settings.cloud.title', { provider: t(`settings.providers.${form.provider}`) })}
+            </DialogTitle>
+            <DialogDescription>{t('settings.cloud.endpoint', { host })}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div>
+              <p className="font-medium">{t('settings.cloud.sent')}</p>
+              <ul className="list-disc pl-5 text-muted-foreground">
+                {(['cv', 'title', 'description'] as const).map((k) => (
+                  <li key={k}>{t(`settings.cloud.sentFields.${k}`)}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-medium">{t('settings.cloud.never')}</p>
+              <ul className="list-disc pl-5 text-muted-foreground">
+                {(['name', 'email', 'phone', 'notes', 'photo'] as const).map((k) => (
+                  <li key={k}>{t(`settings.cloud.neverFields.${k}`)}</li>
+                ))}
+              </ul>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              <Link to=".." className="text-brand-dark underline">
+                {t('settings.cloud.previewLink')}
+              </Link>{' '}
+              {t('settings.cloud.previewHint')}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setPending(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="button" onClick={confirm}>
+              {t('settings.cloud.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   )
 }

@@ -1,4 +1,4 @@
-import type { AiLang, AiSummary, Candidate } from '@hrmit/shared'
+import { isLocalProvider, type AiLang, type AiSummary, type Candidate } from '@hrmit/shared'
 import { ListChecks, RotateCcw, Sparkles, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -7,12 +7,11 @@ import { useApi } from '@/api/useApi.ts'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { useBlind } from '../candidates/BlindContext.ts'
+import { AnonymizePreview } from './AnonymizePreview.tsx'
 import { useTypewriter } from './useTypewriter.ts'
 
 type Props = { candidate: Candidate; onChange: (c: Candidate) => void }
 type Action = keyof AiSummary
-
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'])
 
 /** Two buttons, two results, one disclaimer. ADR 0004: suggestions a human keeps or discards. */
 export function AiSection({ candidate, onChange }: Props) {
@@ -23,7 +22,9 @@ export function AiSection({ candidate, onChange }: Props) {
   // Which result was produced in this session: only that one gets the typing effect.
   const [fresh, setFresh] = useState<Action | null>(null)
   const settings = useApi(() => api.api.settings.ai.$get().then((r) => r.json()), [])
-  const isLocal = settings.data ? LOCAL_HOSTS.has(new URL(settings.data.baseUrl).hostname) : null
+  // Same rule as the server (packages/shared): Ollama, or an OpenAI-compatible endpoint on a
+  // loopback or private host, is local; everything else gets anonymized text.
+  const isLocal = settings.data ? isLocalProvider(settings.data) : null
 
   const run = async (action: Action) => {
     setBusy(action)
@@ -65,6 +66,7 @@ export function AiSection({ candidate, onChange }: Props) {
         <Button variant="outline" size="sm" disabled={!canRun} onClick={() => run('competencies')}>
           <ListChecks data-icon="inline-start" /> {t('ai.competencies')}
         </Button>
+        <AnonymizePreview candidateId={candidate.id} disabled={!candidate.cvText} />
       </div>
       {!candidate.cvText && <p className="text-xs text-muted-foreground">{t('ai.noCv')}</p>}
       {busy && (

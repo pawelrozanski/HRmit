@@ -128,7 +128,28 @@
     "testing": "Testowanie…",
     "saved": "Zapisano.",
     "testOk": "Połączono z {{model}} w {{ms}} ms.",
-    "testFailed": "Połączenie nie powiodło się: {{error}}"
+    "testFailed": "Połączenie nie powiodło się: {{error}}",
+    "cloud": {
+      "title": "Wysyłać zanonimizowane dane do: {{provider}}?",
+      "endpoint": "Zapytania trafią do {{host}} z Twoim własnym kluczem. Nic nie jest wysyłane, dopóki nie uruchomisz akcji AI.",
+      "sent": "Wysyłane, po lokalnej anonimizacji:",
+      "sentFields": {
+        "cv": "Tekst CV (imię, nazwisko i dane kontaktowe zastąpione przez Candidate #N i znaczniki)",
+        "title": "Tytuł ogłoszenia",
+        "description": "Opis ogłoszenia"
+      },
+      "never": "Nigdy nie wysyłane:",
+      "neverFields": {
+        "name": "Imię i nazwisko",
+        "email": "E-mail",
+        "phone": "Telefon",
+        "notes": "Notatki",
+        "photo": "Zdjęcie i sam plik CV"
+      },
+      "previewLink": "Podgląd zanonimizowanych danych",
+      "previewHint": "u dowolnego kandydata z CV, w sekcji Asystent AI.",
+      "confirm": "Rozumiem, włącz"
+    }
   },
   "ai": {
     "title": "Asystent AI",
@@ -147,6 +168,43 @@
     "regenerate": "Wygeneruj ponownie",
     "discard": "Odrzuć",
     "hidden": "Sugestie AI ukryte przez ślepą selekcję.",
-    "failed": "Model nie odpowiedział: {{error}}"
+    "failed": "Model nie odpowiedział: {{error}}",
+    "preview": "Podgląd zanonimizowanych danych",
+    "previewTitle": "Co otrzymałby dostawca w chmurze",
+    "previewHint": "Po lewej: tekst wyodrębniony z CV. Po prawej: ten sam tekst po lokalnej anonimizacji. Dostawcy lokalni dostają wersję z lewej.",
+    "original": "Oryginał",
+    "anonymized": "Po anonimizacji",
+    "noReplacements": "Nic nie zostało zastąpione.",
+    "heuristic": "To heurystyka, nie rozpoznawanie nazw własnych: zastępowane są pola z formularza (imię, nazwisko, e-mail, telefon) i typowe wzorce (e-maile, telefony, adresy URL, PESEL, daty urodzenia, adresy). Imiona i nazwiska obecne tylko w treści CV, np. referencje czy byli przełożeni, mogą się prześlizgnąć.",
+    "kinds": {
+      "name_one": "{{count}} imię/nazwisko",
+      "name_few": "{{count}} imiona/nazwiska",
+      "name_many": "{{count}} imion/nazwisk",
+      "name_other": "{{count}} imion/nazwisk",
+      "email_one": "{{count}} e-mail",
+      "email_few": "{{count}} e-maile",
+      "email_many": "{{count}} e-maili",
+      "email_other": "{{count}} e-maili",
+      "phone_one": "{{count}} telefon",
+      "phone_few": "{{count}} telefony",
+      "phone_many": "{{count}} telefonów",
+      "phone_other": "{{count}} telefonów",
+      "url_one": "{{count}} adres URL",
+      "url_few": "{{count}} adresy URL",
+      "url_many": "{{count}} adresów URL",
+      "url_other": "{{count}} adresów URL",
+      "pesel_one": "{{count}} PESEL",
+      "pesel_few": "{{count}} PESEL",
+      "pesel_many": "{{count}} PESEL",
+      "pesel_other": "{{count}} PESEL",
+      "birthDate_one": "{{count}} data urodzenia",
+      "birthDate_few": "{{count}} daty urodzenia",
+      "birthDate_many": "{{count}} dat urodzenia",
+      "birthDate_other": "{{count}} dat urodzenia",
+      "address_one": "{{count}} linia adresu",
+      "address_few": "{{count}} linie adresu",
+      "address_many": "{{count}} linii adresu",
+      "address_other": "{{count}} linii adresu"
+    }
   }
 }

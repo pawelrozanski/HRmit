@@ -126,7 +126,28 @@
     "testing": "Testing…",
     "saved": "Saved.",
     "testOk": "Connected to {{model}} in {{ms}} ms.",
-    "testFailed": "Connection failed: {{error}}"
+    "testFailed": "Connection failed: {{error}}",
+    "cloud": {
+      "title": "Send anonymized data to {{provider}}?",
+      "endpoint": "Requests will go to {{host}} with your own key. Nothing is sent until you run an AI action.",
+      "sent": "Sent, after local anonymization:",
+      "sentFields": {
+        "cv": "CV text (name and contact details replaced by Candidate #N and placeholders)",
+        "title": "Job title",
+        "description": "Job description"
+      },
+      "never": "Never sent:",
+      "neverFields": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "notes": "Notes",
+        "photo": "Photo and the CV file itself"
+      },
+      "previewLink": "Preview anonymized data",
+      "previewHint": "on any candidate with a CV, under AI assistant.",
+      "confirm": "I understand, enable"
+    }
   },
   "ai": {
     "title": "AI assistant",
@@ -145,6 +166,29 @@
     "regenerate": "Regenerate",
     "discard": "Discard",
     "hidden": "AI suggestions hidden by blind screening.",
-    "failed": "The model did not answer: {{error}}"
+    "failed": "The model did not answer: {{error}}",
+    "preview": "Preview anonymized data",
+    "previewTitle": "What a cloud provider would receive",
+    "previewHint": "Left: the extracted CV text. Right: the same text after local anonymization. Local providers get the left version.",
+    "original": "Original",
+    "anonymized": "Anonymized",
+    "noReplacements": "Nothing was replaced.",
+    "heuristic": "Heuristic, not named-entity recognition: the structured fields (name, email, phone) and common patterns (emails, phones, URLs, PESEL, birth dates, addresses) are replaced. Names that appear only in the CV body, such as references or former managers, can slip through.",
+    "kinds": {
+      "name_one": "{{count}} name",
+      "name_other": "{{count}} names",
+      "email_one": "{{count}} email",
+      "email_other": "{{count}} emails",
+      "phone_one": "{{count}} phone",
+      "phone_other": "{{count}} phones",
+      "url_one": "{{count}} URL",
+      "url_other": "{{count}} URLs",
+      "pesel_one": "{{count}} PESEL",
+      "pesel_other": "{{count}} PESEL",
+      "birthDate_one": "{{count}} birth date",
+      "birthDate_other": "{{count}} birth dates",
+      "address_one": "{{count}} address line",
+      "address_other": "{{count}} address lines"
+    }
   }
 }
