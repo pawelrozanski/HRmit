@@ -21,7 +21,16 @@
         "text": "Ślepa selekcja ukrywa nazwiska i dane kontaktowe. Każdy kandydat na dane stanowisko dostaje te same pytania i te same kryteria."
       }
     },
-    "openSource": "Otwarte oprogramowanie na licencji MIT."
+    "openSource": "Otwarte oprogramowanie na licencji MIT.",
+    "demo": {
+      "title": "Jak działa demo",
+      "text": "Demo to ta sama aplikacja zbudowana z jedną flagą: service worker w Twojej przeglądarce odpowiada na każde wywołanie API fikcyjnymi danymi i zapisuje Twoje zmiany w localStorage. Nic nie jest nigdzie wysyłane. „Resetuj demo” w banerze przywraca dane startowe. Odpowiedzi AI są nagrane z góry."
+    },
+    "run": {
+      "title": "Uruchom lokalnie",
+      "text": "Node 24 i pnpm. Funkcje AI wymagają Ollamy (darmowej, lokalnej); dostawcy chmurowi i Docker są opisane w README."
+    },
+    "docs": "Dokumentacja"
   },
   "nav": {
     "jobs": "Stanowiska",

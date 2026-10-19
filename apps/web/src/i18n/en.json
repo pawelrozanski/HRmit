@@ -21,7 +21,16 @@
         "text": "Blind screening hides names and contact details. Every candidate for a job gets the same questions and the same criteria."
       }
     },
-    "openSource": "Open source, MIT licensed."
+    "openSource": "Open source, MIT licensed.",
+    "demo": {
+      "title": "How the demo works",
+      "text": "The demo is the real app built with one flag: a service worker in your browser answers every API call from fictional fixtures and keeps your changes in localStorage. Nothing is sent anywhere. \"Reset demo\" in the banner restores the fixtures. AI answers are pre-recorded."
+    },
+    "run": {
+      "title": "Run it locally",
+      "text": "Node 24 and pnpm. AI features need Ollama (free, local); see the README for cloud providers and Docker."
+    },
+    "docs": "Docs"
   },
   "nav": {
     "jobs": "Jobs",

@@ -4,7 +4,13 @@ import { LanguageSwitch } from '../components/LanguageSwitch.tsx'
 import { Button } from '@/components/ui/button.tsx'
 
 const REPO = 'https://github.com/pawelrozanski/HRmit'
+const DOCS = `${REPO}/tree/main/docs`
 const FEATURES = ['local', 'assist', 'fair'] as const
+const RUN_LOCALLY = `git clone ${REPO}.git
+cd HRmit
+pnpm install
+pnpm dev
+# open http://localhost:5173`
 
 export function Landing() {
   const { t } = useTranslation()
@@ -13,8 +19,7 @@ export function Landing() {
       <div className="self-end">
         <LanguageSwitch />
       </div>
-      {/* logo placeholder: hermit crab */}
-      <div className="size-24 rounded-full bg-brand" aria-hidden="true" />
+      <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" className="size-28" />
       <h1 className="text-4xl font-bold text-brand-dark">HRmit</h1>
       <p className="text-xl">{t('tagline')}</p>
       <p className="max-w-xl text-muted-foreground">{t('landing.lead')}</p>
@@ -36,7 +41,27 @@ export function Landing() {
           </li>
         ))}
       </ul>
-      <p className="text-xs text-muted-foreground">{t('landing.openSource')}</p>
+      <section className="max-w-xl">
+        <h2 className="font-semibold text-brand-dark">{t('landing.demo.title')}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t('landing.demo.text')}</p>
+      </section>
+      <section className="w-full max-w-xl text-left">
+        <h2 className="text-center font-semibold text-brand-dark">{t('landing.run.title')}</h2>
+        <p className="mt-1 text-center text-sm text-muted-foreground">{t('landing.run.text')}</p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-ink p-4 text-sm text-white">
+          <code>{RUN_LOCALLY}</code>
+        </pre>
+      </section>
+      <p className="text-xs text-muted-foreground">
+        {t('landing.openSource')}{' '}
+        <a href={REPO} className="text-brand-dark underline">
+          GitHub
+        </a>
+        {' · '}
+        <a href={DOCS} className="text-brand-dark underline">
+          {t('landing.docs')}
+        </a>
+      </p>
     </main>
   )
 }
