@@ -59,6 +59,8 @@ _(done 2026-10-19; delete confirmation is a native `confirm()`, the demo downloa
 
 ## Stage 4: AI settings and local provider
 
+_(done 2026-10-19; "Test connection" saves the form first, so it always tests what is stored; the master key file gets mode 0600 where the OS honours it, on Windows NTFS ACLs apply instead)_
+
 - Schema: `settings`. Server: AES-256-GCM encryption helper, master key on first run, log redaction.
 - Routes: get/update settings (secrets masked), `POST /ai/test`.
 - UI: settings page with provider choice (Ollama / Anthropic / OpenAI-compatible), base URL, model, key field that never echoes the key, "Test connection".
