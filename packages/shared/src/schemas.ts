@@ -37,3 +37,6 @@ export const candidateSchema = z.object({
   createdAt: z.string(),
 })
 export type Candidate = z.infer<typeof candidateSchema>
+
+/** Body of PATCH /api/candidates/:id/stage. */
+export const moveStageSchema = z.object({ stage: pipelineStageSchema })
