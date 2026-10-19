@@ -1,5 +1,5 @@
 import { getTableColumns } from 'drizzle-orm'
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
 import { PIPELINE_STAGES, type AiSummary } from '@hrmit/shared'
 
 // docs/ARCHITECTURE.md §3.
@@ -49,6 +49,27 @@ export const interviewQuestions = sqliteTable('interview_questions', {
   question: text('question').notNull(),
   sortOrder: integer('sort_order').notNull(),
 })
+
+/**
+ * Scorecard (ADR 0004): one human score and note per candidate and question. Goes away with
+ * the candidate (GDPR erasure) and with the question (guide edited).
+ */
+export const evaluations = sqliteTable(
+  'evaluations',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    candidateId: integer('candidate_id')
+      .notNull()
+      .references(() => candidates.id, { onDelete: 'cascade' }),
+    questionId: integer('question_id')
+      .notNull()
+      .references(() => interviewQuestions.id, { onDelete: 'cascade' }),
+    /** 1 to 5, null until scored. The range is enforced by the shared zod schema. */
+    score: integer('score'),
+    note: text('note').notNull().default(''),
+  },
+  (t) => [unique().on(t.candidateId, t.questionId)],
+)
 
 /** Key-value settings (ai.provider, ai.apiKey, ...). Keys on the secret list are stored encrypted. */
 export const settings = sqliteTable('settings', {

@@ -1,5 +1,5 @@
 import { zValidator } from '@hono/zod-validator'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, notInArray } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { validator } from 'hono/validator'
 import {
@@ -21,15 +21,30 @@ export const listQuestions = (jobId: number) =>
 
 /**
  * Replace the job's whole list; sortOrder is the array index. One call covers create, edit,
- * delete and reorder. ponytail: delete + insert without a transaction (sqlite-proxy has none);
- * a single local user never races itself.
+ * delete and reorder. Rows whose text is unchanged keep their id, so their evaluations survive
+ * a reorder or an edit of another question; an edited question starts with no scores.
+ * ponytail: no transaction (sqlite-proxy has none); a single local user never races itself.
  */
 export async function replaceQuestions(jobId: number, inputs: InterviewQuestionInput[]) {
-  await db.delete(interviewQuestions).where(eq(interviewQuestions.jobId, jobId))
-  if (inputs.length)
-    await db
-      .insert(interviewQuestions)
-      .values(inputs.map((q, sortOrder) => ({ ...q, jobId, sortOrder })))
+  const key = (q: InterviewQuestionInput) => `${q.competency}
+${q.question}`
+  const existing = new Map((await listQuestions(jobId)).map((q) => [key(q), q.id]))
+  // Match each input to at most one existing row, in order.
+  const ids = inputs.map((q) => {
+    const id = existing.get(key(q))
+    existing.delete(key(q))
+    return id
+  })
+  const kept = ids.filter((id) => id !== undefined)
+  await db
+    .delete(interviewQuestions)
+    .where(and(eq(interviewQuestions.jobId, jobId), notInArray(interviewQuestions.id, kept)))
+  for (const [sortOrder, q] of inputs.entries()) {
+    const id = ids[sortOrder]
+    if (id !== undefined)
+      await db.update(interviewQuestions).set({ sortOrder }).where(eq(interviewQuestions.id, id))
+    else await db.insert(interviewQuestions).values({ ...q, jobId, sortOrder })
+  }
   return listQuestions(jobId)
 }
 

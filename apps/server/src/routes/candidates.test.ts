@@ -1,9 +1,11 @@
 import { readdirSync } from 'node:fs'
 import { crc32, deflateRawSync } from 'node:zlib'
 import { expect, test } from 'vitest'
-import { candidateSchema } from '@hrmit/shared'
+import { eq } from 'drizzle-orm'
+import { candidateSchema, fixtures, scorecardSchema } from '@hrmit/shared'
 import { app } from '../app.ts'
-import { uploadsDir } from '../db/index.ts'
+import { db, uploadsDir } from '../db/index.ts'
+import { evaluations } from '../db/schema.ts'
 
 const json = (method: string, path: string, body: unknown) =>
   app.request(path, {
@@ -184,4 +186,83 @@ test('DELETE /api/candidates/:id removes the row and the file', async () => {
     .parse(await (await app.request('/api/jobs/1/candidates')).json())
   expect(list.some((c) => c.id === 5)).toBe(false)
   expect((await app.request('/api/candidates/5', { method: 'DELETE' })).status).toBe(404)
+})
+
+// --- scorecard ------------------------------------------------------------------------------
+
+const scorecardOf = async (id: number) =>
+  scorecardSchema.parse(await (await app.request(`/api/candidates/${id}/scorecard`)).json())
+const storedFor = (candidateId: number) =>
+  db.select().from(evaluations).where(eq(evaluations.candidateId, candidateId))
+
+test('GET /api/candidates/:id/scorecard lists every question of the job, scored or not', async () => {
+  const seeded = await scorecardOf(1)
+  expect(seeded.candidateId).toBe(1)
+  expect(
+    seeded.evaluations.map(({ questionId, score, note }) => ({ questionId, score, note })),
+  ).toEqual(fixtures.evaluations[1])
+  expect(seeded.evaluations.map((e) => e.question)).toEqual(
+    fixtures.questions[1]!.map((q) => q.question),
+  )
+
+  const unscored = await scorecardOf(3)
+  expect(unscored.evaluations).toHaveLength(fixtures.questions[1]!.length)
+  expect(unscored.evaluations.every((e) => e.score === null && e.note === '')).toBe(true)
+  expect((await app.request('/api/candidates/9999/scorecard')).status).toBe(404)
+})
+
+test('PUT /api/candidates/:id/scorecard upserts, re-PUT updates, foreign questions are rejected', async () => {
+  const [q1, q2] = (await scorecardOf(3)).evaluations
+  const first = await json('PUT', '/api/candidates/3/scorecard', [
+    { questionId: q1!.questionId, score: 4, note: 'Clear example.' },
+  ])
+  expect(first.status).toBe(200)
+  const after = scorecardSchema.parse(await first.json())
+  expect(after.evaluations[0]).toMatchObject({ score: 4, note: 'Clear example.' })
+  expect(after.evaluations[1]).toMatchObject({ score: null, note: '' })
+
+  const second = await json('PUT', '/api/candidates/3/scorecard', [
+    { questionId: q1!.questionId, score: 2, note: 'On reflection, vague.' },
+    { questionId: q2!.questionId, score: null, note: 'Not asked yet.' },
+  ])
+  const updated = scorecardSchema.parse(await second.json())
+  expect(updated.evaluations[0]).toMatchObject({ score: 2, note: 'On reflection, vague.' })
+  expect(updated.evaluations[1]).toMatchObject({ score: null, note: 'Not asked yet.' })
+  expect(await scorecardOf(3)).toEqual(updated)
+  expect(await storedFor(3)).toHaveLength(2)
+
+  // A question of another job (job 2's first), an out-of-range score, an unknown candidate.
+  const foreign = (await scorecardOf(7)).evaluations[0]!.questionId
+  expect(
+    (
+      await json('PUT', '/api/candidates/3/scorecard', [
+        { questionId: foreign, score: 3, note: '' },
+      ])
+    ).status,
+  ).toBe(400)
+  expect(
+    (
+      await json('PUT', '/api/candidates/3/scorecard', [
+        { questionId: q1!.questionId, score: 6, note: '' },
+      ])
+    ).status,
+  ).toBe(400)
+  expect((await json('PUT', '/api/candidates/9999/scorecard', [])).status).toBe(404)
+})
+
+test('evaluations cascade: candidate deletion and question removal, reorder keeps them', async () => {
+  expect((await storedFor(1)).length).toBeGreaterThan(0)
+  expect((await app.request('/api/candidates/1', { method: 'DELETE' })).status).toBe(204)
+  expect(await storedFor(1)).toEqual([])
+
+  // Job 1 still has Marcus (4) scored on six questions. Reorder: all six survive.
+  const before = await scorecardOf(4)
+  const inputs = before.evaluations.map(({ competency, question }) => ({ competency, question }))
+  await json('PUT', '/api/jobs/1/questions', [...inputs].reverse())
+  expect((await scorecardOf(4)).evaluations.filter((e) => e.score !== null)).toHaveLength(6)
+  // Keep only the first two questions: evaluations of the others are gone.
+  await json('PUT', '/api/jobs/1/questions', inputs.slice(0, 2))
+  const shorter = await scorecardOf(4)
+  expect(shorter.evaluations).toHaveLength(2)
+  expect(await storedFor(4)).toHaveLength(2)
 })

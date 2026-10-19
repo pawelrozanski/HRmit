@@ -1,12 +1,17 @@
 import { readFile, rm, writeFile } from 'node:fs/promises'
 import { extname, join } from 'node:path'
 import { zValidator } from '@hono/zod-validator'
-import { eq } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { candidateInputSchema, moveStageSchema } from '@hrmit/shared'
+import {
+  candidateInputSchema,
+  evaluationSchema,
+  moveStageSchema,
+  type Scorecard,
+} from '@hrmit/shared'
 import { db, uploadsDir } from '../db/index.ts'
-import { candidateColumns, candidates } from '../db/schema.ts'
+import { candidateColumns, candidates, evaluations, interviewQuestions } from '../db/schema.ts'
 import { CV_MIME, extractCvText, validateCv, type CvExt } from '../security/upload.ts'
 
 const byId = (id: string) => eq(candidates.id, Number(id))
@@ -14,6 +19,36 @@ const byId = (id: string) => eq(candidates.id, Number(id))
 /** Remove a stored CV file if there is one. A missing file is not an error. */
 const unlinkCv = (cvPath: string | null) =>
   cvPath ? rm(join(uploadsDir, cvPath), { force: true }) : Promise.resolve()
+
+const jobOf = (id: string) =>
+  db
+    .select({ jobId: candidates.jobId })
+    .from(candidates)
+    .where(byId(id))
+    .then((rows) => rows[0]?.jobId)
+
+/** The job's questions in guide order, each with this candidate's evaluation or an empty one. */
+async function scorecard(candidateId: number, jobId: number): Promise<Scorecard> {
+  const rows = await db
+    .select({
+      questionId: interviewQuestions.id,
+      competency: interviewQuestions.competency,
+      question: interviewQuestions.question,
+      score: evaluations.score,
+      note: evaluations.note,
+    })
+    .from(interviewQuestions)
+    .leftJoin(
+      evaluations,
+      and(
+        eq(evaluations.questionId, interviewQuestions.id),
+        eq(evaluations.candidateId, candidateId),
+      ),
+    )
+    .where(eq(interviewQuestions.jobId, jobId))
+    .orderBy(interviewQuestions.sortOrder, interviewQuestions.id)
+  return { candidateId, evaluations: rows.map((r) => ({ ...r, note: r.note ?? '' })) }
+}
 
 export const candidatesRoute = new Hono()
   .post('/', zValidator('json', candidateInputSchema), async (c) => {
@@ -38,7 +73,7 @@ export const candidatesRoute = new Hono()
       .returning(candidateColumns)
     return c.json(row)
   })
-  // GDPR erasure path: the row and the file go together. Related tables cascade (none yet).
+  // GDPR erasure path: the row and the file go together; evaluations cascade in the schema.
   .delete('/:id', async (c) => {
     const [row] = await db
       .delete(candidates)
@@ -95,4 +130,35 @@ export const candidatesRoute = new Hono()
       'content-type': CV_MIME[ext],
       'content-disposition': `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`,
     })
+  })
+  .get('/:id/scorecard', async (c) => {
+    const jobId = await jobOf(c.req.param('id'))
+    if (jobId === undefined) return c.json({ error: 'not found' }, 404)
+    return c.json(await scorecard(Number(c.req.param('id')), jobId))
+  })
+  // Upsert per question. Scores can only be given on the candidate's own job's questions.
+  .put('/:id/scorecard', zValidator('json', evaluationSchema.array()), async (c) => {
+    const candidateId = Number(c.req.param('id'))
+    const jobId = await jobOf(c.req.param('id'))
+    if (jobId === undefined) return c.json({ error: 'not found' }, 404)
+    const inputs = c.req.valid('json')
+    const valid = new Set(
+      (
+        await db
+          .select({ id: interviewQuestions.id })
+          .from(interviewQuestions)
+          .where(eq(interviewQuestions.jobId, jobId))
+      ).map((q) => q.id),
+    )
+    if (inputs.some((e) => !valid.has(e.questionId)))
+      return c.json({ error: 'question not in this job' }, 400)
+    if (inputs.length)
+      await db
+        .insert(evaluations)
+        .values(inputs.map((e) => ({ candidateId, ...e })))
+        .onConflictDoUpdate({
+          target: [evaluations.candidateId, evaluations.questionId],
+          set: { score: sql`excluded.score`, note: sql`excluded.note` },
+        })
+    return c.json(await scorecard(candidateId, jobId))
   })
