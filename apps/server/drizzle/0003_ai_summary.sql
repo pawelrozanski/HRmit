@@ -1,0 +1,1 @@
+ALTER TABLE `candidates` ADD `ai_summary_json` text;

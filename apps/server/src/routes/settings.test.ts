@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { AI_SETTINGS_DEFAULTS, aiSettingsViewSchema } from '@hrmit/shared'
 import { app } from '../app.ts'
 import { db } from '../db/index.ts'
@@ -38,4 +38,18 @@ test('PUT stores the key encrypted and GET never returns it', async () => {
 
   expect((await put({ ...body, baseUrl: 'not a url' })).status).toBe(400)
   expect((await put({ ...body, provider: 'openai' })).status).toBe(400)
+})
+
+test('a blob encrypted under another master.key reads as no key, not a 500', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  await db
+    .insert(settings)
+    .values({ key: 'ai.apiKey', value: 'AAAAAAAAAAAAAAAA.AAAAAAAAAAAAAAAAAAAAAA.AAAA' })
+    .onConflictDoUpdate({
+      target: settings.key,
+      set: { value: 'AAAAAAAAAAAAAAAA.AAAAAAAAAAAAAAAAAAAAAA.AAAA' },
+    })
+  expect((await get()).hasApiKey).toBe(false)
+  expect(warn).toHaveBeenCalled()
+  warn.mockRestore()
 })

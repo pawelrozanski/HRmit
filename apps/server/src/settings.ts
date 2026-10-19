@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { AI_SETTINGS_DEFAULTS, type AiSettings } from '@hrmit/shared'
 import { db } from './db/index.ts'
+import { log } from './log.ts'
 import { settings } from './db/schema.ts'
 import { decrypt, encrypt } from './security/secrets.ts'
 
@@ -11,7 +12,14 @@ const SECRET_KEYS = new Set(['ai.apiKey', 'smtp.pass'])
 export async function getSetting(key: string): Promise<string | undefined> {
   const [row] = await db.select().from(settings).where(eq(settings.key, key))
   if (!row) return undefined
-  return SECRET_KEYS.has(key) ? decrypt(row.value) : row.value
+  if (!SECRET_KEYS.has(key)) return row.value
+  try {
+    return decrypt(row.value)
+  } catch {
+    // A replaced master.key cannot open the old blob: behave as if no key were stored.
+    log.warn('secret could not be decrypted, treating as unset', { key })
+    return undefined
+  }
 }
 
 /** null removes the row. */

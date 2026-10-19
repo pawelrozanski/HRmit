@@ -1,6 +1,6 @@
 import { getTableColumns } from 'drizzle-orm'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { PIPELINE_STAGES } from '@hrmit/shared'
+import { PIPELINE_STAGES, type AiSummary } from '@hrmit/shared'
 
 // docs/ARCHITECTURE.md §3.
 export const jobs = sqliteTable('jobs', {
@@ -29,6 +29,8 @@ export const candidates = sqliteTable('candidates', {
   /** Random UUID name under <data dir>/uploads/. Never leaves the server (see candidateColumns). */
   cvPath: text('cv_path'),
   cvText: text('cv_text'),
+  /** Last output of each AI action (docs/ARCHITECTURE.md §3), parsed by drizzle's json mode. */
+  aiSummaryJson: text('ai_summary_json', { mode: 'json' }).$type<AiSummary>(),
   createdAt: text('created_at').notNull(),
 })
 
