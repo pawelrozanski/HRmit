@@ -27,3 +27,11 @@ test('GET /api/jobs/:id/candidates filters by stage', async () => {
 
   expect((await app.request('/api/jobs/1/candidates?stage=hired')).status).toBe(400)
 })
+
+test('a foreign Host or Origin is rejected, loopback and header-less clients pass', async () => {
+  const get = (headers: Record<string, string>) => app.request('/api/health', { headers })
+  expect((await get({ host: 'evil.example' })).status).toBe(403)
+  expect((await get({ host: '127.0.0.1:3000', origin: 'http://evil.example' })).status).toBe(403)
+  expect((await get({ host: 'localhost:5173', origin: 'http://localhost:5173' })).status).toBe(200)
+  expect((await get({ host: '[::1]:3000' })).status).toBe(200)
+})
