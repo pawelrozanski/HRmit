@@ -16,3 +16,7 @@ data/
 .idea/
 .DS_Store
 Thumbs.db
+
+# playwright
+test-results/
+playwright-report/
