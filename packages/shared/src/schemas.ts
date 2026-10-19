@@ -321,3 +321,20 @@ export const meetingResultSchema = z.object({
   email: emailSchema,
 })
 export type MeetingResult = z.infer<typeof meetingResultSchema>
+
+/** Prefill for the new-candidate form, parsed from an uploaded CV. Strings may be empty. */
+export const cvContactSchema = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  phone: z.string(),
+})
+export type CvContact = z.infer<typeof cvContactSchema>
+
+export const cvImportSchema = z.object({
+  fields: cvContactSchema,
+  cvText: z.string(),
+  /** 'ai' = a local model read the CV; 'heuristic' = regex guess (no local model). */
+  source: z.enum(['ai', 'heuristic']),
+})
+export type CvImport = z.infer<typeof cvImportSchema>

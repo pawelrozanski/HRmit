@@ -95,3 +95,11 @@ BSc Computer Science, 2020.
 
 Skills
 React, TypeScript, testing, accessibility (WCAG 2.1), Polish and English.`
+
+/** What the demo's "Import from CV" returns, whichever file is dropped. Fictional. */
+export const cvImport = {
+  firstName: 'Nadia',
+  lastName: 'Okafor',
+  email: 'nadia.okafor@example.com',
+  phone: '+48 600 000 199',
+}
