@@ -1,10 +1,12 @@
-import { HttpResponse, http } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import {
+  aiSettingsSchema,
   candidateInputSchema,
   fixtures,
   jobInputSchema,
   moveStageSchema,
   pipelineStageSchema,
+  type AiTestResult,
   type Health,
 } from '@hrmit/shared'
 import { save, store } from './store.ts'
@@ -103,4 +105,24 @@ export const handlers = [
   }),
   // No files are stored in the demo, so there is nothing to download.
   http.get(`${base}/api/candidates/:id/cv`, () => notFound()),
+  http.get(`${base}/api/settings/ai`, () => HttpResponse.json(store.aiSettings)),
+  // Same key rules as the server, but only the boolean is kept: the demo never stores a key.
+  http.put(`${base}/api/settings/ai`, async ({ request }) => {
+    const body = aiSettingsSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const { apiKey, ...fields } = body.data
+    const hasApiKey = apiKey === null ? false : apiKey ? true : store.aiSettings.hasApiKey
+    store.aiSettings = { ...fields, hasApiKey }
+    save()
+    return HttpResponse.json(store.aiSettings)
+  }),
+  // No model in the demo: the connection test always succeeds after a short pause.
+  http.post(`${base}/api/ai/test`, async () => {
+    await delay(600)
+    return HttpResponse.json<AiTestResult>({
+      ok: true,
+      model: store.aiSettings.model,
+      latencyMs: 600,
+    })
+  }),
 ]

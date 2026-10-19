@@ -1,4 +1,11 @@
-import { candidateSchema, fixtures, jobSchema } from '@hrmit/shared'
+import {
+  AI_SETTINGS_DEFAULTS,
+  aiSettingsViewSchema,
+  aiTestResultSchema,
+  candidateSchema,
+  fixtures,
+  jobSchema,
+} from '@hrmit/shared'
 import { setupServer } from 'msw/node'
 import { afterAll, beforeAll, expect, test, vi } from 'vitest'
 
@@ -14,7 +21,7 @@ vi.stubGlobal('localStorage', {
 const { handlers } = await import('./handlers.ts')
 const { DEMO_STORAGE_KEY } = await import('../config.ts')
 const persisted = () => JSON.parse(storage.get(DEMO_STORAGE_KEY) ?? '{}') as Store
-type Store = { jobs: unknown[]; candidates: { id: number }[] }
+type Store = { jobs: unknown[]; candidates: { id: number }[]; aiSettings?: unknown }
 
 // Contract check (ADR 0003): the demo handlers answer like the server and pass the shared schemas.
 const server = setupServer(...handlers)
@@ -106,4 +113,23 @@ test('demo candidates: create, edit, upload a CV, delete', async () => {
   const list = candidateSchema.array().parse(await get('/api/jobs/1/candidates'))
   expect(list.some((x) => x.id === c.id)).toBe(false)
   expect(persisted().candidates.some((x) => x.id === c.id)).toBe(false)
+})
+
+test('demo AI settings: persisted without the key, test always succeeds', async () => {
+  expect(aiSettingsViewSchema.parse(await get('/api/settings/ai'))).toEqual(AI_SETTINGS_DEFAULTS)
+
+  const body = { provider: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', model: 'claude-x' }
+  const saved = await send('PUT', '/api/settings/ai', { ...body, apiKey: 'sk-ant-demo' })
+  expect(aiSettingsViewSchema.parse(await saved.json())).toEqual({ ...body, hasApiKey: true })
+  expect(storage.get(DEMO_STORAGE_KEY)).not.toContain('sk-ant-demo')
+  expect(persisted().aiSettings).toEqual({ ...body, hasApiKey: true })
+
+  const kept = await send('PUT', '/api/settings/ai', { ...body, apiKey: '' })
+  expect(aiSettingsViewSchema.parse(await kept.json()).hasApiKey).toBe(true)
+  const cleared = await send('PUT', '/api/settings/ai', { ...body, apiKey: null })
+  expect(aiSettingsViewSchema.parse(await cleared.json()).hasApiKey).toBe(false)
+  expect((await send('PUT', '/api/settings/ai', { ...body, baseUrl: 'nope' })).status).toBe(400)
+
+  const test = await fetch('http://localhost/api/ai/test', { method: 'POST' })
+  expect(aiTestResultSchema.parse(await test.json())).toMatchObject({ ok: true, model: 'claude-x' })
 })
