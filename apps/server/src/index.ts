@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { app, VERSION } from './app.ts'
+import { log } from './log.ts'
 
 const PORT = Number(process.env.PORT ?? 3000)
 // Loopback only: nothing on the network can reach candidate data. See docs/ARCHITECTURE.md §7.
@@ -16,5 +17,5 @@ if (existsSync(webDist)) {
 }
 
 serve({ fetch: app.fetch, port: PORT, hostname: HOST }, () => {
-  console.log(`HRmit ${VERSION} listening on http://${HOST}:${PORT}`)
+  log.info('listening', { version: VERSION, url: `http://${HOST}:${PORT}` })
 })

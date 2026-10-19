@@ -13,9 +13,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.82",
+    "@ai-sdk/openai-compatible": "3.0.71",
     "@hono/node-server": "^1.19.5",
     "@hono/zod-validator": "^0.7.3",
     "@hrmit/shared": "workspace:*",
+    "ai": "7.0.143",
     "drizzle-orm": "0.45.4",
     "hono": "^4.10.1",
     "mammoth": "^1.13.0",

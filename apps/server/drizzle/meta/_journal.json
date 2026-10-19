@@ -15,6 +15,13 @@
       "when": 1792409400606,
       "tag": "0001_cv_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792410513679,
+      "tag": "0002_settings",
+      "breakpoints": true
     }
   ]
 }

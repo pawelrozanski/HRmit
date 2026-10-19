@@ -60,3 +60,36 @@ export type CandidateInput = z.input<typeof candidateInputSchema>
 
 /** Body of PATCH /api/candidates/:id/stage. */
 export const moveStageSchema = z.object({ stage: pipelineStageSchema })
+
+/** AI provider settings. ADR 0005: Ollama on localhost by default, cloud providers are BYOK. */
+export const aiProviderSchema = z.enum(['ollama', 'anthropic', 'openai-compatible'])
+export type AiProvider = z.infer<typeof aiProviderSchema>
+
+/** Body of PUT /api/settings/ai. apiKey omitted or '' keeps the stored key, null clears it. */
+export const aiSettingsSchema = z.object({
+  provider: aiProviderSchema,
+  baseUrl: z.string().url(),
+  model: z.string().min(1),
+  apiKey: z.string().nullable().optional(),
+})
+export type AiSettings = z.infer<typeof aiSettingsSchema>
+
+/** What GET /api/settings/ai returns: the key itself never leaves the server. */
+export const aiSettingsViewSchema = aiSettingsSchema
+  .omit({ apiKey: true })
+  .extend({ hasApiKey: z.boolean() })
+export type AiSettingsView = z.infer<typeof aiSettingsViewSchema>
+
+export const AI_SETTINGS_DEFAULTS: AiSettingsView = {
+  provider: 'ollama',
+  baseUrl: 'http://localhost:11434/v1',
+  model: 'qwen2.5:7b-instruct',
+  hasApiKey: false,
+}
+
+/** Result of POST /api/ai/test. The error text is sanitized on the server: no key, no stack. */
+export const aiTestResultSchema = z.discriminatedUnion('ok', [
+  z.object({ ok: z.literal(true), model: z.string(), latencyMs: z.number() }),
+  z.object({ ok: z.literal(false), error: z.string() }),
+])
+export type AiTestResult = z.infer<typeof aiTestResultSchema>

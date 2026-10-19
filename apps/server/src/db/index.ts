@@ -9,8 +9,8 @@ import { migrate } from 'drizzle-orm/sqlite-proxy/migrator'
 import { fixtures } from '@hrmit/shared'
 import * as schema from './schema.ts'
 
-// ./data/hrmit.db by default; HRMIT_DATA_DIR overrides. ':memory:' is for tests. See ADR 0002.
-const dataDir =
+// ./data/hrmit.db and master.key by default; HRMIT_DATA_DIR overrides. ':memory:' is for tests. See ADR 0002.
+export const dataDir =
   process.env.HRMIT_DATA_DIR ?? fileURLToPath(new URL('../../../../data', import.meta.url))
 const file = dataDir === ':memory:' ? dataDir : join(dataDir, 'hrmit.db')
 if (dataDir !== ':memory:') mkdirSync(dataDir, { recursive: true })

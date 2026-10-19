@@ -36,3 +36,9 @@ export const candidates = sqliteTable('candidates', {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { cvPath: _cvPath, ...candidateColumns } = getTableColumns(candidates)
 export { candidateColumns }
+
+/** Key-value settings (ai.provider, ai.apiKey, ...). Keys on the secret list are stored encrypted. */
+export const settings = sqliteTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+})
