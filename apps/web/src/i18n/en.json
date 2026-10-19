@@ -1,10 +1,67 @@
 {
   "tagline": "Your recruitment data stays home.",
   "demo": {
-    "banner": "Demo mode. All candidates are fictional."
+    "banner": "Demo mode. All candidates are fictional.",
+    "reset": "Reset demo"
   },
   "landing": {
-    "tryDemo": "Try the demo"
+    "tryDemo": "Try the demo",
+    "lead": "HRmit is an applicant tracking system that runs on your own computer. Candidates, CVs and notes live in a local database. An AI assistant summarizes CVs and proposes interview questions, but every decision stays with you.",
+    "features": {
+      "local": {
+        "title": "Local by default",
+        "text": "One command, a panel on localhost, a folder you can back up. Cloud AI is opt-in, bring your own key, and only ever sees anonymized text."
+      },
+      "assist": {
+        "title": "AI assists, never judges",
+        "text": "Summaries, competencies and structured interview questions. No scores, no rankings, no verdicts. The hire is always a human click."
+      },
+      "fair": {
+        "title": "Built for fairer hiring",
+        "text": "Blind screening hides names and contact details. Every candidate for a job gets the same questions and the same criteria."
+      }
+    },
+    "openSource": "Open source, MIT licensed."
+  },
+  "nav": {
+    "jobs": "Jobs"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong. Is the server running?",
+    "close": "Close",
+    "back": "Back"
+  },
+  "jobs": {
+    "title": "Jobs",
+    "empty": "No jobs yet.",
+    "status": { "open": "Open", "closed": "Closed" },
+    "candidateCount_one": "{{count}} candidate",
+    "candidateCount_other": "{{count}} candidates"
+  },
+  "candidates": {
+    "title": "Candidates",
+    "empty": "No candidates in this stage.",
+    "allStages": "All stages",
+    "blind": "Blind screening",
+    "blindHint": "Names and contact details are hidden.",
+    "anonymous": "Candidate #{{id}}",
+    "hidden": "Hidden by blind screening",
+    "details": "Candidate details",
+    "email": "Email",
+    "phone": "Phone",
+    "stage": "Stage",
+    "stageChanged": "In this stage since",
+    "applied": "Applied on",
+    "notes": "Notes",
+    "noNotes": "No notes yet."
+  },
+  "stage": {
+    "applied": "Applied",
+    "screening": "Screening",
+    "interview": "Interview",
+    "offer": "Offer",
+    "rejected": "Rejected"
   },
   "health": {
     "loading": "Connecting to the server…",

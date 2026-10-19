@@ -1,10 +1,69 @@
 {
   "tagline": "Twoje dane rekrutacyjne zostają w domu.",
   "demo": {
-    "banner": "Tryb demo. Wszyscy kandydaci są fikcyjni."
+    "banner": "Tryb demo. Wszyscy kandydaci są fikcyjni.",
+    "reset": "Resetuj demo"
   },
   "landing": {
-    "tryDemo": "Wypróbuj demo"
+    "tryDemo": "Wypróbuj demo",
+    "lead": "HRmit to system do prowadzenia rekrutacji (ATS), który działa na Twoim własnym komputerze. Kandydaci, CV i notatki są w lokalnej bazie danych. Asystent AI streszcza CV i proponuje pytania na rozmowę, ale każda decyzja należy do Ciebie.",
+    "features": {
+      "local": {
+        "title": "Lokalnie domyślnie",
+        "text": "Jedno polecenie, panel na localhost, folder, który możesz skopiować jako backup. AI w chmurze jest opcjonalne, z Twoim własnym kluczem, i widzi wyłącznie zanonimizowany tekst."
+      },
+      "assist": {
+        "title": "AI pomaga, nie ocenia",
+        "text": "Streszczenia, kompetencje i ustrukturyzowane pytania na rozmowę. Bez punktów, rankingów i werdyktów. Decyzję o zatrudnieniu zawsze podejmuje człowiek."
+      },
+      "fair": {
+        "title": "Dla uczciwszej rekrutacji",
+        "text": "Ślepa selekcja ukrywa nazwiska i dane kontaktowe. Każdy kandydat na dane stanowisko dostaje te same pytania i te same kryteria."
+      }
+    },
+    "openSource": "Otwarte oprogramowanie na licencji MIT."
+  },
+  "nav": {
+    "jobs": "Stanowiska"
+  },
+  "common": {
+    "loading": "Ładowanie…",
+    "error": "Coś poszło nie tak. Czy serwer działa?",
+    "close": "Zamknij",
+    "back": "Wstecz"
+  },
+  "jobs": {
+    "title": "Stanowiska",
+    "empty": "Brak stanowisk.",
+    "status": { "open": "Otwarte", "closed": "Zamknięte" },
+    "candidateCount_one": "{{count}} kandydat",
+    "candidateCount_few": "{{count}} kandydatów",
+    "candidateCount_many": "{{count}} kandydatów",
+    "candidateCount_other": "{{count}} kandydatów"
+  },
+  "candidates": {
+    "title": "Kandydaci",
+    "empty": "Brak kandydatów na tym etapie.",
+    "allStages": "Wszystkie etapy",
+    "blind": "Ślepa selekcja",
+    "blindHint": "Nazwiska i dane kontaktowe są ukryte.",
+    "anonymous": "Kandydat #{{id}}",
+    "hidden": "Ukryte przez ślepą selekcję",
+    "details": "Szczegóły kandydata",
+    "email": "E-mail",
+    "phone": "Telefon",
+    "stage": "Etap",
+    "stageChanged": "Na tym etapie od",
+    "applied": "Zgłoszenie z dnia",
+    "notes": "Notatki",
+    "noNotes": "Brak notatek."
+  },
+  "stage": {
+    "applied": "Zgłoszenie",
+    "screening": "Selekcja",
+    "interview": "Rozmowa",
+    "offer": "Oferta",
+    "rejected": "Odrzucenie"
   },
   "health": {
     "loading": "Łączenie z serwerem…",
