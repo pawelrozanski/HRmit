@@ -2,7 +2,7 @@ import type { Candidate } from '@hrmit/shared'
 import { Download, Upload } from 'lucide-react'
 import { useState, type DragEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { api } from '@/api/client.ts'
+import { api, cvUrl } from '@/api/client.ts'
 import { IS_DEMO } from '@/config.ts'
 import { cn } from '@/lib/utils.ts'
 import { useBlind } from './BlindContext.ts'
@@ -76,9 +76,7 @@ export function CvSection({ candidate, onUploaded }: Props) {
             {/* The demo stores no files, so there is nothing to download there. */}
             {!IS_DEMO && (
               <a
-                href={
-                  api.api.candidates[':id'].cv.$url({ param: { id: String(candidate.id) } }).href
-                }
+                href={cvUrl(candidate.id)}
                 download
                 className="inline-flex items-center gap-1 text-brand-dark hover:underline"
               >
