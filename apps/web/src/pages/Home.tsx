@@ -17,9 +17,10 @@ export function Home() {
   return (
     <main className="mx-auto max-w-6xl p-6">
       <header className="mb-6 flex items-center justify-between">
-        <Link to={`${root}/`} className="text-2xl font-bold text-brand-dark">
-          HRmit
-        </Link>
+        {/* The only h1: every page gets a level-one heading (axe page-has-heading-one). */}
+        <h1 className="text-2xl font-bold text-brand-dark">
+          <Link to={`${root}/`}>HRmit</Link>
+        </h1>
         <nav className="flex items-center gap-4 text-sm">
           <Link to={`${root}/`} className="hover:text-brand-dark">
             {t('nav.jobs')}

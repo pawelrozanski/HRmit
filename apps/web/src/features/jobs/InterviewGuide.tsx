@@ -217,7 +217,7 @@ function ProposalBlock({ proposal, disabled, onUse, onClose }: ProposalProps) {
   return (
     <div className="grid gap-3 rounded-lg border border-brand/40 bg-brand/5 p-3 text-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge className="bg-brand text-white">{t('ai.badge')}</Badge>
+        <Badge className="bg-brand-dark text-white">{t('ai.badge')}</Badge>
         {proposal.applied && <Badge variant="outline">{t('questions.applied')}</Badge>}
       </div>
       <p className="text-xs text-muted-foreground">{t('questions.disclaimer')}</p>

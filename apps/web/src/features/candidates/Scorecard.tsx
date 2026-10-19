@@ -101,7 +101,7 @@ export function Scorecard({ candidate, onOpenGuide }: Props) {
                     {SCORES.map((n) => (
                       <label
                         key={n}
-                        className="flex size-8 cursor-pointer items-center justify-center rounded-md border text-sm has-checked:border-brand has-checked:bg-brand has-checked:text-white has-focus-visible:ring-2 has-focus-visible:ring-ring"
+                        className="flex size-8 cursor-pointer items-center justify-center rounded-md border text-sm has-checked:border-brand has-checked:bg-brand-dark has-checked:text-white has-focus-visible:ring-2 has-focus-visible:ring-ring"
                       >
                         <input
                           type="radio"

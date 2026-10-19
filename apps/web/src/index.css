@@ -18,7 +18,7 @@
   --color-card-foreground: var(--color-ink);
   --color-popover: var(--color-white);
   --color-popover-foreground: var(--color-ink);
-  --color-primary: var(--color-brand);
+  --color-primary: var(--color-brand-dark);
   --color-primary-foreground: var(--color-white);
   --color-secondary: var(--color-cream);
   --color-secondary-foreground: var(--color-brand-dark);

@@ -60,7 +60,7 @@ export function AnonymizePreview({
                   <span className="text-xs text-muted-foreground">{t('ai.noReplacements')}</span>
                 ) : (
                   preview.replacements.map((r) => (
-                    <Badge key={r.kind} className="bg-brand text-white">
+                    <Badge key={r.kind} className="bg-brand-dark text-white">
                       {t(`ai.kinds.${r.kind}`, { count: r.count })}
                     </Badge>
                   ))

@@ -12,7 +12,7 @@ export function LanguageSwitch() {
           type="button"
           onClick={() => i18n.changeLanguage(lng)}
           aria-pressed={i18n.resolvedLanguage === lng}
-          className="rounded px-2 py-1 uppercase aria-pressed:bg-brand aria-pressed:text-white hover:text-brand-dark"
+          className="rounded px-2 py-1 uppercase aria-pressed:bg-brand-dark aria-pressed:text-white hover:text-brand-dark"
         >
           {lng}
         </button>
