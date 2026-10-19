@@ -100,6 +100,30 @@ export const questionsProposalSchema = z.object({
 })
 export type QuestionsProposal = z.infer<typeof questionsProposalSchema>
 
+/**
+ * Scorecard (ADR 0004): a human interviewer's 1 to 5 score and note per question of the job.
+ * score null means not scored yet. Shown per question and averaged per competency, never summed
+ * into one number for the candidate.
+ */
+export const evaluationSchema = z.object({
+  questionId: z.number().int(),
+  score: z.number().int().min(1).max(5).nullable(),
+  note: z.string(),
+})
+export type Evaluation = z.infer<typeof evaluationSchema>
+
+/**
+ * GET /api/candidates/:id/scorecard: every question of the candidate's job in guide order, joined
+ * with its evaluation, so the UI always has the full list. PUT takes evaluationSchema.array().
+ */
+export const scorecardSchema = z.object({
+  candidateId: z.number().int(),
+  evaluations: evaluationSchema
+    .extend(interviewQuestionSchema.pick({ competency: true, question: true }).shape)
+    .array(),
+})
+export type Scorecard = z.infer<typeof scorecardSchema>
+
 /** Body of POST /api/ai/summarize/:candidateId and /competencies/:candidateId. */
 export const aiActionBodySchema = z.object({ lang: z.enum(['en', 'pl']) })
 export type AiLang = z.infer<typeof aiActionBodySchema>['lang']

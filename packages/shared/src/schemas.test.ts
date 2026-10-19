@@ -5,6 +5,7 @@ import {
   candidateInputSchema,
   competenciesSchema,
   cvSummarySchema,
+  evaluationSchema,
   candidateSchema,
   healthSchema,
   interviewQuestionInputSchema,
@@ -87,4 +88,15 @@ test('fixture question sets cover every job and pass the generation schema', () 
     for (const q of set) interviewQuestionInputSchema.parse(q)
     expect(new Set(set.map((q) => q.competency)).size).toBeGreaterThanOrEqual(3)
   }
+})
+
+test('fixture evaluations point at questions of the candidate job and pass the schema', () => {
+  for (const [candidateId, list] of Object.entries(fixtures.evaluations)) {
+    const candidate = fixtures.candidates.find((c) => c.id === Number(candidateId))!
+    const ids = fixtures.questionRows.filter((q) => q.jobId === candidate.jobId).map((q) => q.id)
+    expect(list.map((e) => evaluationSchema.parse(e).questionId)).toEqual(ids)
+    expect(list.some((e) => e.score !== null)).toBe(true)
+  }
+  expect(() => evaluationSchema.parse({ questionId: 1, score: 6, note: '' })).toThrow()
+  expect(() => evaluationSchema.parse({ questionId: 1, score: 0, note: '' })).toThrow()
 })

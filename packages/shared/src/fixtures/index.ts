@@ -2,6 +2,7 @@ import type { Candidate, Job } from '../schemas.ts'
 
 export { ai } from './ai/index.ts'
 export { questions } from './questions.ts'
+export { evaluations, questionRows } from './evaluations.ts'
 
 /**
  * Demo data. Every person and company here is invented; any resemblance to a real
