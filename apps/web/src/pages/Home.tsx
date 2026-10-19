@@ -3,6 +3,7 @@ import { Link, Route, Routes } from 'react-router'
 import { LanguageSwitch } from '../components/LanguageSwitch.tsx'
 import { CandidatesPage } from '../features/candidates/CandidatesPage.tsx'
 import { JobsPage } from '../features/jobs/JobsPage.tsx'
+import { SettingsPage } from '../features/settings/SettingsPage.tsx'
 
 /** The app shell: header plus the feature routes, relative to wherever it is mounted. */
 export function Home() {
@@ -17,12 +18,16 @@ export function Home() {
           <Link to="." className="hover:text-brand-dark">
             {t('nav.jobs')}
           </Link>
+          <Link to="settings" className="hover:text-brand-dark">
+            {t('nav.settings')}
+          </Link>
           <LanguageSwitch />
         </nav>
       </header>
       <Routes>
         <Route index element={<JobsPage />} />
         <Route path="jobs/:id" element={<CandidatesPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Routes>
     </main>
   )

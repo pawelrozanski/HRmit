@@ -24,7 +24,8 @@
     "openSource": "Otwarte oprogramowanie na licencji MIT."
   },
   "nav": {
-    "jobs": "Stanowiska"
+    "jobs": "Stanowiska",
+    "settings": "Ustawienia"
   },
   "common": {
     "loading": "Ładowanie…",
@@ -105,5 +106,28 @@
     "tooLarge": "Plik jest większy niż 10 MB.",
     "badType": "Przyjmowane są tylko pliki PDF i DOCX.",
     "failed": "Wysyłanie nie powiodło się. Spróbuj ponownie."
+  },
+  "settings": {
+    "title": "Ustawienia AI",
+    "privacy": "Ollama działa na Twoim komputerze i widzi pełny tekst. Dostawcy w chmurze otrzymują wyłącznie zanonimizowane dane (imiona, nazwiska i dane kontaktowe są zastępowane) i tylko po Twojej wyraźnej zgodzie. Klucz jest przechowywany w postaci zaszyfrowanej i nigdy nie jest ponownie wyświetlany.",
+    "provider": "Dostawca",
+    "providers": {
+      "ollama": "Ollama (lokalnie)",
+      "anthropic": "Anthropic (chmura)",
+      "openai-compatible": "Zgodny z OpenAI (chmura lub lokalnie)"
+    },
+    "ollamaHint": "Uruchamia modele lokalnie i za darmo. Zainstaluj ze strony",
+    "baseUrl": "Adres bazowy",
+    "model": "Model",
+    "apiKey": "Klucz API",
+    "keyPlaceholder": "Niepotrzebny dla dostawców lokalnych",
+    "keyStored": "Klucz jest zapisany. Wpisz nowy, aby go zastąpić.",
+    "keyHint": "Zostaw puste, aby zachować zapisany klucz.",
+    "removeKey": "Usuń klucz",
+    "test": "Testuj połączenie",
+    "testing": "Testowanie…",
+    "saved": "Zapisano.",
+    "testOk": "Połączono z {{model}} w {{ms}} ms.",
+    "testFailed": "Połączenie nie powiodło się: {{error}}"
   }
 }

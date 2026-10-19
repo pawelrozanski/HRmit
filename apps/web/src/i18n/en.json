@@ -24,7 +24,8 @@
     "openSource": "Open source, MIT licensed."
   },
   "nav": {
-    "jobs": "Jobs"
+    "jobs": "Jobs",
+    "settings": "Settings"
   },
   "common": {
     "loading": "Loading…",
@@ -103,5 +104,28 @@
     "tooLarge": "The file is larger than 10 MB.",
     "badType": "Only PDF and DOCX files are accepted.",
     "failed": "Upload failed. Try again."
+  },
+  "settings": {
+    "title": "AI settings",
+    "privacy": "Ollama runs on your computer and sees the full text. Cloud providers only ever receive anonymized data (names and contact details replaced), and only after you opt in. Your key is stored encrypted and never shown again.",
+    "provider": "Provider",
+    "providers": {
+      "ollama": "Ollama (local)",
+      "anthropic": "Anthropic (cloud)",
+      "openai-compatible": "OpenAI-compatible (cloud or local)"
+    },
+    "ollamaHint": "Runs models locally for free. Install it from",
+    "baseUrl": "Base URL",
+    "model": "Model",
+    "apiKey": "API key",
+    "keyPlaceholder": "Not needed for local providers",
+    "keyStored": "A key is stored. Enter a new one to replace it.",
+    "keyHint": "Leave empty to keep the stored key.",
+    "removeKey": "Remove key",
+    "test": "Test connection",
+    "testing": "Testing…",
+    "saved": "Saved.",
+    "testOk": "Connected to {{model}} in {{ms}} ms.",
+    "testFailed": "Connection failed: {{error}}"
   }
 }
