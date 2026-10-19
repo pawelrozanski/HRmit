@@ -2,11 +2,14 @@ import { HttpResponse, delay, http } from 'msw'
 import {
   aiActionBodySchema,
   aiSettingsSchema,
+  anonymize,
   candidateInputSchema,
   fixtures,
   jobInputSchema,
   moveStageSchema,
   pipelineStageSchema,
+  isLocalProvider,
+  type AiPreview,
   type AiSummary,
   type AiTestResult,
   type Health,
@@ -17,6 +20,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const notFound = () => HttpResponse.json({ error: 'not found' }, { status: 404 })
 const invalid = () => HttpResponse.json({ error: 'invalid body' }, { status: 400 })
 const nextId = (rows: { id: number }[]) => Math.max(0, ...rows.map((r) => r.id)) + 1
+export const demoCv = (c: { firstName: string; lastName: string; email: string; phone: string }) =>
+  `${c.firstName} ${c.lastName}
+${c.email} | ${c.phone}
+
+${fixtures.cvText}`
 
 /** One handler per server route. Must return shapes that pass the shared zod schemas. */
 export const handlers = [
@@ -95,14 +103,15 @@ export const handlers = [
     save()
     return HttpResponse.json(candidate)
   }),
-  // Demo upload: the file is accepted and ignored; a fixture CV text is attached instead.
+  // Demo upload: the file is accepted and ignored; a fixture CV text is attached instead,
+  // headed by the candidate's contact line so the anonymization preview has something to do.
   http.post(`${base}/api/candidates/:id/cv`, async ({ params, request }) => {
     const file = (await request.formData()).get('file')
     if (!(file instanceof File)) return invalid()
     const candidate = store.candidates.find((c) => c.id === Number(params.id))
     if (!candidate) return notFound()
     candidate.cvFilename = file.name
-    candidate.cvText = fixtures.cvText
+    candidate.cvText = demoCv(candidate)
     save()
     return HttpResponse.json(candidate)
   }),
@@ -153,6 +162,19 @@ export const handlers = [
       },
     ),
   ),
+  // The real anonymize() runs in the browser: it is pure and lives in packages/shared.
+  http.get(`${base}/api/ai/preview/:candidateId`, ({ params }) => {
+    const candidate = store.candidates.find((c) => c.id === Number(params.candidateId))
+    if (!candidate) return notFound()
+    if (!candidate.cvText) return HttpResponse.json({ error: 'no cv text' }, { status: 422 })
+    const { text, replacements } = anonymize(candidate.cvText, candidate)
+    return HttpResponse.json<AiPreview>({
+      original: candidate.cvText,
+      anonymized: text,
+      replacements,
+      provider: isLocalProvider(store.aiSettings) ? 'local' : 'cloud',
+    })
+  }),
   http.delete(`${base}/api/ai/summary/:candidateId`, ({ params }) => {
     const candidate = store.candidates.find((c) => c.id === Number(params.candidateId))
     if (!candidate) return notFound()

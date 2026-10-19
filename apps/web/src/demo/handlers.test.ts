@@ -1,5 +1,6 @@
 import {
   AI_SETTINGS_DEFAULTS,
+  aiPreviewSchema,
   aiSettingsViewSchema,
   aiTestResultSchema,
   candidateSchema,
@@ -18,7 +19,7 @@ vi.stubGlobal('localStorage', {
   setItem: (k: string, v: string) => storage.set(k, v),
   removeItem: (k: string) => storage.delete(k),
 })
-const { handlers } = await import('./handlers.ts')
+const { demoCv, handlers } = await import('./handlers.ts')
 const { DEMO_STORAGE_KEY } = await import('../config.ts')
 const persisted = () => JSON.parse(storage.get(DEMO_STORAGE_KEY) ?? '{}') as Store
 type Store = {
@@ -108,7 +109,8 @@ test('demo candidates: create, edit, upload a CV, delete', async () => {
   })
   const withCv = candidateSchema.parse(await up.json())
   expect(withCv.cvFilename).toBe('cv.pdf')
-  expect(withCv.cvText).toBe(fixtures.cvText)
+  expect(withCv.cvText).toBe(demoCv(c))
+  expect(withCv.cvText).toContain(fixtures.cvText)
   expect(persisted().candidates.some((x) => x.id === c.id)).toBe(true)
   expect((await fetch(`http://localhost/api/candidates/${c.id}/cv`)).status).toBe(404)
 
@@ -159,3 +161,18 @@ test('demo AI actions: 422 without CV, fixture answer after upload, persisted, d
   const gone = await fetch('http://localhost/api/ai/summary/2', { method: 'DELETE' })
   expect(candidateSchema.parse(await gone.json()).aiSummaryJson).toBeNull()
 }, 10_000)
+
+test('demo GET /api/ai/preview/:id anonymizes the uploaded text with the shared function', async () => {
+  expect((await fetch('http://localhost/api/ai/preview/9999')).status).toBe(404)
+  expect((await fetch('http://localhost/api/ai/preview/3')).status).toBe(422)
+  const theo = fixtures.candidates[1]!
+  const preview = aiPreviewSchema.parse(await get('/api/ai/preview/2'))
+  expect(preview.original).toBe(demoCv(theo))
+  expect(preview.anonymized).toContain('Candidate #2')
+  expect(preview.anonymized).toContain(fixtures.cvText)
+  for (const pii of [theo.firstName, theo.lastName, theo.email, theo.phone])
+    expect(preview.anonymized).not.toContain(pii)
+  expect(preview.replacements.map((r) => r.kind).sort()).toEqual(['email', 'name', 'phone'])
+  // Settings were switched to Anthropic by the settings test above.
+  expect(preview.provider).toBe('cloud')
+})
