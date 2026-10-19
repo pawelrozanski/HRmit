@@ -4,6 +4,10 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+### Added
+
+- "Import from CV" in the new-candidate form: the CV is parsed, a local model (or a regex heuristic when no local model is configured) prefills name, email and phone for review, and the file is uploaded with the candidate. The raw CV is never sent to a cloud provider, because a person who is not in the database yet cannot be anonymized.
+
 ## [0.1.0] - 2026-10-19
 
 First release: the MVP of a local-first ATS with an AI assistant, delivered as roadmap stages 0 to 11.
