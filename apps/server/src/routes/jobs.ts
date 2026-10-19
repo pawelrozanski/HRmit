@@ -1,14 +1,14 @@
 import { and, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { validator } from 'hono/validator'
-import { pipelineStageSchema } from '@hrmit/shared'
+import { pipelineStageSchema, type PipelineStage } from '@hrmit/shared'
 import { db } from '../db/index.ts'
 import { candidates, jobs } from '../db/schema.ts'
 
-const stageQuery = validator('query', (q, c) => {
+const stageQuery = validator('query', (q, c): { stage?: PipelineStage } | Response => {
   const stage = q.stage === undefined ? undefined : pipelineStageSchema.safeParse(q.stage)
   if (stage && !stage.success) return c.json({ error: 'invalid stage' }, 400)
-  return { stage: stage?.data }
+  return stage ? { stage: stage.data } : {}
 })
 
 export const jobsRoute = new Hono()
