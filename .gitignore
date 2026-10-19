@@ -1,0 +1,18 @@
+# dependencies and builds
+node_modules/
+dist/
+*.tsbuildinfo
+
+# runtime data: database, uploads, master key. Never commit.
+data/
+
+# local env
+.env
+.env.*
+!.env.example
+
+# editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

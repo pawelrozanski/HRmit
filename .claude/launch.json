@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["pnpm", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "demo",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["pnpm", "--filter", "@hrmit/web", "preview:demo"],
+      "port": 4173
+    }
+  ]
+}
