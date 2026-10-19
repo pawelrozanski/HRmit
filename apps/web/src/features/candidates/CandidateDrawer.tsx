@@ -17,6 +17,7 @@ import { useBlind } from './BlindContext.ts'
 import { CandidateForm } from './CandidateForm.tsx'
 import { candidateName } from './candidateName.ts'
 import { CvSection } from './CvSection.tsx'
+import { Scorecard } from './Scorecard.tsx'
 
 type Props = {
   candidate: Candidate | null
@@ -24,9 +25,17 @@ type Props = {
   onMove: (c: Candidate, stage: PipelineStage) => void
   onChange: (c: Candidate) => void
   onDelete: (c: Candidate) => void
+  onOpenGuide: () => void
 }
 
-export function CandidateDrawer({ candidate, onClose, onMove, onChange, onDelete }: Props) {
+export function CandidateDrawer({
+  candidate,
+  onClose,
+  onMove,
+  onChange,
+  onDelete,
+  onOpenGuide,
+}: Props) {
   const { t, i18n } = useTranslation()
   const blind = useBlind()
   const [editing, setEditing] = useState(false)
@@ -84,6 +93,9 @@ export function CandidateDrawer({ candidate, onClose, onMove, onChange, onDelete
               </Field>
               <Field label={t('ai.title')}>
                 <AiSection candidate={candidate} onChange={onChange} />
+              </Field>
+              <Field label={t('scorecard.title')}>
+                <Scorecard candidate={candidate} onOpenGuide={onOpenGuide} />
               </Field>
             </dl>
             <div className="mt-auto flex items-center justify-between gap-2 border-t p-4">

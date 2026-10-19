@@ -207,5 +207,16 @@
     "disclaimer": "A proposal of questions, not an assessment of anyone. The decision is yours.",
     "applied": "Applied to the empty list",
     "use": "Use these questions"
+  },
+  "scorecard": {
+    "title": "Scorecard",
+    "intro": "Averages per competency for this candidate only. Not a ranking and not a comparison with other candidates: the decision is yours.",
+    "empty": "This job has no interview questions yet. Add them in the",
+    "average": "{{avg}} / 5 ({{n}} of {{m}} scored)",
+    "unscored": "not scored yet",
+    "score": "Score",
+    "scoreLabel": "Score {{n}} of 5",
+    "clear": "Clear",
+    "note": "Note"
   }
 }

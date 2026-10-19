@@ -223,5 +223,16 @@
     "disclaimer": "To propozycja pytań, nie ocena kogokolwiek. Decyzja należy do Ciebie.",
     "applied": "Zastosowano do pustej listy",
     "use": "Użyj tych pytań"
+  },
+  "scorecard": {
+    "title": "Karta oceny",
+    "intro": "Średnie dla każdej kompetencji tylko tego kandydata. To nie ranking ani porównanie z innymi kandydatami: decyzja należy do Ciebie.",
+    "empty": "To stanowisko nie ma jeszcze pytań. Dodaj je w zakładce",
+    "average": "{{avg}} / 5 (ocenione {{n}} z {{m}})",
+    "unscored": "jeszcze nieocenione",
+    "score": "Ocena",
+    "scoreLabel": "Ocena {{n}} z 5",
+    "clear": "Wyczyść",
+    "note": "Notatka"
   }
 }

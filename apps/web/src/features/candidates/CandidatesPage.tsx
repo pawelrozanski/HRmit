@@ -136,6 +136,10 @@ export function CandidatesPage() {
         onMove={move}
         onChange={replace}
         onDelete={deleted}
+        onOpenGuide={() => {
+          setSelected(null)
+          setView('guide')
+        }}
       />
       <CandidateForm
         key={creating ? 'open' : 'closed'}
