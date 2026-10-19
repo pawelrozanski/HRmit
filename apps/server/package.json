@@ -22,12 +22,14 @@
     "drizzle-orm": "0.45.4",
     "hono": "^4.10.1",
     "mammoth": "^1.13.0",
+    "nodemailer": "^10.1.5",
     "tsx": "^4.20.6",
     "unpdf": "^1.9.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^24.7.2",
+    "@types/nodemailer": "^8.0.2",
     "drizzle-kit": "0.31.11"
   }
 }

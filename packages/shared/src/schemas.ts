@@ -208,3 +208,72 @@ export const aiPreviewSchema = z.object({
   provider: z.enum(['local', 'cloud']),
 })
 export type AiPreview = z.infer<typeof aiPreviewSchema>
+
+/** Email templates (docs/ARCHITECTURE.md §6): one editable text per key, placeholders in {{ }}. */
+export const EMAIL_TEMPLATE_KEYS = ['invite', 'reminder', 'rejection'] as const
+export const emailTemplateKeySchema = z.enum(EMAIL_TEMPLATE_KEYS)
+export type EmailTemplateKey = z.infer<typeof emailTemplateKeySchema>
+
+export const emailTemplateSchema = z.object({
+  key: emailTemplateKeySchema,
+  subject: z.string().min(1),
+  body: z.string().min(1),
+})
+export type EmailTemplate = z.infer<typeof emailTemplateSchema>
+
+/** Body of PUT /api/settings/smtp. pass omitted or '' keeps the stored one, null clears it. */
+export const smtpSettingsSchema = z.object({
+  host: z.string().min(1),
+  port: z.number().int().min(1).max(65535),
+  secure: z.boolean(),
+  user: z.string(),
+  pass: z.string().nullable().optional(),
+  from: z.string().email(),
+  /** Sender display name and the {{companyName}} placeholder. */
+  companyName: z.string().default(''),
+})
+export type SmtpSettings = z.infer<typeof smtpSettingsSchema>
+
+/** What GET /api/settings/smtp returns: the password never leaves the server. */
+export const smtpSettingsViewSchema = smtpSettingsSchema
+  .omit({ pass: true })
+  .extend({ hasPass: z.boolean() })
+export type SmtpSettingsView = z.infer<typeof smtpSettingsViewSchema>
+
+export const SMTP_SETTINGS_DEFAULTS: SmtpSettingsView = {
+  host: '',
+  port: 587,
+  secure: false,
+  user: '',
+  from: '',
+  companyName: '',
+  hasPass: false,
+}
+
+/** Result of POST /api/settings/smtp/test. The error is sanitized: no password, no stack. */
+export const smtpTestResultSchema = z.discriminatedUnion('ok', [
+  z.object({ ok: z.literal(true) }),
+  z.object({ ok: z.literal(false), error: z.string() }),
+])
+export type SmtpTestResult = z.infer<typeof smtpTestResultSchema>
+
+/** One row of the candidate's communication history. 'demo' rows were never sent anywhere. */
+export const emailSchema = z.object({
+  id: z.number().int(),
+  candidateId: z.number().int(),
+  templateKey: emailTemplateKeySchema,
+  subject: z.string(),
+  body: z.string(),
+  status: z.enum(['sent', 'failed', 'demo']),
+  sentAt: z.string(),
+  error: z.string().nullable().optional(),
+})
+export type Email = z.infer<typeof emailSchema>
+
+/** Body of POST /api/candidates/:id/emails: the final text, edited by the recruiter in the UI. */
+export const sendEmailInputSchema = emailSchema.pick({ templateKey: true, subject: true, body: true })
+export type SendEmailInput = z.infer<typeof sendEmailInputSchema>
+
+/** GET /api/candidates/:id/emails/preview?template=…: the rendered text the UI starts from. */
+export const emailPreviewSchema = sendEmailInputSchema
+export type EmailPreview = z.infer<typeof emailPreviewSchema>

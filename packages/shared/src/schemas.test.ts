@@ -3,6 +3,8 @@ import { z } from 'zod'
 import {
   aiSummarySchema,
   candidateInputSchema,
+  emailSchema,
+  emailTemplateSchema,
   competenciesSchema,
   cvSummarySchema,
   evaluationSchema,
@@ -99,4 +101,16 @@ test('fixture evaluations point at questions of the candidate job and pass the s
   }
   expect(() => evaluationSchema.parse({ questionId: 1, score: 6, note: '' })).toThrow()
   expect(() => evaluationSchema.parse({ questionId: 1, score: 0, note: '' })).toThrow()
+})
+
+test('fixture email templates cover every key and fixture emails point at candidates', () => {
+  expect(fixtures.emailTemplates.map((t) => emailTemplateSchema.parse(t).key)).toEqual([
+    'invite',
+    'reminder',
+    'rejection',
+  ])
+  for (const e of fixtures.emails) {
+    emailSchema.parse(e)
+    expect(fixtures.candidates.some((c) => c.id === e.candidateId)).toBe(true)
+  }
 })
