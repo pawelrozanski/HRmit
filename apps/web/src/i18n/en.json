@@ -35,14 +35,15 @@
   "jobs": {
     "title": "Jobs",
     "empty": "No jobs yet.",
-    "status": { "open": "Open", "closed": "Closed" },
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    },
     "candidateCount_one": "{{count}} candidate",
     "candidateCount_other": "{{count}} candidates"
   },
   "candidates": {
     "title": "Candidates",
-    "empty": "No candidates in this stage.",
-    "allStages": "All stages",
     "blind": "Blind screening",
     "blindHint": "Names and contact details are hidden.",
     "anonymous": "Candidate #{{id}}",
@@ -54,7 +55,9 @@
     "stageChanged": "In this stage since",
     "applied": "Applied on",
     "notes": "Notes",
-    "noNotes": "No notes yet."
+    "noNotes": "No notes yet.",
+    "moveTo": "Move to stage",
+    "moveFailed": "Could not move the candidate. Try again."
   },
   "stage": {
     "applied": "Applied",

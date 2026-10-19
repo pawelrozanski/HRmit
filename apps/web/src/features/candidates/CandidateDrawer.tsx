@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
-import type { Candidate } from '@hrmit/shared'
+import { PIPELINE_STAGES, type Candidate, type PipelineStage } from '@hrmit/shared'
 import { useTranslation } from 'react-i18next'
-import { Badge } from '@/components/ui/badge.tsx'
 import {
   Sheet,
   SheetContent,
@@ -12,9 +11,13 @@ import {
 import { useBlind } from './BlindContext.ts'
 import { candidateName } from './candidateName.ts'
 
-type Props = { candidate: Candidate | null; onClose: () => void }
+type Props = {
+  candidate: Candidate | null
+  onClose: () => void
+  onMove: (c: Candidate, stage: PipelineStage) => void
+}
 
-export function CandidateDrawer({ candidate, onClose }: Props) {
+export function CandidateDrawer({ candidate, onClose, onMove }: Props) {
   const { t, i18n } = useTranslation()
   const blind = useBlind()
   const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language)
@@ -31,7 +34,19 @@ export function CandidateDrawer({ candidate, onClose }: Props) {
             </SheetHeader>
             <dl className="grid gap-3 px-4 text-sm">
               <Field label={t('candidates.stage')}>
-                <Badge variant="secondary">{t(`stage.${candidate.stage}`)}</Badge>
+                {/* Keyboard-friendly alternative to dragging on the board. */}
+                <select
+                  aria-label={t('candidates.moveTo')}
+                  value={candidate.stage}
+                  onChange={(e) => onMove(candidate, e.target.value as PipelineStage)}
+                  className="rounded-md border bg-background px-2 py-1"
+                >
+                  {PIPELINE_STAGES.map((s) => (
+                    <option key={s} value={s}>
+                      {t(`stage.${s}`)}
+                    </option>
+                  ))}
+                </select>
               </Field>
               <Field label={t('candidates.email')}>
                 {blind ? hidden : <a href={`mailto:${candidate.email}`}>{candidate.email}</a>}

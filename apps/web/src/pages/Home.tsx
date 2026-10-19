@@ -8,7 +8,7 @@ import { JobsPage } from '../features/jobs/JobsPage.tsx'
 export function Home() {
   const { t } = useTranslation()
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <main className="mx-auto max-w-6xl p-6">
       <header className="mb-6 flex items-center justify-between">
         <Link to="." className="text-2xl font-bold text-brand-dark">
           HRmit

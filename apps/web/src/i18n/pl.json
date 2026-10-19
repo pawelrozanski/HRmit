@@ -35,7 +35,10 @@
   "jobs": {
     "title": "Stanowiska",
     "empty": "Brak stanowisk.",
-    "status": { "open": "Otwarte", "closed": "Zamknięte" },
+    "status": {
+      "open": "Otwarte",
+      "closed": "Zamknięte"
+    },
     "candidateCount_one": "{{count}} kandydat",
     "candidateCount_few": "{{count}} kandydatów",
     "candidateCount_many": "{{count}} kandydatów",
@@ -43,8 +46,6 @@
   },
   "candidates": {
     "title": "Kandydaci",
-    "empty": "Brak kandydatów na tym etapie.",
-    "allStages": "Wszystkie etapy",
     "blind": "Ślepa selekcja",
     "blindHint": "Nazwiska i dane kontaktowe są ukryte.",
     "anonymous": "Kandydat #{{id}}",
@@ -56,7 +57,9 @@
     "stageChanged": "Na tym etapie od",
     "applied": "Zgłoszenie z dnia",
     "notes": "Notatki",
-    "noNotes": "Brak notatek."
+    "noNotes": "Brak notatek.",
+    "moveTo": "Przenieś na etap",
+    "moveFailed": "Nie udało się przenieść kandydata. Spróbuj ponownie."
   },
   "stage": {
     "applied": "Zgłoszenie",
