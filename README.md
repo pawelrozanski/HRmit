@@ -40,7 +40,7 @@ Full picture in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Demo
 
-A clickable demo with fictional candidates will live at **https://pawelrozanski.github.io/HRmit/** once roadmap stage 1 ships. It runs entirely in your browser; nothing is sent anywhere.
+A clickable demo with fictional candidates lives at **https://pawelrozanski.github.io/HRmit/**. It runs entirely in your browser; nothing is sent anywhere.
 
 ## Getting started
 
