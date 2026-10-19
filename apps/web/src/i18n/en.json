@@ -127,5 +127,24 @@
     "saved": "Saved.",
     "testOk": "Connected to {{model}} in {{ms}} ms.",
     "testFailed": "Connection failed: {{error}}"
+  },
+  "ai": {
+    "title": "AI assistant",
+    "badge": "AI suggestion",
+    "disclaimer": "A description of the CV, not an assessment. The decision is yours.",
+    "local": "Local model",
+    "cloud": "Cloud model",
+    "summarize": "Summarize CV",
+    "competencies": "Extract competencies",
+    "noCv": "Upload a CV with readable text to use the assistant.",
+    "working": "Asking the model…",
+    "summary": "Summary",
+    "highlights": "Highlights",
+    "competenciesTitle": "Competencies",
+    "generated": "{{model}}, {{date}}",
+    "regenerate": "Regenerate",
+    "discard": "Discard",
+    "hidden": "AI suggestions hidden by blind screening.",
+    "failed": "The model did not answer: {{error}}"
   }
 }

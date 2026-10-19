@@ -129,5 +129,24 @@
     "saved": "Zapisano.",
     "testOk": "Połączono z {{model}} w {{ms}} ms.",
     "testFailed": "Połączenie nie powiodło się: {{error}}"
+  },
+  "ai": {
+    "title": "Asystent AI",
+    "badge": "Sugestia AI",
+    "disclaimer": "To opis CV, nie ocena. Decyzja należy do Ciebie.",
+    "local": "Model lokalny",
+    "cloud": "Model w chmurze",
+    "summarize": "Streść CV",
+    "competencies": "Wyodrębnij kompetencje",
+    "noCv": "Dodaj CV z czytelnym tekstem, aby użyć asystenta.",
+    "working": "Pytam model…",
+    "summary": "Streszczenie",
+    "highlights": "Najważniejsze punkty",
+    "competenciesTitle": "Kompetencje",
+    "generated": "{{model}}, {{date}}",
+    "regenerate": "Wygeneruj ponownie",
+    "discard": "Odrzuć",
+    "hidden": "Sugestie AI ukryte przez ślepą selekcję.",
+    "failed": "Model nie odpowiedział: {{error}}"
   }
 }

@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/api/client.ts'
 import { Button } from '@/components/ui/button.tsx'
+import { AiSection } from '../ai/AiSection.tsx'
 import {
   Sheet,
   SheetContent,
@@ -80,6 +81,9 @@ export function CandidateDrawer({ candidate, onClose, onMove, onChange, onDelete
               </Field>
               <Field label={t('cv.title')}>
                 <CvSection candidate={candidate} onUploaded={onChange} />
+              </Field>
+              <Field label={t('ai.title')}>
+                <AiSection candidate={candidate} onChange={onChange} />
               </Field>
             </dl>
             <div className="mt-auto flex items-center justify-between gap-2 border-t p-4">
