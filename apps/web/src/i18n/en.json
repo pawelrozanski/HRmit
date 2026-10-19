@@ -30,7 +30,11 @@
     "loading": "Loading…",
     "error": "Something went wrong. Is the server running?",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "jobs": {
     "title": "Jobs",
@@ -40,7 +44,13 @@
       "closed": "Closed"
     },
     "candidateCount_one": "{{count}} candidate",
-    "candidateCount_other": "{{count}} candidates"
+    "candidateCount_other": "{{count}} candidates",
+    "new": "New job",
+    "edit": "Edit job",
+    "formHint": "Title and description are what candidates and the AI assistant will see.",
+    "titleLabel": "Title",
+    "descriptionLabel": "Description",
+    "statusLabel": "Status"
   },
   "candidates": {
     "title": "Candidates",
@@ -57,7 +67,14 @@
     "notes": "Notes",
     "noNotes": "No notes yet.",
     "moveTo": "Move to stage",
-    "moveFailed": "Could not move the candidate. Try again."
+    "moveFailed": "Could not move the candidate. Try again.",
+    "new": "New candidate",
+    "edit": "Edit candidate",
+    "formHint": "Contact details stay in your local database.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "deleteConfirm": "Delete {{name}}? This removes the candidate, the notes and the CV file. It cannot be undone.",
+    "deleteFailed": "Could not delete the candidate. Try again."
   },
   "stage": {
     "applied": "Applied",
@@ -69,5 +86,22 @@
   "health": {
     "loading": "Connecting to the server…",
     "ok": "Connected: {{mode}} mode, version {{version}}."
+  },
+  "form": {
+    "required": "This field is required.",
+    "invalidEmail": "Enter a valid email address.",
+    "saveFailed": "Could not save. Try again."
+  },
+  "cv": {
+    "title": "CV",
+    "drop": "Drop a PDF or DOCX here, or click to choose (max 10 MB)",
+    "uploading": "Uploading…",
+    "download": "Download",
+    "none": "No CV uploaded yet.",
+    "noText": "No text could be extracted from this file.",
+    "hidden": "CV hidden by blind screening.",
+    "tooLarge": "The file is larger than 10 MB.",
+    "badType": "Only PDF and DOCX files are accepted.",
+    "failed": "Upload failed. Try again."
   }
 }

@@ -30,7 +30,11 @@
     "loading": "Ładowanie…",
     "error": "Coś poszło nie tak. Czy serwer działa?",
     "close": "Zamknij",
-    "back": "Wstecz"
+    "back": "Wstecz",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "edit": "Edytuj",
+    "delete": "Usuń"
   },
   "jobs": {
     "title": "Stanowiska",
@@ -42,7 +46,13 @@
     "candidateCount_one": "{{count}} kandydat",
     "candidateCount_few": "{{count}} kandydatów",
     "candidateCount_many": "{{count}} kandydatów",
-    "candidateCount_other": "{{count}} kandydatów"
+    "candidateCount_other": "{{count}} kandydatów",
+    "new": "Nowe stanowisko",
+    "edit": "Edytuj stanowisko",
+    "formHint": "Tytuł i opis zobaczą kandydaci oraz asystent AI.",
+    "titleLabel": "Tytuł",
+    "descriptionLabel": "Opis",
+    "statusLabel": "Status"
   },
   "candidates": {
     "title": "Kandydaci",
@@ -59,7 +69,14 @@
     "notes": "Notatki",
     "noNotes": "Brak notatek.",
     "moveTo": "Przenieś na etap",
-    "moveFailed": "Nie udało się przenieść kandydata. Spróbuj ponownie."
+    "moveFailed": "Nie udało się przenieść kandydata. Spróbuj ponownie.",
+    "new": "Nowy kandydat",
+    "edit": "Edytuj kandydata",
+    "formHint": "Dane kontaktowe zostają w Twojej lokalnej bazie.",
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
+    "deleteConfirm": "Usunąć {{name}}? Zniknie kandydat, notatki i plik CV. Tej operacji nie da się cofnąć.",
+    "deleteFailed": "Nie udało się usunąć kandydata. Spróbuj ponownie."
   },
   "stage": {
     "applied": "Zgłoszenie",
@@ -71,5 +88,22 @@
   "health": {
     "loading": "Łączenie z serwerem…",
     "ok": "Połączono: tryb {{mode}}, wersja {{version}}."
+  },
+  "form": {
+    "required": "To pole jest wymagane.",
+    "invalidEmail": "Podaj poprawny adres e-mail.",
+    "saveFailed": "Nie udało się zapisać. Spróbuj ponownie."
+  },
+  "cv": {
+    "title": "CV",
+    "drop": "Upuść tu plik PDF lub DOCX albo kliknij, by wybrać (maks. 10 MB)",
+    "uploading": "Wysyłanie…",
+    "download": "Pobierz",
+    "none": "Nie dodano jeszcze CV.",
+    "noText": "Nie udało się wyodrębnić tekstu z tego pliku.",
+    "hidden": "CV ukryte przez ślepą selekcję.",
+    "tooLarge": "Plik jest większy niż 10 MB.",
+    "badType": "Przyjmowane są tylko pliki PDF i DOCX.",
+    "failed": "Wysyłanie nie powiodło się. Spróbuj ponownie."
   }
 }

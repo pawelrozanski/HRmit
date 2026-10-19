@@ -1,13 +1,16 @@
 import type { Candidate, PipelineStage } from '@hrmit/shared'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
+import { Button } from '@/components/ui/button.tsx'
 import { Switch } from '@/components/ui/switch.tsx'
 import { KanbanBoard } from '../pipeline/KanbanBoard.tsx'
 import { BlindContext } from './BlindContext.ts'
 import { CandidateDrawer } from './CandidateDrawer.tsx'
+import { CandidateForm } from './CandidateForm.tsx'
 
 const BLIND_KEY = 'hrmit-blind'
 
@@ -17,6 +20,7 @@ export function CandidatesPage() {
   const [blind, setBlind] = useState(() => localStorage.getItem(BLIND_KEY) === '1')
   const [selected, setSelected] = useState<Candidate | null>(null)
   const [moveError, setMoveError] = useState(false)
+  const [creating, setCreating] = useState(false)
 
   // ponytail: no GET /jobs/:id yet; the list is three rows. Add the route when jobs grow.
   const job = useApi(
@@ -49,8 +53,21 @@ export function CandidatesPage() {
     if (res.status !== 200) return setMoveError(true)
     const moved = await res.json()
     setMoveError(false)
-    candidates.setData((list) => list.map((c) => (c.id === moved.id ? moved : c)))
-    setSelected((s) => (s?.id === moved.id ? moved : s))
+    replace(moved)
+  }
+
+  // After an edit or a CV upload: swap the row in the list and in the open drawer.
+  const replace = (c: Candidate) => {
+    candidates.setData((list) => list.map((x) => (x.id === c.id ? c : x)))
+    setSelected((s) => (s?.id === c.id ? c : s))
+  }
+  const created = (c: Candidate) => {
+    candidates.setData((list) => [...list, c])
+    setCreating(false)
+  }
+  const deleted = (c: Candidate) => {
+    candidates.setData((list) => list.filter((x) => x.id !== c.id))
+    setSelected(null)
   }
 
   if (job.error || candidates.error) return <p className="text-destructive">{t('common.error')}</p>
@@ -62,10 +79,15 @@ export function CandidatesPage() {
       </Link>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">{job.data?.title ?? t('common.loading')}</h2>
-        <label className="flex items-center gap-2 text-sm">
-          <Switch checked={blind} onCheckedChange={toggleBlind} />
-          {t('candidates.blind')}
-        </label>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm">
+            <Switch checked={blind} onCheckedChange={toggleBlind} />
+            {t('candidates.blind')}
+          </label>
+          <Button onClick={() => setCreating(true)}>
+            <Plus data-icon="inline-start" /> {t('candidates.new')}
+          </Button>
+        </div>
       </div>
       {blind && <p className="mt-1 text-xs text-muted-foreground">{t('candidates.blindHint')}</p>}
       {moveError && (
@@ -82,7 +104,20 @@ export function CandidatesPage() {
         </div>
       )}
 
-      <CandidateDrawer candidate={selected} onClose={() => setSelected(null)} onMove={move} />
+      <CandidateDrawer
+        candidate={selected}
+        onClose={() => setSelected(null)}
+        onMove={move}
+        onChange={replace}
+        onDelete={deleted}
+      />
+      <CandidateForm
+        key={creating ? 'open' : 'closed'}
+        jobId={Number(id)}
+        open={creating}
+        onClose={() => setCreating(false)}
+        onSaved={created}
+      />
     </BlindContext>
   )
 }

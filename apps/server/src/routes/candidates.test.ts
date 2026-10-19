@@ -12,7 +12,7 @@ const json = (method: string, path: string, body: unknown) =>
     body: JSON.stringify(body),
   })
 
-const upload = (id: number, name: string, bytes: Uint8Array) => {
+const upload = (id: number, name: string, bytes: Uint8Array<ArrayBuffer>) => {
   const form = new FormData()
   form.append('file', new File([bytes], name))
   return app.request(`/api/candidates/${id}/cv`, { method: 'POST', body: form })
@@ -23,7 +23,7 @@ const files = () => readdirSync(uploadsDir)
 // --- fixtures generated in the test, so no binaries live in git ----------------------------
 
 /** The smallest PDF that draws one line of text. Offsets are computed, so the xref is valid. */
-function tinyPdf(text: string): Uint8Array {
+function tinyPdf(text: string): Uint8Array<ArrayBuffer> {
   const objs = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
@@ -48,7 +48,7 @@ function tinyPdf(text: string): Uint8Array {
 }
 
 /** A ZIP with deflated entries: enough of the OOXML package for mammoth to find the body. */
-function zip(entries: Record<string, string>): Uint8Array {
+function zip(entries: Record<string, string>): Uint8Array<ArrayBuffer> {
   const locals: Buffer[] = []
   const centrals: Buffer[] = []
   let offset = 0

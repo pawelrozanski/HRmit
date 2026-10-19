@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
 import { PIPELINE_STAGES, type Candidate, type PipelineStage } from '@hrmit/shared'
+import { Pencil, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { api } from '@/api/client.ts'
+import { Button } from '@/components/ui/button.tsx'
 import {
   Sheet,
   SheetContent,
@@ -9,23 +13,38 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet.tsx'
 import { useBlind } from './BlindContext.ts'
+import { CandidateForm } from './CandidateForm.tsx'
 import { candidateName } from './candidateName.ts'
+import { CvSection } from './CvSection.tsx'
 
 type Props = {
   candidate: Candidate | null
   onClose: () => void
   onMove: (c: Candidate, stage: PipelineStage) => void
+  onChange: (c: Candidate) => void
+  onDelete: (c: Candidate) => void
 }
 
-export function CandidateDrawer({ candidate, onClose, onMove }: Props) {
+export function CandidateDrawer({ candidate, onClose, onMove, onChange, onDelete }: Props) {
   const { t, i18n } = useTranslation()
   const blind = useBlind()
+  const [editing, setEditing] = useState(false)
+  const [deleteFailed, setDeleteFailed] = useState(false)
   const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language)
   const hidden = <span className="text-muted-foreground italic">{t('candidates.hidden')}</span>
 
+  // Native confirm(): one line, keyboard accessible, no extra component.
+  const remove = async (c: Candidate) => {
+    if (!window.confirm(t('candidates.deleteConfirm', { name: candidateName(c, blind, t) }))) return
+    const res = await api.api.candidates[':id'].$delete({ param: { id: String(c.id) } })
+    if (res.status !== 204) return setDeleteFailed(true)
+    setDeleteFailed(false)
+    onDelete(c)
+  }
+
   return (
     <Sheet open={candidate !== null} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         {candidate && (
           <>
             <SheetHeader>
@@ -59,7 +78,34 @@ export function CandidateDrawer({ candidate, onClose, onMove }: Props) {
                   <span className="text-muted-foreground">{t('candidates.noNotes')}</span>
                 )}
               </Field>
+              <Field label={t('cv.title')}>
+                <CvSection candidate={candidate} onUploaded={onChange} />
+              </Field>
             </dl>
+            <div className="mt-auto flex items-center justify-between gap-2 border-t p-4">
+              <Button variant="outline" onClick={() => setEditing(true)}>
+                <Pencil data-icon="inline-start" /> {t('common.edit')}
+              </Button>
+              <Button variant="destructive" onClick={() => remove(candidate)}>
+                <Trash2 data-icon="inline-start" /> {t('common.delete')}
+              </Button>
+            </div>
+            {deleteFailed && (
+              <p role="alert" className="px-4 pb-4 text-sm text-destructive">
+                {t('candidates.deleteFailed')}
+              </p>
+            )}
+            <CandidateForm
+              key={candidate.id}
+              jobId={candidate.jobId}
+              candidate={candidate}
+              open={editing}
+              onClose={() => setEditing(false)}
+              onSaved={(c) => {
+                setEditing(false)
+                onChange(c)
+              }}
+            />
           </>
         )}
       </SheetContent>
