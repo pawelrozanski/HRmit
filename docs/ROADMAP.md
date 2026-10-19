@@ -48,6 +48,8 @@ _(done 2026-10-19; keyboard fallback is a native `<select>` in the candidate dra
 
 ## Stage 3: Create, edit, delete candidates and jobs; CV upload
 
+_(done 2026-10-19; delete confirmation is a native `confirm()`, the demo download link is hidden because the demo stores no files, CV text is hidden under blind screening)_
+
 - Routes: create/update/delete for both resources, `POST /candidates/:id/cv` (multipart), `GET /candidates/:id/cv`.
 - Server: upload validation (extension + magic bytes, 10 MB), UUID filename under `data/uploads/`, text extraction with `unpdf` and `mammoth`, cascade delete including the file.
 - UI: forms with zod validation, drop-zone upload, CV text preview, delete with confirmation.
