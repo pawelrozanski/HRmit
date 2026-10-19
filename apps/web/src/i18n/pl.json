@@ -89,7 +89,13 @@
     "deleteConfirm": "Usunąć {{name}}? Zniknie kandydat, notatki i plik CV. Tej operacji nie da się cofnąć.",
     "deleteFailed": "Nie udało się usunąć kandydata. Spróbuj ponownie.",
     "pipeline": "Pipeline",
-    "guide": "Przewodnik rozmowy"
+    "guide": "Przewodnik rozmowy",
+    "importCv": "Importuj z CV",
+    "importing": "Czytam CV…",
+    "importedAi": "Pola wypełnił lokalny model na podstawie CV. Sprawdź je przed zapisem.",
+    "importedHeuristic": "Pola odgadnięte z tekstu CV (brak lokalnego modelu). Sprawdź je przed zapisem.",
+    "importFailed": "Nie udało się odczytać tego CV.",
+    "cvAttached": "{{name}} zostanie przesłane razem z kandydatem."
   },
   "stage": {
     "applied": "Zgłoszenie",

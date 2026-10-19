@@ -87,7 +87,13 @@
     "deleteConfirm": "Delete {{name}}? This removes the candidate, the notes and the CV file. It cannot be undone.",
     "deleteFailed": "Could not delete the candidate. Try again.",
     "pipeline": "Pipeline",
-    "guide": "Interview guide"
+    "guide": "Interview guide",
+    "importCv": "Import from CV",
+    "importing": "Reading the CV…",
+    "importedAi": "Fields filled in from the CV by the local model. Check them before saving.",
+    "importedHeuristic": "Fields guessed from the CV text (no local model available). Check them before saving.",
+    "importFailed": "Could not read this CV.",
+    "cvAttached": "{{name}} will be uploaded with the candidate."
   },
   "stage": {
     "applied": "Applied",

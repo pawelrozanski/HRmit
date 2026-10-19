@@ -4,6 +4,7 @@ import {
   aiSettingsViewSchema,
   aiTestResultSchema,
   candidateSchema,
+  cvImportSchema,
   emailPreviewSchema,
   emailSchema,
   emailTemplateSchema,
@@ -379,4 +380,14 @@ test('demo meetings: fixtures listed newest first, preview, schedule records out
   ).toBe(404)
   await fetch('http://localhost/api/candidates/7', { method: 'DELETE' })
   expect(persisted().meetings?.some((m) => m.candidateId === 7)).toBe(false)
+})
+
+test('demo POST /api/ai/parse-cv returns the fictional import for any file', async () => {
+  const form = new FormData()
+  form.append('file', new File(['anything'], 'cv.pdf'))
+  const res = await fetch('http://localhost/api/ai/parse-cv', { method: 'POST', body: form })
+  expect(res.status).toBe(200)
+  const result = cvImportSchema.parse(await res.json())
+  expect(result.fields).toEqual(fixtures.cvImport)
+  expect(result.cvText).toContain(fixtures.cvImport.email)
 })

@@ -21,6 +21,7 @@ import {
   type AiPreview,
   type AiSummary,
   type AiTestResult,
+  type CvImport,
   type Email,
   type EmailPreview,
   type EmailTemplateKey,
@@ -283,6 +284,18 @@ export const handlers = [
     const applied = jobQuestions(jobId).length === 0
     if (applied) replaceQuestions(jobId, questions)
     return HttpResponse.json<QuestionsProposal>({ questions, applied })
+  }),
+  // Import from CV: whatever file is dropped, the demo "reads" the same fictional person.
+  http.post(`${base}/api/ai/parse-cv`, async ({ request }) => {
+    const file = (await request.formData()).get('file')
+    if (!(file instanceof File)) return invalid()
+    await delay(800)
+    const f = fixtures.cvImport
+    return HttpResponse.json<CvImport>({
+      fields: f,
+      cvText: `${f.firstName} ${f.lastName}\n${f.email} | ${f.phone}\n\n${fixtures.cvText}`,
+      source: 'ai',
+    })
   }),
   // The real anonymize() runs in the browser: it is pure and lives in packages/shared.
   http.get(`${base}/api/ai/preview/:candidateId`, ({ params }) => {
