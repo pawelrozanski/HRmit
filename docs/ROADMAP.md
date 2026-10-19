@@ -122,6 +122,8 @@ _(done 2026-10-19; the send dialog fetches `GET /api/candidates/:id/emails/previ
 
 ## Stage 10: Meeting invites (Jitsi + .ics)
 
+_(done 2026-10-19; `GET /api/candidates/:id/meetings/preview?startsAt=…` generates the room URL and renders the `invite` template, `POST /api/candidates/:id/meetings` takes `{ startsAt, durationMin, jitsiUrl?, subject?, body? }` so the recruiter edits the rendered text like in stage 9 and the server validates the room against the `https://meet.jit.si/hrmit-` prefix; the preview takes only `startsAt`, the duration does not appear in the template text; `{{startsAt}}` renders as `YYYY-MM-DD HH:MM UTC`, the recruiter can rewrite it in the dialog; the `meetings` table has an extra nullable `email_id` (set null on delete) linking the invite row, a deviation from §3; a failed send records the failed email row and no meeting, the UI shows the transport error; `buildIcs()` in `packages/shared` folds at 75 octets and escapes TEXT per RFC 5545, the file goes as a `text/calendar; method=REQUEST` attachment named `invite.ics`; the calendar import was checked by decoding the attachment captured by a local SMTP sink on 127.0.0.1:2525 and inspecting the VEVENT, no real calendar client was available; the Jitsi link opened the pre-join page in the browser; the demo was verified by the msw/node handlers test, the in-app browser refuses the service worker)_
+
 - Schema: `meetings`. Server: Jitsi URL generation, hand-built `.ics`, sent as attachment through the invite template.
 - UI: "Schedule interview" dialog with `<input type="datetime-local">` and duration.
 - **Done when:** the recipient's calendar imports the `.ics` and the Jitsi link opens a room.
