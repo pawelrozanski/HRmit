@@ -115,12 +115,8 @@
           "name": "candidates_job_id_jobs_id_fk",
           "tableFrom": "candidates",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -226,12 +222,8 @@
           "name": "emails_candidate_id_candidates_id_fk",
           "tableFrom": "emails",
           "tableTo": "candidates",
-          "columnsFrom": [
-            "candidate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["candidate_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -283,10 +275,7 @@
       "indexes": {
         "evaluations_candidate_id_question_id_unique": {
           "name": "evaluations_candidate_id_question_id_unique",
-          "columns": [
-            "candidate_id",
-            "question_id"
-          ],
+          "columns": ["candidate_id", "question_id"],
           "isUnique": true
         }
       },
@@ -295,12 +284,8 @@
           "name": "evaluations_candidate_id_candidates_id_fk",
           "tableFrom": "evaluations",
           "tableTo": "candidates",
-          "columnsFrom": [
-            "candidate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["candidate_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -308,12 +293,8 @@
           "name": "evaluations_question_id_interview_questions_id_fk",
           "tableFrom": "evaluations",
           "tableTo": "interview_questions",
-          "columnsFrom": [
-            "question_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["question_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -367,12 +348,8 @@
           "name": "interview_questions_job_id_jobs_id_fk",
           "tableFrom": "interview_questions",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -480,12 +457,8 @@
           "name": "meetings_candidate_id_candidates_id_fk",
           "tableFrom": "meetings",
           "tableTo": "candidates",
-          "columnsFrom": [
-            "candidate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["candidate_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -493,12 +466,8 @@
           "name": "meetings_email_id_emails_id_fk",
           "tableFrom": "meetings",
           "tableTo": "emails",
-          "columnsFrom": [
-            "email_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["email_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }

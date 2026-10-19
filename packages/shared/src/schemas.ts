@@ -300,13 +300,11 @@ export type Meeting = z.infer<typeof meetingSchema>
  * Body of POST /api/candidates/:id/meetings. jitsiUrl, subject and body come from the preview the
  * recruiter edited; when omitted the server generates a room and renders the invite template.
  */
-export const meetingInputSchema = meetingSchema
-  .pick({ startsAt: true, durationMin: true })
-  .extend({
-    jitsiUrl: meetingSchema.shape.jitsiUrl.optional(),
-    subject: z.string().min(1).optional(),
-    body: z.string().min(1).optional(),
-  })
+export const meetingInputSchema = meetingSchema.pick({ startsAt: true, durationMin: true }).extend({
+  jitsiUrl: meetingSchema.shape.jitsiUrl.optional(),
+  subject: z.string().min(1).optional(),
+  body: z.string().min(1).optional(),
+})
 export type MeetingInput = z.infer<typeof meetingInputSchema>
 
 /** GET /api/candidates/:id/meetings/preview?startsAt=…: the invite text the dialog starts from. */
