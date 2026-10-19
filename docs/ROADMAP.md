@@ -3,6 +3,7 @@
 Vertical slices: each stage ends with a feature that works end to end in **both** modes (local with SQLite, demo with MSW) and is merged to `main`. Nothing is started before the previous stage is done and reviewed.
 
 Every stage ends with:
+
 1. the feature usable in the browser, locally and in the demo build;
 2. the shared zod schemas and fixtures updated, the contract test green;
 3. a short security review (keys, logs, upload, personal data);
@@ -13,12 +14,13 @@ Legend: **Done when** is the acceptance test. **Demo** is what the MSW handler d
 ---
 
 ## Stage 0: Repository skeleton
-*(this session, step 3)*
+
+_(this session, step 3)_
 
 - pnpm monorepo, TypeScript project references, ESLint, Prettier, Vitest.
 - `apps/web`: Vite + React + Tailwind + shadcn/ui, routing, i18n with `en`/`pl` and one translated string, demo banner component, `VITE_DEMO` wiring with an empty MSW worker.
-- `apps/server`: Hono app bound to `127.0.0.1:3000`, `/api/health`, Drizzle configured with an empty migration, static serving of the web build.
-- `packages/shared`: empty schemas file, `anonymize.ts` stub, fixtures folder.
+- `apps/server`: Hono app bound to `127.0.0.1:3000`, `/api/health`, static serving of the web build.
+- `packages/shared`: `schemas.ts` with the pipeline-stage enum and the health schema, one test.
 - `CLAUDE.md`, `README.md`, `LICENSE`, `.gitignore`, `.github/workflows/ci.yml`.
 - **Done when:** `pnpm install && pnpm dev` opens the UI, which shows a health check from the server; `pnpm lint && pnpm test && pnpm build` pass; CI is green.
 
