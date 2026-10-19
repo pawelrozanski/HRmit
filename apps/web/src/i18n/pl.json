@@ -77,7 +77,9 @@
     "firstName": "Imię",
     "lastName": "Nazwisko",
     "deleteConfirm": "Usunąć {{name}}? Zniknie kandydat, notatki i plik CV. Tej operacji nie da się cofnąć.",
-    "deleteFailed": "Nie udało się usunąć kandydata. Spróbuj ponownie."
+    "deleteFailed": "Nie udało się usunąć kandydata. Spróbuj ponownie.",
+    "pipeline": "Pipeline",
+    "guide": "Przewodnik rozmowy"
   },
   "stage": {
     "applied": "Zgłoszenie",
@@ -206,5 +208,20 @@
       "address_many": "{{count}} linii adresu",
       "address_other": "{{count}} linii adresu"
     }
+  },
+  "questions": {
+    "intro": "Te same pytania dla każdego kandydata na to stanowisko, pogrupowane według kompetencji. Edytuj, zmieniaj kolejność, dodawaj lub usuwaj, a potem zapisz.",
+    "generate": "Wygeneruj z AI",
+    "add": "Dodaj pytanie",
+    "competency": "Kompetencja",
+    "question": "Pytanie",
+    "noCompetency": "Bez kompetencji",
+    "moveUp": "Przesuń w górę",
+    "moveDown": "Przesuń w dół",
+    "empty": "Brak pytań. Wygeneruj zestaw albo dodaj pierwsze.",
+    "incomplete": "Uzupełnij kompetencję i pytanie w każdym wierszu przed zapisem.",
+    "disclaimer": "To propozycja pytań, nie ocena kogokolwiek. Decyzja należy do Ciebie.",
+    "applied": "Zastosowano do pustej listy",
+    "use": "Użyj tych pytań"
   }
 }

@@ -75,7 +75,9 @@
     "firstName": "First name",
     "lastName": "Last name",
     "deleteConfirm": "Delete {{name}}? This removes the candidate, the notes and the CV file. It cannot be undone.",
-    "deleteFailed": "Could not delete the candidate. Try again."
+    "deleteFailed": "Could not delete the candidate. Try again.",
+    "pipeline": "Pipeline",
+    "guide": "Interview guide"
   },
   "stage": {
     "applied": "Applied",
@@ -190,5 +192,20 @@
       "address_one": "{{count}} address line",
       "address_other": "{{count}} address lines"
     }
+  },
+  "questions": {
+    "intro": "The same questions for every candidate of this job, grouped by competency. Edit, reorder, add or remove, then save.",
+    "generate": "Generate with AI",
+    "add": "Add question",
+    "competency": "Competency",
+    "question": "Question",
+    "noCompetency": "No competency",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "empty": "No questions yet. Generate a set or add the first one.",
+    "incomplete": "Fill in a competency and a question for every row before saving.",
+    "disclaimer": "A proposal of questions, not an assessment of anyone. The decision is yours.",
+    "applied": "Applied to the empty list",
+    "use": "Use these questions"
   }
 }

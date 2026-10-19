@@ -6,7 +6,9 @@ import { Link, useParams } from 'react-router'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
 import { Button } from '@/components/ui/button.tsx'
+import { cn } from '@/lib/utils.ts'
 import { Switch } from '@/components/ui/switch.tsx'
+import { InterviewGuide } from '../jobs/InterviewGuide.tsx'
 import { KanbanBoard } from '../pipeline/KanbanBoard.tsx'
 import { BlindContext } from './BlindContext.ts'
 import { CandidateDrawer } from './CandidateDrawer.tsx'
@@ -21,6 +23,7 @@ export function CandidatesPage() {
   const [selected, setSelected] = useState<Candidate | null>(null)
   const [moveError, setMoveError] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [view, setView] = useState<'pipeline' | 'guide'>('pipeline')
 
   // ponytail: no GET /jobs/:id yet; the list is three rows. Add the route when jobs grow.
   const job = useApi(
@@ -96,7 +99,30 @@ export function CandidatesPage() {
         </p>
       )}
 
-      {!candidates.data ? (
+      <div role="tablist" className="mt-4 flex gap-1 border-b">
+        {(['pipeline', 'guide'] as const).map((v) => (
+          <button
+            key={v}
+            role="tab"
+            type="button"
+            aria-selected={view === v}
+            onClick={() => setView(v)}
+            className={cn(
+              '-mb-px border-b-2 px-3 py-1.5 text-sm font-medium',
+              view === v
+                ? 'border-brand text-brand-dark'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {t(`candidates.${v}`)}
+          </button>
+        ))}
+      </div>
+      {view === 'guide' ? (
+        <div className="mt-4">
+          <InterviewGuide jobId={Number(id)} />
+        </div>
+      ) : !candidates.data ? (
         <p className="mt-4 text-muted-foreground">{t('common.loading')}</p>
       ) : (
         <div className="mt-4">
