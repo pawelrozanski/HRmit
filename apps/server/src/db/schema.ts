@@ -39,6 +39,17 @@ export const candidates = sqliteTable('candidates', {
 const { cvPath: _cvPath, ...candidateColumns } = getTableColumns(candidates)
 export { candidateColumns }
 
+/** Structured interview: the job's question list, shared by all its candidates (ADR 0004). */
+export const interviewQuestions = sqliteTable('interview_questions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  jobId: integer('job_id')
+    .notNull()
+    .references(() => jobs.id, { onDelete: 'cascade' }),
+  competency: text('competency').notNull(),
+  question: text('question').notNull(),
+  sortOrder: integer('sort_order').notNull(),
+})
+
 /** Key-value settings (ai.provider, ai.apiKey, ...). Keys on the secret list are stored encrypted. */
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),

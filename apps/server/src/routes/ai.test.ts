@@ -6,6 +6,8 @@ import {
   aiTestResultSchema,
   candidateSchema,
   fixtures,
+  interviewQuestionSchema,
+  questionsProposalSchema,
 } from '@hrmit/shared'
 
 // No Ollama in CI: the model call is mocked, the route and its sanitizer are real.
@@ -16,7 +18,7 @@ vi.mock('ai', () => ({ generateText, generateObject }))
 process.env.HRMIT_LOG_PROMPTS = '1'
 const { app } = await import('../app.ts')
 const { db } = await import('../db/index.ts')
-const { candidates } = await import('../db/schema.ts')
+const { candidates, jobs } = await import('../db/schema.ts')
 
 const KEY = 'sk-live-secret-123'
 const testAi = async () =>
@@ -140,4 +142,53 @@ test('GET /api/ai/preview/:id shows original next to anonymized and names the pr
   await putSettings(CLOUD)
   const cloud = aiPreviewSchema.parse(await (await app.request('/api/ai/preview/1')).json())
   expect(cloud.provider).toBe('cloud')
+})
+
+test('POST /api/ai/questions/:jobId: job fields only in the prompt, applied only to an empty list', async () => {
+  expect((await act('questions', 9999)).status).toBe(404)
+  const set = fixtures.questions[1]!
+  // Job 1 is seeded with questions: the result is a proposal and the list is untouched.
+  // Settings are still cloud (previous test): the description is anonymized, the title is kept.
+  const job = fixtures.jobs[0]!
+  await db
+    .update(jobs)
+    .set({ description: `${job.description} Contact jobs@example.com.` })
+    .where(eq(jobs.id, 1))
+  generateObject.mockResolvedValueOnce({ object: { questions: set } })
+  const proposal = questionsProposalSchema.parse(await (await act('questions', 1)).json())
+  expect(proposal).toEqual({ questions: set, applied: false })
+  const before = interviewQuestionSchema
+    .array()
+    .parse(await (await app.request('/api/jobs/1/questions')).json())
+  expect(before.map((q) => q.question)).toEqual(set.map((q) => q.question))
+  const prompt = generateObject.mock.calls.at(-1)?.[0].prompt as string
+  expect(prompt).toContain(job.title)
+  expect(prompt).toContain(job.description)
+  expect(prompt).toContain('[email]')
+  expect(prompt).toContain('Polish')
+  for (const c of fixtures.candidates)
+    for (const pii of [c.firstName, c.lastName, c.email, c.phone, c.notes].filter(Boolean))
+      expect(prompt).not.toContain(pii)
+  expect(prompt).not.toContain(CV)
+
+  // A new job has no questions: the generated set is stored.
+  const created = await app.request('/api/jobs', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ title: 'QA Engineer', description: 'Manual and automated testing.' }),
+  })
+  const { id } = (await created.json()) as { id: number }
+  generateObject.mockResolvedValueOnce({ object: { questions: set } })
+  const applied = questionsProposalSchema.parse(await (await act('questions', id)).json())
+  expect(applied.applied).toBe(true)
+  const stored = interviewQuestionSchema
+    .array()
+    .parse(await (await app.request(`/api/jobs/${id}/questions`)).json())
+  expect(stored.map((q) => q.question)).toEqual(set.map((q) => q.question))
+  expect(stored.map((q) => q.sortOrder)).toEqual(set.map((_, i) => i))
+
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  generateObject.mockRejectedValueOnce(new Error('boom'))
+  expect((await act('questions', id)).status).toBe(502)
+  warn.mockRestore()
 })

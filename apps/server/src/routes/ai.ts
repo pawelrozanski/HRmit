@@ -9,12 +9,16 @@ import {
   competenciesSchema,
   cvSummarySchema,
   isLocalProvider,
+  questionsGenerationSchema,
   type AiPreview,
   type AiSummary,
   type AiTestResult,
+  type QuestionsProposal,
 } from '@hrmit/shared'
 import { competenciesPrompt } from '../ai/prompts/competencies.ts'
+import { questionsPrompt } from '../ai/prompts/questions.ts'
 import { summarizePrompt } from '../ai/prompts/summarize.ts'
+import { listQuestions, replaceQuestions } from './jobs.ts'
 import { createModel } from '../ai/provider.ts'
 import { db } from '../db/index.ts'
 import { candidateColumns, candidates, jobs } from '../db/schema.ts'
@@ -130,6 +134,39 @@ export const aiRoute = new Hono()
   })
   .route('/summarize', action('summary', cvSummarySchema, summarizePrompt))
   .route('/competencies', action('competencies', competenciesSchema, competenciesPrompt))
+  // Interview guide for a job. The prompt sees the job title and description only, never a
+  // candidate (ADR 0004). Applied straight away when the job has no questions yet, otherwise
+  // returned as a proposal the UI can accept or discard.
+  .post('/questions/:jobId', zValidator('json', aiActionBodySchema), async (c) => {
+    const jobId = Number(c.req.param('jobId'))
+    const [job] = await db.select().from(jobs).where(eq(jobs.id, jobId))
+    if (!job) return c.json({ error: 'not found' }, 404)
+    const settings = await getAiSettings()
+    const lang = c.req.valid('json').lang
+    const safe = questionsPrompt({ ...job, description: anonymize(job.description).text }, lang)
+    if (LOG_PROMPTS)
+      log.info('ai prompt', { action: 'questions', provider: settings.provider, prompt: safe })
+    let object: z.infer<typeof questionsGenerationSchema>
+    try {
+      ;({ object } = await generateObject({
+        model: createModel(settings),
+        schema: questionsGenerationSchema,
+        prompt: isLocalProvider(settings) ? questionsPrompt(job, lang) : safe,
+      }))
+    } catch (err) {
+      const error = sanitize(err, settings.apiKey)
+      log.warn('ai action failed', {
+        action: 'questions',
+        provider: settings.provider,
+        model: settings.model,
+        error,
+      })
+      return c.json({ error }, 502)
+    }
+    const applied = (await listQuestions(jobId)).length === 0
+    if (applied) await replaceQuestions(jobId, object.questions)
+    return c.json<QuestionsProposal>({ questions: object.questions, applied })
+  })
   // What a cloud provider would see, next to the original. Never logged.
   .get('/preview/:candidateId', async (c) => {
     const row = await loadCandidate(c.req.param('candidateId'))

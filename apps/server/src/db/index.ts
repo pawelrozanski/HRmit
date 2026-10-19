@@ -45,4 +45,11 @@ const [{ n } = { n: 0 }] = await db.select({ n: count() }).from(schema.jobs)
 if (n === 0) {
   await db.insert(schema.jobs).values(fixtures.jobs)
   await db.insert(schema.candidates).values(fixtures.candidates)
+  await db
+    .insert(schema.interviewQuestions)
+    .values(
+      Object.entries(fixtures.questions).flatMap(([jobId, set]) =>
+        set.map((q, sortOrder) => ({ ...q, jobId: Number(jobId), sortOrder })),
+      ),
+    )
 }

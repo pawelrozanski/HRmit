@@ -87,28 +87,32 @@ const phonePattern = (phone: string) => {
   return digits.length < 6 ? null : `\\+?${digits.split('').join('[\\s.()-]*')}`
 }
 
-export function anonymize(text: string, candidate: AnonymizeCandidate): AnonymizeResult {
+/** Without a candidate (job text) only the pattern passes run: there are no fields to match. */
+export function anonymize(text: string, candidate?: AnonymizeCandidate): AnonymizeResult {
   const counts: Partial<Record<ReplacementKind, number>> = {}
   const add = (kind: ReplacementKind, count: number) => {
     if (count) counts[kind] = (counts[kind] ?? 0) + count
   }
-  const label = `Candidate #${candidate.id}`
-  const first = escape(fold(candidate.firstName.trim()))
-  const last = escape(fold(candidate.lastName.trim()))
+  let r = { text, count: 0 }
 
   // 1. Structured fields: email and phone first (an email often contains the name), then the
   // full name and each part on its own.
-  let r = replaceFolded(text, escape(fold(candidate.email.trim())), '[email]')
-  add('email', r.count)
-  const phone = phonePattern(candidate.phone)
-  if (phone) {
-    r = replaceAll(r.text, new RegExp(phone, 'g'), '[phone]')
-    add('phone', r.count)
-  }
-  for (const pattern of [`${first}\\s+${last}|${last}\\s+${first}`, first, last]) {
-    if (!pattern) continue
-    r = replaceFolded(r.text, pattern, label)
-    add('name', r.count)
+  if (candidate) {
+    const label = `Candidate #${candidate.id}`
+    const first = escape(fold(candidate.firstName.trim()))
+    const last = escape(fold(candidate.lastName.trim()))
+    r = replaceFolded(text, escape(fold(candidate.email.trim())), '[email]')
+    add('email', r.count)
+    const phone = phonePattern(candidate.phone)
+    if (phone) {
+      r = replaceAll(r.text, new RegExp(phone, 'g'), '[phone]')
+      add('phone', r.count)
+    }
+    for (const pattern of [`${first}\\s+${last}|${last}\\s+${first}`, first, last]) {
+      if (!pattern) continue
+      r = replaceFolded(r.text, pattern, label)
+      add('name', r.count)
+    }
   }
 
   // 2. Regex passes for whatever else looks personal. Order matters: emails before URLs

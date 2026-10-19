@@ -92,3 +92,9 @@ test('isLocalBaseUrl and isLocalProvider', () => {
     isLocalProvider({ provider: 'openai-compatible', baseUrl: 'https://openrouter.ai/api/v1' }),
   ).toBe(false)
 })
+
+test('without a candidate only the pattern passes run (job descriptions)', () => {
+  const r = anonymize('Contact hiring@example.com or +48 600 000 123. Warsaw team.')
+  expect(r.text).toBe('Contact [email] or [phone]. Warsaw team.')
+  expect(r.text).not.toContain('Candidate #')
+})
