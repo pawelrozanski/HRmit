@@ -26,6 +26,8 @@ _(this session, step 3)_
 
 ## Stage 1: Jobs and candidates on fixtures, deployed demo
 
+_(done 2026-10-19; Drizzle over node:sqlite via sqlite-proxy, see ADR 0002 amendment)_
+
 - Schema: `jobs`, `candidates` (no CV columns yet).
 - Routes: list jobs, list candidates by job. Server seeds the DB from fixtures on first run when empty.
 - UI: job list, candidate list per job, candidate detail drawer. Blind-screening toggle that hides name and contact fields.
