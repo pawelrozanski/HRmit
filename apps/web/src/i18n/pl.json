@@ -1,0 +1,13 @@
+{
+  "tagline": "Twoje dane rekrutacyjne zostają w domu.",
+  "demo": {
+    "banner": "Tryb demo. Wszyscy kandydaci są fikcyjni."
+  },
+  "landing": {
+    "tryDemo": "Wypróbuj demo"
+  },
+  "health": {
+    "loading": "Łączenie z serwerem…",
+    "ok": "Połączono: tryb {{mode}}, wersja {{version}}."
+  }
+}

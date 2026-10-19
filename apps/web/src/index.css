@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+
+/* Brand palette (see CLAUDE.md). Use these tokens, never raw hex, in components. */
+@theme {
+  --color-brand: #f26b1d;
+  --color-brand-dark: #c2410c;
+  --color-cream: #fff7f0;
+  --color-ink: #1f2937;
+}
+
+body {
+  @apply bg-cream text-ink antialiased;
+}

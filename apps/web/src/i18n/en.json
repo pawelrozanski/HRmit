@@ -1,0 +1,13 @@
+{
+  "tagline": "Your recruitment data stays home.",
+  "demo": {
+    "banner": "Demo mode. All candidates are fictional."
+  },
+  "landing": {
+    "tryDemo": "Try the demo"
+  },
+  "health": {
+    "loading": "Connecting to the server…",
+    "ok": "Connected: {{mode}} mode, version {{version}}."
+  }
+}
