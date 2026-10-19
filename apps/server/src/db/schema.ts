@@ -98,3 +98,18 @@ export const emails = sqliteTable('emails', {
   /** Sanitized transport error for failed rows; never contains the SMTP password. */
   error: text('error'),
 })
+
+/**
+ * Scheduled interviews (docs/ARCHITECTURE.md §6). The invite email is linked for the history;
+ * the link goes null if that row ever disappears, the meeting goes with the candidate.
+ */
+export const meetings = sqliteTable('meetings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  candidateId: integer('candidate_id')
+    .notNull()
+    .references(() => candidates.id, { onDelete: 'cascade' }),
+  startsAt: text('starts_at').notNull(),
+  durationMin: integer('duration_min').notNull(),
+  jitsiUrl: text('jitsi_url').notNull(),
+  emailId: integer('email_id').references(() => emails.id, { onDelete: 'set null' }),
+})

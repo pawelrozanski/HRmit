@@ -1,18 +1,25 @@
 import { readFile, rm, writeFile } from 'node:fs/promises'
 import { extname, join } from 'node:path'
 import { zValidator } from '@hono/zod-validator'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod'
 import {
+  JITSI_PREFIX,
+  buildIcs,
   candidateInputSchema,
   emailTemplateKeySchema,
   evaluationSchema,
+  meetingInputSchema,
   moveStageSchema,
   renderTemplate,
   sendEmailInputSchema,
   type EmailPreview,
+  type EmailTemplateKey,
+  type MeetingPreview,
+  type MeetingResult,
   type Scorecard,
+  type TemplateVars,
 } from '@hrmit/shared'
 import { db, uploadsDir } from '../db/index.ts'
 import {
@@ -23,6 +30,7 @@ import {
   evaluations,
   interviewQuestions,
   jobs,
+  meetings,
 } from '../db/schema.ts'
 import { log } from '../log.ts'
 import { sendMail, SmtpNotConfigured } from '../mail/send.ts'
@@ -64,6 +72,40 @@ async function scorecard(candidateId: number, jobId: number): Promise<Scorecard>
     .orderBy(interviewQuestions.sortOrder, interviewQuestions.id)
   return { candidateId, evaluations: rows.map((r) => ({ ...r, note: r.note ?? '' })) }
 }
+
+/** One template rendered for one candidate (undefined when the candidate is missing). */
+async function rendered(id: string, key: EmailTemplateKey, extra: TemplateVars = {}) {
+  const [row] = await db
+    .select({
+      to: candidates.email,
+      firstName: candidates.firstName,
+      lastName: candidates.lastName,
+      jobTitle: jobs.title,
+      subject: emailTemplates.subject,
+      body: emailTemplates.body,
+    })
+    .from(candidates)
+    .innerJoin(jobs, eq(jobs.id, candidates.jobId))
+    .innerJoin(emailTemplates, eq(emailTemplates.key, key))
+    .where(byId(id))
+  if (!row) return undefined
+  const vars: TemplateVars = {
+    firstName: row.firstName,
+    lastName: row.lastName,
+    jobTitle: row.jobTitle,
+    companyName: (await getSetting('smtp.companyName')) ?? '',
+    ...extra,
+  }
+  return {
+    to: row.to,
+    subject: renderTemplate(row.subject, vars),
+    body: renderTemplate(row.body, vars),
+  }
+}
+
+const newRoom = () => `${JITSI_PREFIX}${crypto.randomUUID()}`
+/** 2026-10-20T08:00:00.000Z -> "2026-10-20 08:00 UTC" for the {{startsAt}} placeholder. */
+const humanUtc = (iso: string) => `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`
 
 export const candidatesRoute = new Hono()
   .post('/', zValidator('json', candidateInputSchema), async (c) => {
@@ -184,38 +226,17 @@ export const candidatesRoute = new Hono()
       await db.select().from(emails).where(eq(emails.candidateId, candidateId)).orderBy(emails.id),
     )
   })
-  // Rendered template for the UI to edit before sending. Meeting placeholders stay until stage 10.
+  // Rendered template for the UI to edit before sending.
   .get(
     '/:id/emails/preview',
     zValidator('query', z.object({ template: emailTemplateKeySchema }), (r, c) =>
       r.success ? undefined : c.json({ error: 'unknown template' }, 404),
     ),
     async (c) => {
-      const key = { data: c.req.valid('query').template }
-      const [row] = await db
-        .select({
-          firstName: candidates.firstName,
-          lastName: candidates.lastName,
-          jobTitle: jobs.title,
-          subject: emailTemplates.subject,
-          body: emailTemplates.body,
-        })
-        .from(candidates)
-        .innerJoin(jobs, eq(jobs.id, candidates.jobId))
-        .innerJoin(emailTemplates, eq(emailTemplates.key, key.data))
-        .where(byId(c.req.param('id')))
-      if (!row) return c.json({ error: 'not found' }, 404)
-      const vars = {
-        firstName: row.firstName,
-        lastName: row.lastName,
-        jobTitle: row.jobTitle,
-        companyName: (await getSetting('smtp.companyName')) ?? '',
-      }
-      return c.json<EmailPreview>({
-        templateKey: key.data,
-        subject: renderTemplate(row.subject, vars),
-        body: renderTemplate(row.body, vars),
-      })
+      const key = c.req.valid('query').template
+      const r = await rendered(c.req.param('id'), key)
+      if (!r) return c.json({ error: 'not found' }, 404)
+      return c.json<EmailPreview>({ templateKey: key, subject: r.subject, body: r.body })
     },
   )
   // Sends the text as given (the recruiter edited it) and records the outcome either way.
@@ -242,4 +263,87 @@ export const candidatesRoute = new Hono()
       .values({ candidateId, ...input, status, sentAt: new Date().toISOString(), error })
       .returning()
     return c.json(saved, 201)
+  })
+  .get('/:id/meetings', async (c) => {
+    const candidateId = Number(c.req.param('id'))
+    if ((await jobOf(c.req.param('id'))) === undefined) return c.json({ error: 'not found' }, 404)
+    return c.json(
+      await db
+        .select()
+        .from(meetings)
+        .where(eq(meetings.candidateId, candidateId))
+        .orderBy(desc(meetings.id)),
+    )
+  })
+  // The room generated here is what the client sends back, so the text and the link agree.
+  .get(
+    '/:id/meetings/preview',
+    zValidator('query', z.object({ startsAt: z.iso.datetime() })),
+    async (c) => {
+      const jitsiUrl = newRoom()
+      const startsAt = humanUtc(c.req.valid('query').startsAt)
+      const r = await rendered(c.req.param('id'), 'invite', { jitsiUrl, startsAt })
+      if (!r) return c.json({ error: 'not found' }, 404)
+      return c.json<MeetingPreview>({ subject: r.subject, body: r.body, jitsiUrl })
+    },
+  )
+  // Sends the invite with the .ics attached and records both rows. A failed send keeps the
+  // failed email row only: the recruiter fixes SMTP and schedules again, nothing dangles.
+  .post('/:id/meetings', zValidator('json', meetingInputSchema), async (c) => {
+    const candidateId = Number(c.req.param('id'))
+    const input = c.req.valid('json')
+    const jitsiUrl = input.jitsiUrl ?? newRoom()
+    const r = await rendered(c.req.param('id'), 'invite', {
+      jitsiUrl,
+      startsAt: humanUtc(input.startsAt),
+    })
+    if (!r) return c.json({ error: 'not found' }, 404)
+    const subject = input.subject ?? r.subject
+    const body = input.body ?? r.body
+    const ics = buildIcs({
+      uid: `${crypto.randomUUID()}@hrmit`,
+      summary: subject,
+      description: body,
+      startsAt: input.startsAt,
+      durationMin: input.durationMin,
+      url: jitsiUrl,
+      organizerEmail: (await getSetting('smtp.from')) ?? '',
+      attendeeEmail: r.to,
+    })
+    let error: string | null = null
+    try {
+      await sendMail(r.to, subject, body, [
+        { filename: 'invite.ics', content: ics, contentType: 'text/calendar; method=REQUEST' },
+      ])
+    } catch (err) {
+      if (err instanceof SmtpNotConfigured) return c.json({ error: 'smtp not configured' }, 409)
+      error = err instanceof Error ? err.message : String(err)
+    }
+    const status = error ? 'failed' : 'sent'
+    log[error ? 'warn' : 'info']('meeting', { candidateId, status })
+    const [email] = await db
+      .insert(emails)
+      .values({
+        candidateId,
+        templateKey: 'invite',
+        subject,
+        body,
+        status,
+        sentAt: new Date().toISOString(),
+        error,
+      })
+      .returning()
+    const [meeting] = error
+      ? [null]
+      : await db
+          .insert(meetings)
+          .values({
+            candidateId,
+            startsAt: input.startsAt,
+            durationMin: input.durationMin,
+            jitsiUrl,
+            emailId: email!.id,
+          })
+          .returning()
+    return c.json<MeetingResult>({ meeting: meeting ?? null, email: email! }, 201)
   })

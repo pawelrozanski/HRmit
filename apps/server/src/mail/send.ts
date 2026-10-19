@@ -17,7 +17,14 @@ export function sanitize(err: unknown, pass: string | null): string {
  * Throws SmtpNotConfigured when host or from is missing; other failures come back sanitized.
  * ponytail: a transport per call, no pooling; add caching if someone sends hundreds a minute.
  */
-export async function sendMail(to: string, subject: string, text: string): Promise<void> {
+export type Attachment = { filename: string; content: string; contentType: string }
+
+export async function sendMail(
+  to: string,
+  subject: string,
+  text: string,
+  attachments: Attachment[] = [],
+): Promise<void> {
   const s = await getSmtpSettings()
   if (!s.host || !s.from) throw new SmtpNotConfigured('SMTP is not configured')
   const transport = createTransport({
@@ -32,6 +39,7 @@ export async function sendMail(to: string, subject: string, text: string): Promi
       to,
       subject,
       text,
+      attachments,
     })
   } catch (err) {
     throw new Error(sanitize(err, s.pass))
