@@ -30,6 +30,39 @@ export const jobInputSchema = jobSchema.omit({ id: true, createdAt: true }).exte
 })
 export type JobInput = z.input<typeof jobInputSchema>
 
+/**
+ * AI output schemas (ADR 0004): descriptive fields only. No score, rank, fit, recommendation,
+ * verdict or flag field exists anywhere here; schemas.test.ts asserts it.
+ */
+export const cvSummarySchema = z.object({
+  summary: z.string().describe('3 to 6 sentences describing the CV'),
+  highlights: z.array(z.string()).describe('short factual points taken from the CV'),
+})
+export type CvSummary = z.infer<typeof cvSummarySchema>
+
+export const competenciesSchema = z.object({
+  competencies: z.array(
+    z.object({
+      name: z.string(),
+      evidence: z.string().describe('where in the CV this competency shows'),
+    }),
+  ),
+})
+export type Competencies = z.infer<typeof competenciesSchema>
+
+const aiMeta = z.object({ generatedAt: z.string(), model: z.string() })
+
+/** Stored as candidate.aiSummaryJson: each action's last output plus when and by which model. */
+export const aiSummarySchema = z.object({
+  summary: cvSummarySchema.extend(aiMeta.shape).optional(),
+  competencies: competenciesSchema.extend(aiMeta.shape).optional(),
+})
+export type AiSummary = z.infer<typeof aiSummarySchema>
+
+/** Body of POST /api/ai/summarize/:candidateId and /competencies/:candidateId. */
+export const aiActionBodySchema = z.object({ lang: z.enum(['en', 'pl']) })
+export type AiLang = z.infer<typeof aiActionBodySchema>['lang']
+
 export const candidateSchema = z.object({
   id: z.number().int(),
   jobId: z.number().int(),
@@ -44,13 +77,21 @@ export const candidateSchema = z.object({
   cvFilename: z.string().nullable(),
   /** Plain text extracted from the CV; empty when extraction failed, null without a CV. */
   cvText: z.string().nullable(),
+  aiSummaryJson: aiSummarySchema.nullable(),
   createdAt: z.string(),
 })
 export type Candidate = z.infer<typeof candidateSchema>
 
 /** Body of POST /api/candidates and PUT /api/candidates/:id. CV fields change only via upload. */
 export const candidateInputSchema = candidateSchema
-  .omit({ id: true, createdAt: true, stageChangedAt: true, cvFilename: true, cvText: true })
+  .omit({
+    id: true,
+    createdAt: true,
+    stageChangedAt: true,
+    cvFilename: true,
+    cvText: true,
+    aiSummaryJson: true,
+  })
   .extend({
     phone: z.string().default(''),
     stage: pipelineStageSchema.default('applied'),

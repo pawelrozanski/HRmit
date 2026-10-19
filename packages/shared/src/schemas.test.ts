@@ -1,6 +1,10 @@
 import { expect, test } from 'vitest'
+import { z } from 'zod'
 import {
+  aiSummarySchema,
   candidateInputSchema,
+  competenciesSchema,
+  cvSummarySchema,
   candidateSchema,
   healthSchema,
   jobInputSchema,
@@ -42,4 +46,27 @@ test('input schemas fill defaults and reject ids and CV fields', () => {
   expect(c).toMatchObject({ phone: '', stage: 'applied', notes: '' })
   expect('cvText' in c).toBe(false)
   expect(() => candidateInputSchema.parse({ ...c, email: 'nope' })).toThrow()
+})
+
+// ADR 0004: the model cannot return a verdict because there is no field for one.
+test('AI output schemas have no score, rank or verdict field anywhere', () => {
+  const forbidden = /score|rank|fit|recommend|verdict|hire|flag/i
+  const keys = (node: unknown): string[] =>
+    node && typeof node === 'object'
+      ? Object.entries(node).flatMap(([k, v]) => [
+          ...(k === 'properties' ? Object.keys(v as object) : []),
+          ...keys(v),
+        ])
+      : []
+  for (const schema of [cvSummarySchema, competenciesSchema, aiSummarySchema]) {
+    const found = keys(z.toJSONSchema(schema))
+    expect(found.length).toBeGreaterThan(0)
+    expect(found.filter((k) => forbidden.test(k))).toEqual([])
+  }
+  // Every fixture answer must pass the same schemas.
+  for (const entry of Object.values(fixtures.ai)) {
+    cvSummarySchema.parse(entry.summary)
+    competenciesSchema.parse(entry.competencies)
+  }
+  expect(Object.keys(fixtures.ai)).toHaveLength(fixtures.candidates.length)
 })

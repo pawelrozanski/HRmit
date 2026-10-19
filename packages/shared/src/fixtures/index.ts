@@ -1,5 +1,7 @@
 import type { Candidate, Job } from '../schemas.ts'
 
+export { ai } from './ai/index.ts'
+
 /**
  * Demo data. Every person and company here is invented; any resemblance to a real
  * person is accidental. Seeds the local SQLite on first run and the demo store.
@@ -72,6 +74,7 @@ export const candidates: Candidate[] = seeds.map(
     notes,
     cvFilename: null,
     cvText: null,
+    aiSummaryJson: null,
     createdAt: T,
   }),
 )
