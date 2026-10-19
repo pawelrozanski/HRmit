@@ -4,11 +4,16 @@ import {
   aiSettingsViewSchema,
   aiTestResultSchema,
   candidateSchema,
+  emailPreviewSchema,
+  emailSchema,
+  emailTemplateSchema,
   fixtures,
   interviewQuestionSchema,
   jobSchema,
   questionsProposalSchema,
   scorecardSchema,
+  smtpSettingsViewSchema,
+  smtpTestResultSchema,
 } from '@hrmit/shared'
 import { setupServer } from 'msw/node'
 import { afterAll, beforeAll, expect, test, vi } from 'vitest'
@@ -31,6 +36,9 @@ type Store = {
   candidates: { id: number; aiSummaryJson?: unknown }[]
   evaluations?: { candidateId: number; questionId: number }[]
   aiSettings?: unknown
+  smtpSettings?: { hasPass: boolean }
+  templates?: { key: string; subject: string }[]
+  emails?: { candidateId: number; status: string }[]
 }
 
 // Contract check (ADR 0003): the demo handlers answer like the server and pass the shared schemas.
@@ -262,4 +270,69 @@ test('demo scorecard: full list per candidate, upsert, foreign question rejected
   expect(persisted().evaluations?.filter((e) => e.candidateId === 6)).toHaveLength(1)
   await fetch('http://localhost/api/candidates/6', { method: 'DELETE' })
   expect(persisted().evaluations?.some((e) => e.candidateId === 6)).toBe(false)
+})
+
+test('demo email: SMTP view without the password, templates editable, preview, outbox', async () => {
+  const smtp = {
+    host: 'smtp.example.test',
+    port: 465,
+    secure: true,
+    user: 'u',
+    from: 'hr@example.test',
+    companyName: 'Acme',
+  }
+  const saved = smtpSettingsViewSchema.parse(
+    await (await send('PUT', '/api/settings/smtp', { ...smtp, pass: 'secret' })).json(),
+  )
+  expect(saved).toEqual({ ...smtp, hasPass: true })
+  expect(JSON.stringify(persisted())).not.toContain('secret')
+  expect(persisted().smtpSettings?.hasPass).toBe(true)
+  const test = await (await send('POST', '/api/settings/smtp/test', {})).json()
+  expect(smtpTestResultSchema.parse(test).ok).toBe(true)
+
+  expect(emailTemplateSchema.array().parse(await get('/api/templates'))).toEqual(
+    fixtures.emailTemplates,
+  )
+  const edited = emailTemplateSchema
+    .array()
+    .parse(
+      await (
+        await send('PUT', '/api/templates', [
+          {
+            key: 'rejection',
+            subject: 'Re: {{jobTitle}}',
+            body: 'Bye {{firstName}} from {{companyName}}',
+          },
+        ])
+      ).json(),
+    )
+  expect(edited).toHaveLength(3)
+  expect(persisted().templates?.find((t) => t.key === 'rejection')?.subject).toBe(
+    'Re: {{jobTitle}}',
+  )
+
+  const preview = emailPreviewSchema.parse(
+    await get('/api/candidates/5/emails/preview?template=rejection'),
+  )
+  expect(preview).toEqual({
+    templateKey: 'rejection',
+    subject: 'Re: Frontend Developer (React)',
+    body: 'Bye Ingrid from Acme',
+  })
+  const bad = await fetch('http://localhost/api/candidates/5/emails/preview?template=offer')
+  expect(bad.status).toBe(404)
+
+  const before = emailSchema.array().parse(await get('/api/candidates/5/emails'))
+  expect(before.map((e) => e.status)).toEqual(['sent'])
+  const res = await send('POST', '/api/candidates/5/emails', preview)
+  expect(res.status).toBe(201)
+  expect(emailSchema.parse(await res.json())).toMatchObject({
+    candidateId: 5,
+    status: 'demo',
+    ...preview,
+  })
+  const after = emailSchema.array().parse(await get('/api/candidates/5/emails'))
+  expect(after.map((e) => e.status)).toEqual(['sent', 'demo'])
+  expect(persisted().emails?.filter((e) => e.candidateId === 5)).toHaveLength(2)
+  expect((await send('POST', '/api/candidates/999/emails', preview)).status).toBe(404)
 })

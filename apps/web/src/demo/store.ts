@@ -1,21 +1,28 @@
 import {
   AI_SETTINGS_DEFAULTS,
+  SMTP_SETTINGS_DEFAULTS,
   fixtures,
   type AiSettingsView,
   type Candidate,
+  type Email,
+  type EmailTemplate,
   type Evaluation,
   type InterviewQuestion,
   type Job,
+  type SmtpSettingsView,
 } from '@hrmit/shared'
 import { DEMO_STORAGE_KEY } from '../config.ts'
 
-/** aiSettings holds the view shape only: no key is ever written to localStorage. */
+/** Settings hold the view shapes only: no key or password is ever written to localStorage. */
 type Store = {
   jobs: Job[]
   candidates: Candidate[]
   questions: InterviewQuestion[]
   evaluations: (Evaluation & { candidateId: number })[]
   aiSettings: AiSettingsView
+  smtpSettings: SmtpSettingsView
+  templates: EmailTemplate[]
+  emails: Email[]
 }
 
 const seedEvaluations = () =>
@@ -32,6 +39,9 @@ function load(): Store {
         aiSettings: AI_SETTINGS_DEFAULTS,
         questions: structuredClone(fixtures.questionRows),
         evaluations: seedEvaluations(),
+        smtpSettings: SMTP_SETTINGS_DEFAULTS,
+        templates: structuredClone(fixtures.emailTemplates),
+        emails: structuredClone(fixtures.emails),
         ...(JSON.parse(raw) as Partial<Store>),
       } as Store
   } catch {
@@ -43,6 +53,9 @@ function load(): Store {
     questions: structuredClone(fixtures.questionRows),
     evaluations: seedEvaluations(),
     aiSettings: AI_SETTINGS_DEFAULTS,
+    smtpSettings: SMTP_SETTINGS_DEFAULTS,
+    templates: structuredClone(fixtures.emailTemplates),
+    emails: structuredClone(fixtures.emails),
   }
 }
 

@@ -4,20 +4,28 @@ import {
   aiSettingsSchema,
   anonymize,
   candidateInputSchema,
+  emailTemplateKeySchema,
+  emailTemplateSchema,
   evaluationSchema,
   fixtures,
   interviewQuestionInputSchema,
   jobInputSchema,
   moveStageSchema,
   pipelineStageSchema,
+  renderTemplate,
+  sendEmailInputSchema,
+  smtpSettingsSchema,
   isLocalProvider,
   type AiPreview,
   type AiSummary,
   type AiTestResult,
+  type Email,
+  type EmailPreview,
   type Health,
   type InterviewQuestionInput,
   type QuestionsProposal,
   type Scorecard,
+  type SmtpTestResult,
 } from '@hrmit/shared'
 import { save, store } from './store.ts'
 
@@ -140,6 +148,7 @@ export const handlers = [
     if (i < 0) return notFound()
     store.candidates.splice(i, 1)
     store.evaluations = store.evaluations.filter((e) => e.candidateId !== Number(params.id))
+    store.emails = store.emails.filter((e) => e.candidateId !== Number(params.id))
     save()
     return new HttpResponse(null, { status: 204 })
   }),
@@ -265,5 +274,76 @@ export const handlers = [
     candidate.aiSummaryJson = null
     save()
     return HttpResponse.json(candidate)
+  }),
+  http.get(`${base}/api/settings/smtp`, () => HttpResponse.json(store.smtpSettings)),
+  // Same password rules as the server, but only the boolean is kept.
+  http.put(`${base}/api/settings/smtp`, async ({ request }) => {
+    const body = smtpSettingsSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const { pass, ...fields } = body.data
+    const hasPass = pass === null ? false : pass ? true : store.smtpSettings.hasPass
+    store.smtpSettings = { ...fields, hasPass }
+    save()
+    return HttpResponse.json(store.smtpSettings)
+  }),
+  // No mail server in the demo: the test always succeeds after a short pause.
+  http.post(`${base}/api/settings/smtp/test`, async () => {
+    await delay(600)
+    return HttpResponse.json<SmtpTestResult>({ ok: true })
+  }),
+  http.get(`${base}/api/templates`, () => HttpResponse.json(store.templates)),
+  http.put(`${base}/api/templates`, async ({ request }) => {
+    const body = emailTemplateSchema
+      .array()
+      .min(1)
+      .safeParse(await request.json())
+    if (!body.success) return invalid()
+    for (const t of body.data) {
+      const row = store.templates.find((x) => x.key === t.key)
+      if (row) Object.assign(row, t)
+      else store.templates.push(t)
+    }
+    save()
+    return HttpResponse.json(store.templates)
+  }),
+  http.get(`${base}/api/candidates/:id/emails`, ({ params }) => {
+    if (!store.candidates.some((c) => c.id === Number(params.id))) return notFound()
+    return HttpResponse.json(store.emails.filter((e) => e.candidateId === Number(params.id)))
+  }),
+  http.get(`${base}/api/candidates/:id/emails/preview`, ({ params, request }) => {
+    const key = emailTemplateKeySchema.safeParse(new URL(request.url).searchParams.get('template'))
+    if (!key.success) return HttpResponse.json({ error: 'unknown template' }, { status: 404 })
+    const candidate = store.candidates.find((c) => c.id === Number(params.id))
+    const job = store.jobs.find((j) => j.id === candidate?.jobId)
+    const template = store.templates.find((t) => t.key === key.data)
+    if (!candidate || !job || !template) return notFound()
+    const vars = {
+      firstName: candidate.firstName,
+      lastName: candidate.lastName,
+      jobTitle: job.title,
+      companyName: store.smtpSettings.companyName,
+    }
+    return HttpResponse.json<EmailPreview>({
+      templateKey: key.data,
+      subject: renderTemplate(template.subject, vars),
+      body: renderTemplate(template.body, vars),
+    })
+  }),
+  // Nothing is sent: the row lands in the candidate's history as the Outbox (docs §4.2).
+  http.post(`${base}/api/candidates/:id/emails`, async ({ params, request }) => {
+    const body = sendEmailInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    if (!store.candidates.some((c) => c.id === Number(params.id))) return notFound()
+    const email: Email = {
+      id: nextId(store.emails),
+      candidateId: Number(params.id),
+      ...body.data,
+      status: 'demo',
+      sentAt: new Date().toISOString(),
+      error: null,
+    }
+    store.emails.push(email)
+    save()
+    return HttpResponse.json(email, { status: 201 })
   }),
 ]
