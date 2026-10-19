@@ -111,6 +111,8 @@ _(done 2026-10-19; `GET /api/candidates/:id/scorecard` returns the job's questio
 
 ## Stage 9: Email templates and SMTP
 
+_(done 2026-10-19; the send dialog fetches `GET /api/candidates/:id/emails/preview?template=…` and `POST /api/candidates/:id/emails` takes the final subject and body, so the recruiter edits the rendered text and the server renders nothing itself; `renderTemplate()` is a `replaceAll` loop in `packages/shared`, unknown placeholders stay visible, `{{startsAt}}` and `{{jitsiUrl}}` are filled from stage 10; mail is `text/plain` only, so a placeholder value is never HTML; SMTP settings add a `companyName` field (sender display name and the `{{companyName}}` placeholder), a deviation from the three keys listed in §3; missing template keys are inserted on every start, edited ones are kept; the "real inbox" was a local SMTP sink on 127.0.0.1:2525 started for the check, no real mail account was available, the captured message had the rendered rejection text and the row showed as Sent in the drawer; the password in `data/hrmit.db` was verified to be ciphertext; the demo records `status: 'demo'` rows shown as "Outbox (demo)" in the same history list, there is no separate Outbox page; header links now resolve from the app root, a relative `settings` from `/jobs/1` rendered an empty page before)_
+
 - Schema: `email_templates`, `emails`. Server: nodemailer, placeholder substitution, "Send test email".
 - Routes: templates get/update, send to candidate, list by candidate.
 - UI: SMTP settings, template editor, "Send email" dialog with preview, communication history on the candidate page.
