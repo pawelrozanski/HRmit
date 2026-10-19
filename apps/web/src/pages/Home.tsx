@@ -1,10 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { Link, Route, Routes } from 'react-router'
 import { LanguageSwitch } from '../components/LanguageSwitch.tsx'
+import { APP_PATH } from '../config.ts'
 import { CandidatesPage } from '../features/candidates/CandidatesPage.tsx'
 import { TemplatesPage } from '../features/email/TemplatesPage.tsx'
 import { JobsPage } from '../features/jobs/JobsPage.tsx'
 import { SettingsPage } from '../features/settings/SettingsPage.tsx'
+
+// Header links are absolute from the mount point: a relative "settings" from /jobs/1 would
+// resolve to /jobs/1/settings, which no route renders.
+const root = APP_PATH.replace(/\/$/, '')
 
 /** The app shell: header plus the feature routes, relative to wherever it is mounted. */
 export function Home() {
@@ -12,17 +17,17 @@ export function Home() {
   return (
     <main className="mx-auto max-w-6xl p-6">
       <header className="mb-6 flex items-center justify-between">
-        <Link to="." className="text-2xl font-bold text-brand-dark">
+        <Link to={`${root}/`} className="text-2xl font-bold text-brand-dark">
           HRmit
         </Link>
         <nav className="flex items-center gap-4 text-sm">
-          <Link to="." className="hover:text-brand-dark">
+          <Link to={`${root}/`} className="hover:text-brand-dark">
             {t('nav.jobs')}
           </Link>
-          <Link to="templates" className="hover:text-brand-dark">
+          <Link to={`${root}/templates`} className="hover:text-brand-dark">
             {t('nav.templates')}
           </Link>
-          <Link to="settings" className="hover:text-brand-dark">
+          <Link to={`${root}/settings`} className="hover:text-brand-dark">
             {t('nav.settings')}
           </Link>
           <LanguageSwitch />

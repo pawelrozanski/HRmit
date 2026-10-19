@@ -25,6 +25,16 @@ type Store = {
   emails: Email[]
 }
 
+/** A fictional sender, so {{companyName}} renders in the demo send dialog. */
+const DEMO_SMTP: SmtpSettingsView = {
+  ...SMTP_SETTINGS_DEFAULTS,
+  host: 'smtp.northwind.example',
+  user: 'recruiting',
+  from: 'recruiting@northwind.example',
+  companyName: 'Northwind Scheduling',
+  hasPass: true,
+}
+
 const seedEvaluations = () =>
   Object.entries(fixtures.evaluations).flatMap(([candidateId, list]) =>
     list.map((e) => ({ candidateId: Number(candidateId), ...e })),
@@ -39,7 +49,7 @@ function load(): Store {
         aiSettings: AI_SETTINGS_DEFAULTS,
         questions: structuredClone(fixtures.questionRows),
         evaluations: seedEvaluations(),
-        smtpSettings: SMTP_SETTINGS_DEFAULTS,
+        smtpSettings: DEMO_SMTP,
         templates: structuredClone(fixtures.emailTemplates),
         emails: structuredClone(fixtures.emails),
         ...(JSON.parse(raw) as Partial<Store>),
@@ -53,7 +63,7 @@ function load(): Store {
     questions: structuredClone(fixtures.questionRows),
     evaluations: seedEvaluations(),
     aiSettings: AI_SETTINGS_DEFAULTS,
-    smtpSettings: SMTP_SETTINGS_DEFAULTS,
+    smtpSettings: DEMO_SMTP,
     templates: structuredClone(fixtures.emailTemplates),
     emails: structuredClone(fixtures.emails),
   }

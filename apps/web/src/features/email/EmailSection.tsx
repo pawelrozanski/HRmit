@@ -56,7 +56,7 @@ export function EmailSection({ candidate }: { candidate: Candidate }) {
       {history.data.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('email.none')}</p>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="grid gap-2 overflow-hidden">
           {history.data.map((e) => (
             <li key={e.id} className="flex items-start justify-between gap-2 text-sm">
               <div className="min-w-0">
