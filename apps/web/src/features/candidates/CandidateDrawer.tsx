@@ -7,6 +7,7 @@ import { api } from '@/api/client.ts'
 import { Button } from '@/components/ui/button.tsx'
 import { AiSection } from '../ai/AiSection.tsx'
 import { EmailSection } from '../email/EmailSection.tsx'
+import { MeetingsSection } from '../meetings/MeetingsSection.tsx'
 import {
   Sheet,
   SheetContent,
@@ -41,6 +42,8 @@ export function CandidateDrawer({
   const blind = useBlind()
   const [editing, setEditing] = useState(false)
   const [deleteFailed, setDeleteFailed] = useState(false)
+  // Bumped after an invite goes out: remounts the email history so the new row shows up.
+  const [emailsKey, setEmailsKey] = useState(0)
   const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language)
   const hidden = <span className="text-muted-foreground italic">{t('candidates.hidden')}</span>
 
@@ -98,8 +101,14 @@ export function CandidateDrawer({
               <Field label={t('scorecard.title')}>
                 <Scorecard candidate={candidate} onOpenGuide={onOpenGuide} />
               </Field>
+              <Field label={t('meetings.title')}>
+                <MeetingsSection
+                  candidate={candidate}
+                  onScheduled={() => setEmailsKey((k) => k + 1)}
+                />
+              </Field>
               <Field label={t('email.title')}>
-                <EmailSection candidate={candidate} />
+                <EmailSection key={emailsKey} candidate={candidate} />
               </Field>
             </dl>
             <div className="mt-auto flex items-center justify-between gap-2 border-t p-4">

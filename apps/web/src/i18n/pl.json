@@ -280,5 +280,21 @@
       "failed": "Błąd",
       "demo": "Skrzynka nadawcza (demo)"
     }
+  },
+  "meetings": {
+    "title": "Rozmowy",
+    "none": "Nie zaplanowano jeszcze rozmowy.",
+    "schedule": "Zaplanuj rozmowę",
+    "dialogTitle": "Zaplanuj rozmowę z {{email}}",
+    "hint": "Wybierz termin. Zaproszenie poniżej można edytować; idzie jako zwykły tekst z załącznikiem invite.ics przez Twoje ustawienia SMTP.",
+    "demoHint": "Tryb demo: nic nie jest wysyłane. Spotkanie pojawia się na stronie kandydata, a zaproszenie trafia do skrzynki nadawczej.",
+    "when": "Kiedy",
+    "duration": "Czas trwania",
+    "minutes_one": "{{count}} minuta",
+    "minutes_few": "{{count}} minuty",
+    "minutes_many": "{{count}} minut",
+    "minutes_other": "{{count}} minuty",
+    "link": "Pokój Jitsi",
+    "send": "Wyślij zaproszenie"
   }
 }

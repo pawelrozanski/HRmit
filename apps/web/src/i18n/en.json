@@ -264,5 +264,19 @@
       "failed": "Failed",
       "demo": "Outbox (demo)"
     }
+  },
+  "meetings": {
+    "title": "Interviews",
+    "none": "No interview scheduled yet.",
+    "schedule": "Schedule interview",
+    "dialogTitle": "Schedule an interview with {{email}}",
+    "hint": "Pick a slot. The invitation below is editable and goes out as plain text with an invite.ics attachment through your SMTP settings.",
+    "demoHint": "Demo mode: nothing is sent. The meeting appears on this candidate's page and the invitation lands in the outbox.",
+    "when": "When",
+    "duration": "Duration",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes",
+    "link": "Jitsi room",
+    "send": "Send invite"
   }
 }
