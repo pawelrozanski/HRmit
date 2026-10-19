@@ -39,8 +39,10 @@ _(done 2026-10-19; Drizzle over node:sqlite via sqlite-proxy, see ADR 0002 amend
 
 ## Stage 2: Pipeline kanban
 
-- Route: move candidate to a stage.
-- UI: kanban with the five stages, move by drag-and-drop (`@dnd-kit`) with a button fallback for keyboard users.
+_(done 2026-10-19; keyboard fallback is a native `<select>` in the candidate drawer)_
+
+- Route: `PATCH /api/candidates/:id/stage`.
+- UI: kanban with the five stages, move by drag-and-drop (`@dnd-kit/core`) with a stage select in the drawer for keyboard users.
 - **Done when:** moving a card survives a reload in both modes.
 - **Security:** none new.
 
