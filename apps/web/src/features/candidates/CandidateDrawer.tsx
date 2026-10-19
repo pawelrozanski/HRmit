@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '@/api/client.ts'
 import { Button } from '@/components/ui/button.tsx'
 import { AiSection } from '../ai/AiSection.tsx'
+import { EmailSection } from '../email/EmailSection.tsx'
 import {
   Sheet,
   SheetContent,
@@ -96,6 +97,9 @@ export function CandidateDrawer({
               </Field>
               <Field label={t('scorecard.title')}>
                 <Scorecard candidate={candidate} onOpenGuide={onOpenGuide} />
+              </Field>
+              <Field label={t('email.title')}>
+                <EmailSection candidate={candidate} />
               </Field>
             </dl>
             <div className="mt-auto flex items-center justify-between gap-2 border-t p-4">

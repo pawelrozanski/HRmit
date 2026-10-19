@@ -25,7 +25,8 @@
   },
   "nav": {
     "jobs": "Stanowiska",
-    "settings": "Ustawienia"
+    "settings": "Ustawienia",
+    "templates": "Szablony"
   },
   "common": {
     "loading": "Ładowanie…",
@@ -234,5 +235,50 @@
     "scoreLabel": "Ocena {{n}} z 5",
     "clear": "Wyczyść",
     "note": "Notatka"
+  },
+  "smtp": {
+    "title": "E-mail (SMTP)",
+    "privacy": "Wiadomości idą prosto z Twojego komputera do Twojego serwera pocztowego. Hasło jest przechowywane w postaci zaszyfrowanej i nigdy nie jest ponownie wyświetlane.",
+    "host": "Serwer SMTP",
+    "port": "Port",
+    "secure": "TLS od początku połączenia (port 465). Wyłącz dla STARTTLS na 587.",
+    "user": "Użytkownik",
+    "pass": "Hasło",
+    "passStored": "Hasło jest zapisane. Wpisz nowe, aby je zastąpić.",
+    "removePass": "Usuń hasło",
+    "from": "Adres nadawcy",
+    "companyName": "Nazwa firmy (nazwa nadawcy i {{companyName}} w szablonach)",
+    "test": "Wyślij testowy e-mail",
+    "testing": "Wysyłanie…",
+    "testOk": "Testowy e-mail wysłany na {{from}}.",
+    "testFailed": "Wysyłka nie powiodła się: {{error}}"
+  },
+  "templates": {
+    "title": "Szablony e-maili",
+    "intro": "Zwykły tekst, jeden na każdy cel. Znaczniki są wypełniane przy otwarciu okna wysyłki; tekst można jeszcze poprawić przed wysłaniem.",
+    "keys": {
+      "invite": "Zaproszenie na rozmowę",
+      "reminder": "Przypomnienie o rozmowie",
+      "rejection": "Odmowa"
+    },
+    "subject": "Temat",
+    "body": "Treść"
+  },
+  "email": {
+    "title": "E-maile",
+    "none": "Nie wysłano jeszcze żadnych e-maili.",
+    "hidden": "Ukryte przez ślepą selekcję.",
+    "send": "Wyślij e-mail",
+    "sending": "Wysyłanie…",
+    "dialogTitle": "Wyślij e-mail do {{email}}",
+    "hint": "Wybierz szablon i w razie potrzeby popraw tekst. Wiadomość idzie jako zwykły tekst przez Twoje ustawienia SMTP.",
+    "demoHint": "Tryb demo: nic nie jest wysyłane. Wiadomość trafia do historii kandydata jako wpis w skrzynce nadawczej.",
+    "template": "Szablon",
+    "notConfigured": "SMTP nie jest skonfigurowany. Najpierw wypełnij sekcję E-mail w Ustawieniach.",
+    "status": {
+      "sent": "Wysłano",
+      "failed": "Błąd",
+      "demo": "Skrzynka nadawcza (demo)"
+    }
   }
 }

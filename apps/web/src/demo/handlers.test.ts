@@ -293,19 +293,17 @@ test('demo email: SMTP view without the password, templates editable, preview, o
   expect(emailTemplateSchema.array().parse(await get('/api/templates'))).toEqual(
     fixtures.emailTemplates,
   )
-  const edited = emailTemplateSchema
-    .array()
-    .parse(
-      await (
-        await send('PUT', '/api/templates', [
-          {
-            key: 'rejection',
-            subject: 'Re: {{jobTitle}}',
-            body: 'Bye {{firstName}} from {{companyName}}',
-          },
-        ])
-      ).json(),
-    )
+  const edited = emailTemplateSchema.array().parse(
+    await (
+      await send('PUT', '/api/templates', [
+        {
+          key: 'rejection',
+          subject: 'Re: {{jobTitle}}',
+          body: 'Bye {{firstName}} from {{companyName}}',
+        },
+      ])
+    ).json(),
+  )
   expect(edited).toHaveLength(3)
   expect(persisted().templates?.find((t) => t.key === 'rejection')?.subject).toBe(
     'Re: {{jobTitle}}',

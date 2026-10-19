@@ -266,7 +266,7 @@ export const emailSchema = z.object({
   body: z.string(),
   status: z.enum(['sent', 'failed', 'demo']),
   sentAt: z.string(),
-  error: z.string().nullable().optional(),
+  error: z.string().nullable(),
 })
 export type Email = z.infer<typeof emailSchema>
 

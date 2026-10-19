@@ -25,7 +25,8 @@
   },
   "nav": {
     "jobs": "Jobs",
-    "settings": "Settings"
+    "settings": "Settings",
+    "templates": "Templates"
   },
   "common": {
     "loading": "Loading…",
@@ -218,5 +219,50 @@
     "scoreLabel": "Score {{n}} of 5",
     "clear": "Clear",
     "note": "Note"
+  },
+  "smtp": {
+    "title": "Email (SMTP)",
+    "privacy": "Emails go straight from your computer to your mail server. The password is stored encrypted and never shown again.",
+    "host": "SMTP host",
+    "port": "Port",
+    "secure": "Use TLS from the start (port 465). Leave off for STARTTLS on 587.",
+    "user": "User",
+    "pass": "Password",
+    "passStored": "A password is stored. Enter a new one to replace it.",
+    "removePass": "Remove password",
+    "from": "Sender address",
+    "companyName": "Company name (sender name and {{companyName}} in templates)",
+    "test": "Send test email",
+    "testing": "Sending…",
+    "testOk": "Test email sent to {{from}}.",
+    "testFailed": "Sending failed: {{error}}"
+  },
+  "templates": {
+    "title": "Email templates",
+    "intro": "Plain text, one per purpose. Placeholders are filled in when you open the send dialog; you can still edit the text before sending.",
+    "keys": {
+      "invite": "Interview invitation",
+      "reminder": "Interview reminder",
+      "rejection": "Rejection"
+    },
+    "subject": "Subject",
+    "body": "Body"
+  },
+  "email": {
+    "title": "Emails",
+    "none": "No emails sent yet.",
+    "hidden": "Hidden by blind screening.",
+    "send": "Send email",
+    "sending": "Sending…",
+    "dialogTitle": "Send email to {{email}}",
+    "hint": "Pick a template, edit the text if you like. It is sent as plain text through your SMTP settings.",
+    "demoHint": "Demo mode: nothing is sent. The message lands in this candidate's history as an outbox entry.",
+    "template": "Template",
+    "notConfigured": "SMTP is not configured. Fill in the Email section in Settings first.",
+    "status": {
+      "sent": "Sent",
+      "failed": "Failed",
+      "demo": "Outbox (demo)"
+    }
   }
 }

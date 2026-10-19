@@ -185,34 +185,39 @@ export const candidatesRoute = new Hono()
     )
   })
   // Rendered template for the UI to edit before sending. Meeting placeholders stay until stage 10.
-  .get('/:id/emails/preview', async (c) => {
-    const key = emailTemplateKeySchema.safeParse(c.req.query('template'))
-    if (!key.success) return c.json({ error: 'unknown template' }, 404)
-    const [row] = await db
-      .select({
-        firstName: candidates.firstName,
-        lastName: candidates.lastName,
-        jobTitle: jobs.title,
-        subject: emailTemplates.subject,
-        body: emailTemplates.body,
+  .get(
+    '/:id/emails/preview',
+    zValidator('query', z.object({ template: emailTemplateKeySchema }), (r, c) =>
+      r.success ? undefined : c.json({ error: 'unknown template' }, 404),
+    ),
+    async (c) => {
+      const key = { data: c.req.valid('query').template }
+      const [row] = await db
+        .select({
+          firstName: candidates.firstName,
+          lastName: candidates.lastName,
+          jobTitle: jobs.title,
+          subject: emailTemplates.subject,
+          body: emailTemplates.body,
+        })
+        .from(candidates)
+        .innerJoin(jobs, eq(jobs.id, candidates.jobId))
+        .innerJoin(emailTemplates, eq(emailTemplates.key, key.data))
+        .where(byId(c.req.param('id')))
+      if (!row) return c.json({ error: 'not found' }, 404)
+      const vars = {
+        firstName: row.firstName,
+        lastName: row.lastName,
+        jobTitle: row.jobTitle,
+        companyName: (await getSetting('smtp.companyName')) ?? '',
+      }
+      return c.json<EmailPreview>({
+        templateKey: key.data,
+        subject: renderTemplate(row.subject, vars),
+        body: renderTemplate(row.body, vars),
       })
-      .from(candidates)
-      .innerJoin(jobs, eq(jobs.id, candidates.jobId))
-      .innerJoin(emailTemplates, eq(emailTemplates.key, key.data))
-      .where(byId(c.req.param('id')))
-    if (!row) return c.json({ error: 'not found' }, 404)
-    const vars = {
-      firstName: row.firstName,
-      lastName: row.lastName,
-      jobTitle: row.jobTitle,
-      companyName: (await getSetting('smtp.companyName')) ?? '',
-    }
-    return c.json<EmailPreview>({
-      templateKey: key.data,
-      subject: renderTemplate(row.subject, vars),
-      body: renderTemplate(row.body, vars),
-    })
-  })
+    },
+  )
   // Sends the text as given (the recruiter edited it) and records the outcome either way.
   // Only ids and the status reach the log: no address, no subject, no body.
   .post('/:id/emails', zValidator('json', sendEmailInputSchema), async (c) => {

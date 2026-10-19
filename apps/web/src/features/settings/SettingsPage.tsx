@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
+import { SmtpSettings } from './SmtpSettings.tsx'
 
 /** Suggested endpoint per provider; swapped in when the user has not customized the URL. */
 const DEFAULT_URL: Record<AiProvider, string> = {
@@ -34,7 +35,12 @@ export function SettingsPage() {
   const loaded = useApi(() => api.api.settings.ai.$get().then((r) => r.json()), [])
   if (loaded.error) return <p className="text-destructive">{t('common.error')}</p>
   if (!loaded.data) return <p className="text-muted-foreground">{t('common.loading')}</p>
-  return <SettingsForm initial={loaded.data} />
+  return (
+    <div className="grid gap-10">
+      <SettingsForm initial={loaded.data} />
+      <SmtpSettings />
+    </div>
+  )
 }
 
 function SettingsForm({ initial }: { initial: AiSettingsView }) {

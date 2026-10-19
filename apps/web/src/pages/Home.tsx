@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, Route, Routes } from 'react-router'
 import { LanguageSwitch } from '../components/LanguageSwitch.tsx'
 import { CandidatesPage } from '../features/candidates/CandidatesPage.tsx'
+import { TemplatesPage } from '../features/email/TemplatesPage.tsx'
 import { JobsPage } from '../features/jobs/JobsPage.tsx'
 import { SettingsPage } from '../features/settings/SettingsPage.tsx'
 
@@ -18,6 +19,9 @@ export function Home() {
           <Link to="." className="hover:text-brand-dark">
             {t('nav.jobs')}
           </Link>
+          <Link to="templates" className="hover:text-brand-dark">
+            {t('nav.templates')}
+          </Link>
           <Link to="settings" className="hover:text-brand-dark">
             {t('nav.settings')}
           </Link>
@@ -27,6 +31,7 @@ export function Home() {
       <Routes>
         <Route index element={<JobsPage />} />
         <Route path="jobs/:id" element={<CandidatesPage />} />
+        <Route path="templates" element={<TemplatesPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Routes>
     </main>
