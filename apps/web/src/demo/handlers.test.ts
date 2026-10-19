@@ -24,3 +24,22 @@ test('demo GET /api/jobs/:id/candidates filters by stage', async () => {
   expect(applied.length).toBeGreaterThan(0)
   expect(applied.every((c) => c.stage === 'applied')).toBe(true)
 })
+
+test('demo PATCH /api/candidates/:id/stage moves the candidate', async () => {
+  const res = await fetch('http://localhost/api/candidates/1/stage', {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ stage: 'offer' }),
+  })
+  expect(res.status).toBe(200)
+  expect(candidateSchema.parse(await res.json()).stage).toBe('offer')
+  const inOffer = candidateSchema.array().parse(await get('/api/jobs/1/candidates?stage=offer'))
+  expect(inOffer.some((c) => c.id === 1)).toBe(true)
+
+  const bad = await fetch('http://localhost/api/candidates/1/stage', {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ stage: 'hired' }),
+  })
+  expect(bad.status).toBe(400)
+})

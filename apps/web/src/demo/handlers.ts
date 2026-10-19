@@ -1,6 +1,6 @@
 import { HttpResponse, http } from 'msw'
-import { pipelineStageSchema, type Health } from '@hrmit/shared'
-import { store } from './store.ts'
+import { moveStageSchema, pipelineStageSchema, type Health } from '@hrmit/shared'
+import { save, store } from './store.ts'
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 
@@ -19,5 +19,15 @@ export const handlers = [
     return HttpResponse.json(
       store.candidates.filter((c) => c.jobId === jobId && (!stage || c.stage === stage.data)),
     )
+  }),
+  http.patch(`${base}/api/candidates/:id/stage`, async ({ params, request }) => {
+    const body = moveStageSchema.safeParse(await request.json())
+    if (!body.success) return HttpResponse.json({ error: 'invalid stage' }, { status: 400 })
+    const candidate = store.candidates.find((c) => c.id === Number(params.id))
+    if (!candidate) return HttpResponse.json({ error: 'not found' }, { status: 404 })
+    candidate.stage = body.data.stage
+    candidate.stageChangedAt = new Date().toISOString()
+    save()
+    return HttpResponse.json(candidate)
   }),
 ]
