@@ -81,6 +81,8 @@ _(done 2026-10-19; the OpenAI-compatible provider needs `supportsStructuredOutpu
 
 ## Stage 6: Anonymization and BYOK cloud providers
 
+_(done 2026-10-19; `isLocalProvider()` and `isLocalBaseUrl()` live in `packages/shared` so the web badge and the server agree; the cloud dialog opens on Save or Test whenever the provider or base URL changes to a non-local one, and the change is saved only on confirm; prompt debugging is `HRMIT_LOG_PROMPTS=1` and logs the anonymized prompt only; the "done when" was proven with a mocked model capturing the prompt, no real cloud key was used; the demo build was verified by the msw/node handler test, the embedded browser pane cannot register service workers)_
+
 - `packages/shared/anonymize.ts` implemented with unit tests (names with diacritics, emails, phones, PESEL, URLs).
 - Route: `GET /ai/preview/:id`. Cloud calls go through `anonymize()`.
 - UI: opt-in dialog when switching to a cloud provider, "Preview anonymized data" on the candidate page, provider badge showing local vs cloud on every AI result.
