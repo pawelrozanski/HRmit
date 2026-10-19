@@ -1,0 +1,25 @@
+# Alternative to `pnpm dev`: one container with the API server serving the built web app.
+# Candidate data lives in ./data on the host, exactly like the pnpm run path.
+services:
+  hrmit:
+    build: .
+    ports:
+      # Host side bound to loopback on purpose: the app has no login, so nothing on the LAN
+      # may reach it. Inside the container the server listens on 0.0.0.0 (HOST in the Dockerfile),
+      # otherwise the port mapping would have nothing to forward to.
+      - '127.0.0.1:3000:3000'
+    volumes:
+      - ./data:/app/data
+    environment:
+      # Ollama runs on the host machine, so "localhost" inside the container is wrong.
+      # host.docker.internal resolves on Docker Desktop; extra_hosts below adds it on Linux.
+      # This is only the default: the base URL is editable in Settings and stored in the DB.
+      OLLAMA_BASE_URL: http://host.docker.internal:11434/v1
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/api/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped

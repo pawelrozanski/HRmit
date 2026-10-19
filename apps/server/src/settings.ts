@@ -47,7 +47,8 @@ export async function getAiSettings(): Promise<AiSettings & { apiKey: string | n
   )
   return {
     provider: (provider as AiSettings['provider']) ?? AI_SETTINGS_DEFAULTS.provider,
-    baseUrl: baseUrl ?? AI_SETTINGS_DEFAULTS.baseUrl,
+    // OLLAMA_BASE_URL: the container default, where localhost is not the host machine.
+    baseUrl: baseUrl ?? process.env.OLLAMA_BASE_URL ?? AI_SETTINGS_DEFAULTS.baseUrl,
     model: model ?? AI_SETTINGS_DEFAULTS.model,
     apiKey: apiKey ?? null,
   }

@@ -6,8 +6,9 @@ import { app, VERSION } from './app.ts'
 import { log } from './log.ts'
 
 const PORT = Number(process.env.PORT ?? 3000)
-// Loopback only: nothing on the network can reach candidate data. See docs/ARCHITECTURE.md §7.
-const HOST = '127.0.0.1'
+// Loopback only: nothing on the network can reach candidate data (docs/ARCHITECTURE.md §7).
+// HOST=0.0.0.0 exists for the container, where compose maps the port to the host's loopback.
+const HOST = process.env.HOST ?? '127.0.0.1'
 
 // Production: serve the built web app from the same process.
 const webDist = fileURLToPath(new URL('../../web/dist/', import.meta.url))
