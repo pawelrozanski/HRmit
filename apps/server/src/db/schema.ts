@@ -1,6 +1,6 @@
 import { getTableColumns } from 'drizzle-orm'
 import { integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
-import { PIPELINE_STAGES, type AiSummary } from '@hrmit/shared'
+import { EMAIL_TEMPLATE_KEYS, PIPELINE_STAGES, type AiSummary } from '@hrmit/shared'
 
 // docs/ARCHITECTURE.md §3.
 export const jobs = sqliteTable('jobs', {
@@ -75,4 +75,26 @@ export const evaluations = sqliteTable(
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
+})
+
+/** Editable email templates (docs/ARCHITECTURE.md §6), seeded from the shared fixtures. */
+export const emailTemplates = sqliteTable('email_templates', {
+  key: text('key', { enum: EMAIL_TEMPLATE_KEYS }).primaryKey(),
+  subject: text('subject').notNull(),
+  body: text('body').notNull(),
+})
+
+/** Every email ever sent (or attempted) to a candidate: the communication history. */
+export const emails = sqliteTable('emails', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  candidateId: integer('candidate_id')
+    .notNull()
+    .references(() => candidates.id, { onDelete: 'cascade' }),
+  templateKey: text('template_key', { enum: EMAIL_TEMPLATE_KEYS }).notNull(),
+  subject: text('subject').notNull(),
+  body: text('body').notNull(),
+  status: text('status', { enum: ['sent', 'failed', 'demo'] }).notNull(),
+  sentAt: text('sent_at').notNull(),
+  /** Sanitized transport error for failed rows; never contains the SMTP password. */
+  error: text('error'),
 })

@@ -234,10 +234,10 @@ export const smtpSettingsSchema = z.object({
 })
 export type SmtpSettings = z.infer<typeof smtpSettingsSchema>
 
-/** What GET /api/settings/smtp returns: the password never leaves the server. */
+/** What GET /api/settings/smtp returns: the password never leaves the server. Empty until set. */
 export const smtpSettingsViewSchema = smtpSettingsSchema
   .omit({ pass: true })
-  .extend({ hasPass: z.boolean() })
+  .extend({ host: z.string(), from: z.string(), hasPass: z.boolean() })
 export type SmtpSettingsView = z.infer<typeof smtpSettingsViewSchema>
 
 export const SMTP_SETTINGS_DEFAULTS: SmtpSettingsView = {
@@ -271,7 +271,11 @@ export const emailSchema = z.object({
 export type Email = z.infer<typeof emailSchema>
 
 /** Body of POST /api/candidates/:id/emails: the final text, edited by the recruiter in the UI. */
-export const sendEmailInputSchema = emailSchema.pick({ templateKey: true, subject: true, body: true })
+export const sendEmailInputSchema = emailSchema.pick({
+  templateKey: true,
+  subject: true,
+  body: true,
+})
 export type SendEmailInput = z.infer<typeof sendEmailInputSchema>
 
 /** GET /api/candidates/:id/emails/preview?template=…: the rendered text the UI starts from. */

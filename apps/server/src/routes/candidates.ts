@@ -6,12 +6,27 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import {
   candidateInputSchema,
+  emailTemplateKeySchema,
   evaluationSchema,
   moveStageSchema,
+  renderTemplate,
+  sendEmailInputSchema,
+  type EmailPreview,
   type Scorecard,
 } from '@hrmit/shared'
 import { db, uploadsDir } from '../db/index.ts'
-import { candidateColumns, candidates, evaluations, interviewQuestions } from '../db/schema.ts'
+import {
+  candidateColumns,
+  candidates,
+  emails,
+  emailTemplates,
+  evaluations,
+  interviewQuestions,
+  jobs,
+} from '../db/schema.ts'
+import { log } from '../log.ts'
+import { sendMail, SmtpNotConfigured } from '../mail/send.ts'
+import { getSetting } from '../settings.ts'
 import { CV_MIME, extractCvText, validateCv, type CvExt } from '../security/upload.ts'
 
 const byId = (id: string) => eq(candidates.id, Number(id))
@@ -161,4 +176,65 @@ export const candidatesRoute = new Hono()
           set: { score: sql`excluded.score`, note: sql`excluded.note` },
         })
     return c.json(await scorecard(candidateId, jobId))
+  })
+  .get('/:id/emails', async (c) => {
+    const candidateId = Number(c.req.param('id'))
+    if ((await jobOf(c.req.param('id'))) === undefined) return c.json({ error: 'not found' }, 404)
+    return c.json(
+      await db.select().from(emails).where(eq(emails.candidateId, candidateId)).orderBy(emails.id),
+    )
+  })
+  // Rendered template for the UI to edit before sending. Meeting placeholders stay until stage 10.
+  .get('/:id/emails/preview', async (c) => {
+    const key = emailTemplateKeySchema.safeParse(c.req.query('template'))
+    if (!key.success) return c.json({ error: 'unknown template' }, 404)
+    const [row] = await db
+      .select({
+        firstName: candidates.firstName,
+        lastName: candidates.lastName,
+        jobTitle: jobs.title,
+        subject: emailTemplates.subject,
+        body: emailTemplates.body,
+      })
+      .from(candidates)
+      .innerJoin(jobs, eq(jobs.id, candidates.jobId))
+      .innerJoin(emailTemplates, eq(emailTemplates.key, key.data))
+      .where(byId(c.req.param('id')))
+    if (!row) return c.json({ error: 'not found' }, 404)
+    const vars = {
+      firstName: row.firstName,
+      lastName: row.lastName,
+      jobTitle: row.jobTitle,
+      companyName: (await getSetting('smtp.companyName')) ?? '',
+    }
+    return c.json<EmailPreview>({
+      templateKey: key.data,
+      subject: renderTemplate(row.subject, vars),
+      body: renderTemplate(row.body, vars),
+    })
+  })
+  // Sends the text as given (the recruiter edited it) and records the outcome either way.
+  // Only ids and the status reach the log: no address, no subject, no body.
+  .post('/:id/emails', zValidator('json', sendEmailInputSchema), async (c) => {
+    const candidateId = Number(c.req.param('id'))
+    const [row] = await db
+      .select({ email: candidates.email })
+      .from(candidates)
+      .where(byId(c.req.param('id')))
+    if (!row) return c.json({ error: 'not found' }, 404)
+    const input = c.req.valid('json')
+    let error: string | null = null
+    try {
+      await sendMail(row.email, input.subject, input.body)
+    } catch (err) {
+      if (err instanceof SmtpNotConfigured) return c.json({ error: 'smtp not configured' }, 409)
+      error = err instanceof Error ? err.message : String(err)
+    }
+    const status = error ? 'failed' : 'sent'
+    log[error ? 'warn' : 'info']('email', { candidateId, template: input.templateKey, status })
+    const [saved] = await db
+      .insert(emails)
+      .values({ candidateId, ...input, status, sentAt: new Date().toISOString(), error })
+      .returning()
+    return c.json(saved, 201)
   })

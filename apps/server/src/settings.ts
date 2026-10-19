@@ -1,5 +1,10 @@
 import { eq } from 'drizzle-orm'
-import { AI_SETTINGS_DEFAULTS, type AiSettings } from '@hrmit/shared'
+import {
+  AI_SETTINGS_DEFAULTS,
+  SMTP_SETTINGS_DEFAULTS,
+  type AiSettings,
+  type SmtpSettings,
+} from '@hrmit/shared'
 import { db } from './db/index.ts'
 import { log } from './log.ts'
 import { settings } from './db/schema.ts'
@@ -45,5 +50,24 @@ export async function getAiSettings(): Promise<AiSettings & { apiKey: string | n
     baseUrl: baseUrl ?? AI_SETTINGS_DEFAULTS.baseUrl,
     model: model ?? AI_SETTINGS_DEFAULTS.model,
     apiKey: apiKey ?? null,
+  }
+}
+
+/** SMTP settings with the decrypted password, for the mail transport. Defaults fill missing rows. */
+export async function getSmtpSettings(): Promise<SmtpSettings & { pass: string | null }> {
+  const [host, port, secure, user, pass, from, companyName] = await Promise.all(
+    ['host', 'port', 'secure', 'user', 'pass', 'from', 'companyName'].map((k) =>
+      getSetting(`smtp.${k}`),
+    ),
+  )
+  const d = SMTP_SETTINGS_DEFAULTS
+  return {
+    host: host ?? d.host,
+    port: port ? Number(port) : d.port,
+    secure: secure ? secure === 'true' : d.secure,
+    user: user ?? d.user,
+    pass: pass ?? null,
+    from: from ?? d.from,
+    companyName: companyName ?? d.companyName,
   }
 }

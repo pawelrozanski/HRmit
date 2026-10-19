@@ -54,3 +54,7 @@ if (n === 0) {
       ),
     )
 }
+
+// Every start: insert template keys that are missing, so existing databases get new templates
+// without touching ones the user edited (fixtures.emails are demo-only history, not seeded).
+await db.insert(schema.emailTemplates).values(fixtures.emailTemplates).onConflictDoNothing()

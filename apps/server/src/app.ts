@@ -4,6 +4,7 @@ import { aiRoute } from './routes/ai.ts'
 import { candidatesRoute } from './routes/candidates.ts'
 import { jobsRoute } from './routes/jobs.ts'
 import { settingsRoute } from './routes/settings.ts'
+import { templatesRoute } from './routes/templates.ts'
 
 export const VERSION = '0.0.0'
 
@@ -16,6 +17,7 @@ export const app = new Hono()
   .route('/api/jobs', jobsRoute)
   .route('/api/candidates', candidatesRoute)
   .route('/api/settings', settingsRoute)
+  .route('/api/templates', templatesRoute)
   .route('/api/ai', aiRoute)
 
 export type AppType = typeof app
