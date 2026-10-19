@@ -9,6 +9,7 @@ import {
   type Evaluation,
   type InterviewQuestion,
   type Job,
+  type Meeting,
   type SmtpSettingsView,
 } from '@hrmit/shared'
 import { DEMO_STORAGE_KEY } from '../config.ts'
@@ -23,6 +24,7 @@ type Store = {
   smtpSettings: SmtpSettingsView
   templates: EmailTemplate[]
   emails: Email[]
+  meetings: Meeting[]
 }
 
 /** A fictional sender, so {{companyName}} renders in the demo send dialog. */
@@ -52,6 +54,7 @@ function load(): Store {
         smtpSettings: DEMO_SMTP,
         templates: structuredClone(fixtures.emailTemplates),
         emails: structuredClone(fixtures.emails),
+        meetings: structuredClone(fixtures.meetings),
         ...(JSON.parse(raw) as Partial<Store>),
       } as Store
   } catch {
@@ -66,6 +69,7 @@ function load(): Store {
     smtpSettings: DEMO_SMTP,
     templates: structuredClone(fixtures.emailTemplates),
     emails: structuredClone(fixtures.emails),
+    meetings: structuredClone(fixtures.meetings),
   }
 }
 

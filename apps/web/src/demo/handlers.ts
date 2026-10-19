@@ -1,5 +1,6 @@
 import { HttpResponse, delay, http } from 'msw'
 import {
+  JITSI_PREFIX,
   aiActionBodySchema,
   aiSettingsSchema,
   anonymize,
@@ -10,6 +11,7 @@ import {
   fixtures,
   interviewQuestionInputSchema,
   jobInputSchema,
+  meetingInputSchema,
   moveStageSchema,
   pipelineStageSchema,
   renderTemplate,
@@ -21,11 +23,16 @@ import {
   type AiTestResult,
   type Email,
   type EmailPreview,
+  type EmailTemplateKey,
   type Health,
   type InterviewQuestionInput,
+  type Meeting,
+  type MeetingPreview,
+  type MeetingResult,
   type QuestionsProposal,
   type Scorecard,
   type SmtpTestResult,
+  type TemplateVars,
 } from '@hrmit/shared'
 import { save, store } from './store.ts'
 
@@ -38,6 +45,27 @@ export const demoCv = (c: { firstName: string; lastName: string; email: string; 
 ${c.email} | ${c.phone}
 
 ${fixtures.cvText}`
+
+/** Same substitution as the server: one template rendered for one candidate. */
+function rendered(candidateId: number, key: EmailTemplateKey, extra: TemplateVars = {}) {
+  const candidate = store.candidates.find((c) => c.id === candidateId)
+  const job = store.jobs.find((j) => j.id === candidate?.jobId)
+  const template = store.templates.find((t) => t.key === key)
+  if (!candidate || !job || !template) return undefined
+  const vars: TemplateVars = {
+    firstName: candidate.firstName,
+    lastName: candidate.lastName,
+    jobTitle: job.title,
+    companyName: store.smtpSettings.companyName,
+    ...extra,
+  }
+  return {
+    subject: renderTemplate(template.subject, vars),
+    body: renderTemplate(template.body, vars),
+  }
+}
+const newRoom = () => `${JITSI_PREFIX}${crypto.randomUUID()}`
+const humanUtc = (iso: string) => `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`
 
 const jobQuestions = (jobId: number) =>
   store.questions
@@ -149,6 +177,7 @@ export const handlers = [
     store.candidates.splice(i, 1)
     store.evaluations = store.evaluations.filter((e) => e.candidateId !== Number(params.id))
     store.emails = store.emails.filter((e) => e.candidateId !== Number(params.id))
+    store.meetings = store.meetings.filter((m) => m.candidateId !== Number(params.id))
     save()
     return new HttpResponse(null, { status: 204 })
   }),
@@ -313,21 +342,9 @@ export const handlers = [
   http.get(`${base}/api/candidates/:id/emails/preview`, ({ params, request }) => {
     const key = emailTemplateKeySchema.safeParse(new URL(request.url).searchParams.get('template'))
     if (!key.success) return HttpResponse.json({ error: 'unknown template' }, { status: 404 })
-    const candidate = store.candidates.find((c) => c.id === Number(params.id))
-    const job = store.jobs.find((j) => j.id === candidate?.jobId)
-    const template = store.templates.find((t) => t.key === key.data)
-    if (!candidate || !job || !template) return notFound()
-    const vars = {
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      jobTitle: job.title,
-      companyName: store.smtpSettings.companyName,
-    }
-    return HttpResponse.json<EmailPreview>({
-      templateKey: key.data,
-      subject: renderTemplate(template.subject, vars),
-      body: renderTemplate(template.body, vars),
-    })
+    const r = rendered(Number(params.id), key.data)
+    if (!r) return notFound()
+    return HttpResponse.json<EmailPreview>({ templateKey: key.data, ...r })
   }),
   // Nothing is sent: the row lands in the candidate's history as the Outbox (docs §4.2).
   http.post(`${base}/api/candidates/:id/emails`, async ({ params, request }) => {
@@ -345,5 +362,50 @@ export const handlers = [
     store.emails.push(email)
     save()
     return HttpResponse.json(email, { status: 201 })
+  }),
+  http.get(`${base}/api/candidates/:id/meetings`, ({ params }) => {
+    if (!store.candidates.some((c) => c.id === Number(params.id))) return notFound()
+    return HttpResponse.json(
+      store.meetings.filter((m) => m.candidateId === Number(params.id)).sort((a, b) => b.id - a.id),
+    )
+  }),
+  http.get(`${base}/api/candidates/:id/meetings/preview`, ({ params, request }) => {
+    const startsAt = new URL(request.url).searchParams.get('startsAt') ?? ''
+    if (Number.isNaN(Date.parse(startsAt))) return invalid()
+    const jitsiUrl = newRoom()
+    const r = rendered(Number(params.id), 'invite', { jitsiUrl, startsAt: humanUtc(startsAt) })
+    if (!r) return notFound()
+    return HttpResponse.json<MeetingPreview>({ ...r, jitsiUrl })
+  }),
+  // The invite lands in the outbox and the meeting on the candidate page (docs §4.2).
+  http.post(`${base}/api/candidates/:id/meetings`, async ({ params, request }) => {
+    const body = meetingInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const candidateId = Number(params.id)
+    const jitsiUrl = body.data.jitsiUrl ?? newRoom()
+    const r = rendered(candidateId, 'invite', { jitsiUrl, startsAt: humanUtc(body.data.startsAt) })
+    if (!r) return notFound()
+    const email: Email = {
+      id: nextId(store.emails),
+      candidateId,
+      templateKey: 'invite',
+      subject: body.data.subject ?? r.subject,
+      body: body.data.body ?? r.body,
+      status: 'demo',
+      sentAt: new Date().toISOString(),
+      error: null,
+    }
+    const meeting: Meeting = {
+      id: nextId(store.meetings),
+      candidateId,
+      startsAt: body.data.startsAt,
+      durationMin: body.data.durationMin,
+      jitsiUrl,
+      emailId: email.id,
+    }
+    store.emails.push(email)
+    store.meetings.push(meeting)
+    save()
+    return HttpResponse.json<MeetingResult>({ meeting, email }, { status: 201 })
   }),
 ]

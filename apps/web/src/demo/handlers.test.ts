@@ -10,6 +10,9 @@ import {
   fixtures,
   interviewQuestionSchema,
   jobSchema,
+  meetingPreviewSchema,
+  meetingResultSchema,
+  meetingSchema,
   questionsProposalSchema,
   scorecardSchema,
   smtpSettingsViewSchema,
@@ -39,6 +42,7 @@ type Store = {
   smtpSettings?: { hasPass: boolean }
   templates?: { key: string; subject: string }[]
   emails?: { candidateId: number; status: string }[]
+  meetings?: { candidateId: number }[]
 }
 
 // Contract check (ADR 0003): the demo handlers answer like the server and pass the shared schemas.
@@ -333,4 +337,46 @@ test('demo email: SMTP view without the password, templates editable, preview, o
   expect(after.map((e) => e.status)).toEqual(['sent', 'demo'])
   expect(persisted().emails?.filter((e) => e.candidateId === 5)).toHaveLength(2)
   expect((await send('POST', '/api/candidates/999/emails', preview)).status).toBe(404)
+})
+
+test('demo meetings: fixtures listed newest first, preview, schedule records outbox and meeting', async () => {
+  const before = meetingSchema.array().parse(await get('/api/candidates/7/meetings'))
+  expect(before).toEqual(fixtures.meetings.filter((m) => m.candidateId === 7))
+  const startsAt = '2026-10-21T09:00:00.000Z'
+  const preview = meetingPreviewSchema.parse(
+    await get(`/api/candidates/7/meetings/preview?startsAt=${startsAt}`),
+  )
+  expect(preview.body).toContain('When: 2026-10-21 09:00 UTC')
+  expect(preview.body).toContain(`Where: ${preview.jitsiUrl}`)
+  const res = await send('POST', '/api/candidates/7/meetings', {
+    ...preview,
+    startsAt,
+    durationMin: 30,
+  })
+  expect(res.status).toBe(201)
+  const { meeting, email } = meetingResultSchema.parse(await res.json())
+  expect(meeting).toMatchObject({
+    candidateId: 7,
+    startsAt,
+    durationMin: 30,
+    jitsiUrl: preview.jitsiUrl,
+    emailId: email.id,
+  })
+  expect(email).toMatchObject({
+    candidateId: 7,
+    templateKey: 'invite',
+    status: 'demo',
+    subject: preview.subject,
+  })
+  const after = meetingSchema.array().parse(await get('/api/candidates/7/meetings'))
+  expect(after.map((m) => m.id)).toEqual([meeting!.id, 2])
+  expect(persisted().meetings?.filter((m) => m.candidateId === 7)).toHaveLength(2)
+  expect(
+    (await send('POST', '/api/candidates/7/meetings', { startsAt, durationMin: 5 })).status,
+  ).toBe(400)
+  expect(
+    (await send('POST', '/api/candidates/999/meetings', { startsAt, durationMin: 30 })).status,
+  ).toBe(404)
+  await fetch('http://localhost/api/candidates/7', { method: 'DELETE' })
+  expect(persisted().meetings?.some((m) => m.candidateId === 7)).toBe(false)
 })
