@@ -92,6 +92,8 @@ _(done 2026-10-19; `isLocalProvider()` and `isLocalBaseUrl()` live in `packages/
 
 ## Stage 7: Structured interview questions
 
+_(done 2026-10-19; one `PUT /api/jobs/:id/questions` replaces the whole list and covers create, edit, delete and reorder, so there is no separate reorder route; `POST /api/ai/questions/:jobId` stores the generated set only when the job has no questions yet and otherwise returns it as a proposal with `applied: false` for the UI's Use / Discard; the prompt sees the job title and description only, the description goes through `anonymize()` for cloud providers, which now accepts no candidate and runs the pattern passes alone; one fixture question set per job seeds the local database on first run and doubles as the demo's "generated" set, there is no second pre-recorded set; the guide is a Pipeline | Interview guide switch on the candidates page, reordering is move up / move down buttons, not drag-and-drop; verified locally with Ollama qwen2.5:7b-instruct and in the demo build in the embedded browser)_
+
 - Schema: `interview_questions`. Routes: generate (AI), list, update, reorder.
 - UI: per-job "Interview guide" tab, generate from job description, edit inline, reorder.
 - **Done when:** a job has an editable question list grouped by competency, generated locally.
