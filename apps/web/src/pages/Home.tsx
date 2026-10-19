@@ -1,32 +1,29 @@
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Health } from '@hrmit/shared'
-import { api } from '../api/client.ts'
+import { Link, Route, Routes } from 'react-router'
 import { LanguageSwitch } from '../components/LanguageSwitch.tsx'
+import { CandidatesPage } from '../features/candidates/CandidatesPage.tsx'
+import { JobsPage } from '../features/jobs/JobsPage.tsx'
 
+/** The app shell: header plus the feature routes, relative to wherever it is mounted. */
 export function Home() {
   const { t } = useTranslation()
-  const [health, setHealth] = useState<Health | null>(null)
-
-  useEffect(() => {
-    api.api.health
-      .$get()
-      .then((r) => r.json())
-      .then(setHealth)
-  }, [])
-
   return (
     <main className="mx-auto max-w-3xl p-6">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand-dark">HRmit</h1>
-        <LanguageSwitch />
+      <header className="mb-6 flex items-center justify-between">
+        <Link to="." className="text-2xl font-bold text-brand-dark">
+          HRmit
+        </Link>
+        <nav className="flex items-center gap-4 text-sm">
+          <Link to="." className="hover:text-brand-dark">
+            {t('nav.jobs')}
+          </Link>
+          <LanguageSwitch />
+        </nav>
       </header>
-      <p className="mt-2 text-ink/80">{t('tagline')}</p>
-      <p className="mt-6 text-sm">
-        {health
-          ? t('health.ok', { mode: health.mode, version: health.version })
-          : t('health.loading')}
-      </p>
+      <Routes>
+        <Route index element={<JobsPage />} />
+        <Route path="jobs/:id" element={<CandidatesPage />} />
+      </Routes>
     </main>
   )
 }
