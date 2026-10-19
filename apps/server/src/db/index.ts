@@ -1,4 +1,5 @@
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
@@ -13,6 +14,11 @@ const dataDir =
   process.env.HRMIT_DATA_DIR ?? fileURLToPath(new URL('../../../../data', import.meta.url))
 const file = dataDir === ':memory:' ? dataDir : join(dataDir, 'hrmit.db')
 if (dataDir !== ':memory:') mkdirSync(dataDir, { recursive: true })
+
+/** CV files live here under random UUID names. Tests get a throwaway temp folder. */
+export const uploadsDir =
+  dataDir === ':memory:' ? mkdtempSync(join(tmpdir(), 'hrmit-')) : join(dataDir, 'uploads')
+mkdirSync(uploadsDir, { recursive: true })
 
 const sqlite = new DatabaseSync(file)
 sqlite.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;')

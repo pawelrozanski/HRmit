@@ -8,6 +8,13 @@
       "when": 1792404620901,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792409400606,
+      "tag": "0001_cv_columns",
+      "breakpoints": true
     }
   ]
 }

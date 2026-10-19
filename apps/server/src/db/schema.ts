@@ -1,7 +1,8 @@
+import { getTableColumns } from 'drizzle-orm'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { PIPELINE_STAGES } from '@hrmit/shared'
 
-// docs/ARCHITECTURE.md §3. CV columns arrive in roadmap stage 3.
+// docs/ARCHITECTURE.md §3.
 export const jobs = sqliteTable('jobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
@@ -24,5 +25,14 @@ export const candidates = sqliteTable('candidates', {
   stage: text('stage', { enum: PIPELINE_STAGES }).notNull().default('applied'),
   stageChangedAt: text('stage_changed_at').notNull(),
   notes: text('notes').notNull().default(''),
+  cvFilename: text('cv_filename'),
+  /** Random UUID name under <data dir>/uploads/. Never leaves the server (see candidateColumns). */
+  cvPath: text('cv_path'),
+  cvText: text('cv_text'),
   createdAt: text('created_at').notNull(),
 })
+
+// What the API returns for a candidate: every column except the file path on disk.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const { cvPath: _cvPath, ...candidateColumns } = getTableColumns(candidates)
+export { candidateColumns }
