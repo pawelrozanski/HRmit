@@ -59,6 +59,47 @@ export const aiSummarySchema = z.object({
 })
 export type AiSummary = z.infer<typeof aiSummarySchema>
 
+/**
+ * Structured interview (ADR 0004): questions belong to the job, never to a candidate, so every
+ * applicant gets the same list. Descriptive fields only, like the other AI outputs.
+ */
+export const interviewQuestionSchema = z.object({
+  id: z.number().int(),
+  jobId: z.number().int(),
+  competency: z.string().min(1),
+  question: z.string().min(1),
+  sortOrder: z.number().int(),
+})
+export type InterviewQuestion = z.infer<typeof interviewQuestionSchema>
+
+/** One item of the PUT /api/jobs/:id/questions body: the server assigns id and sortOrder. */
+export const interviewQuestionInputSchema = interviewQuestionSchema.pick({
+  competency: true,
+  question: true,
+})
+export type InterviewQuestionInput = z.infer<typeof interviewQuestionInputSchema>
+
+/** Model output for POST /api/ai/questions/:jobId: 6 to 10 questions over 3 to 5 competencies. */
+export const questionsGenerationSchema = z.object({
+  questions: z
+    .array(
+      z.object({
+        competency: z.string().describe('the competency this question explores'),
+        question: z.string().describe('a behavioural question every candidate can be asked'),
+      }),
+    )
+    .min(6)
+    .max(10),
+})
+export type QuestionsGeneration = z.infer<typeof questionsGenerationSchema>
+
+/** Response of POST /api/ai/questions/:jobId: applied when the job had no questions yet. */
+export const questionsProposalSchema = z.object({
+  questions: interviewQuestionInputSchema.array(),
+  applied: z.boolean(),
+})
+export type QuestionsProposal = z.infer<typeof questionsProposalSchema>
+
 /** Body of POST /api/ai/summarize/:candidateId and /competencies/:candidateId. */
 export const aiActionBodySchema = z.object({ lang: z.enum(['en', 'pl']) })
 export type AiLang = z.infer<typeof aiActionBodySchema>['lang']

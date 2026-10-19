@@ -7,9 +7,12 @@ import {
   cvSummarySchema,
   candidateSchema,
   healthSchema,
+  interviewQuestionInputSchema,
   jobInputSchema,
   jobSchema,
   pipelineStageSchema,
+  questionsGenerationSchema,
+  questionsProposalSchema,
 } from './schemas.ts'
 import * as fixtures from './fixtures/index.ts'
 
@@ -58,7 +61,13 @@ test('AI output schemas have no score, rank or verdict field anywhere', () => {
           ...keys(v),
         ])
       : []
-  for (const schema of [cvSummarySchema, competenciesSchema, aiSummarySchema]) {
+  for (const schema of [
+    cvSummarySchema,
+    competenciesSchema,
+    aiSummarySchema,
+    questionsGenerationSchema,
+    questionsProposalSchema,
+  ]) {
     const found = keys(z.toJSONSchema(schema))
     expect(found.length).toBeGreaterThan(0)
     expect(found.filter((k) => forbidden.test(k))).toEqual([])
@@ -69,4 +78,13 @@ test('AI output schemas have no score, rank or verdict field anywhere', () => {
     competenciesSchema.parse(entry.competencies)
   }
   expect(Object.keys(fixtures.ai)).toHaveLength(fixtures.candidates.length)
+})
+
+test('fixture question sets cover every job and pass the generation schema', () => {
+  for (const job of fixtures.jobs) {
+    const set = fixtures.questions[job.id]!
+    questionsGenerationSchema.parse({ questions: set })
+    for (const q of set) interviewQuestionInputSchema.parse(q)
+    expect(new Set(set.map((q) => q.competency)).size).toBeGreaterThanOrEqual(3)
+  }
 })
