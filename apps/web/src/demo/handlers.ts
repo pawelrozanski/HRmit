@@ -1,11 +1,13 @@
 import { HttpResponse, delay, http } from 'msw'
 import {
+  aiActionBodySchema,
   aiSettingsSchema,
   candidateInputSchema,
   fixtures,
   jobInputSchema,
   moveStageSchema,
   pipelineStageSchema,
+  type AiSummary,
   type AiTestResult,
   type Health,
 } from '@hrmit/shared'
@@ -59,6 +61,7 @@ export const handlers = [
       stageChangedAt: now,
       cvFilename: null,
       cvText: null,
+      aiSummaryJson: null,
       createdAt: now,
     }
     store.candidates.push(candidate)
@@ -124,5 +127,37 @@ export const handlers = [
       model: store.aiSettings.model,
       latencyMs: 600,
     })
+  }),
+  // Pre-recorded answers (fixtures.ai) after a model-like pause; new candidates reuse entry 1.
+  ...(['summary', 'competencies'] as const).map((key) =>
+    http.post(
+      `${base}/api/ai/${key === 'summary' ? 'summarize' : key}/:candidateId`,
+      async ({ params, request }) => {
+        if (!aiActionBodySchema.safeParse(await request.json()).success) return invalid()
+        const candidate = store.candidates.find((c) => c.id === Number(params.candidateId))
+        if (!candidate) return notFound()
+        if (!candidate.cvText) return HttpResponse.json({ error: 'no cv text' }, { status: 422 })
+        await delay(1200)
+        const recorded = (fixtures.ai[candidate.id] ?? fixtures.ai[1])![key]
+        const aiSummaryJson: AiSummary = {
+          ...candidate.aiSummaryJson,
+          [key]: {
+            ...recorded,
+            generatedAt: new Date().toISOString(),
+            model: store.aiSettings.model,
+          },
+        }
+        candidate.aiSummaryJson = aiSummaryJson
+        save()
+        return HttpResponse.json(candidate)
+      },
+    ),
+  ),
+  http.delete(`${base}/api/ai/summary/:candidateId`, ({ params }) => {
+    const candidate = store.candidates.find((c) => c.id === Number(params.candidateId))
+    if (!candidate) return notFound()
+    candidate.aiSummaryJson = null
+    save()
+    return HttpResponse.json(candidate)
   }),
 ]

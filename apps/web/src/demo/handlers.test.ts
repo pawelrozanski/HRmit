@@ -21,7 +21,11 @@ vi.stubGlobal('localStorage', {
 const { handlers } = await import('./handlers.ts')
 const { DEMO_STORAGE_KEY } = await import('../config.ts')
 const persisted = () => JSON.parse(storage.get(DEMO_STORAGE_KEY) ?? '{}') as Store
-type Store = { jobs: unknown[]; candidates: { id: number }[]; aiSettings?: unknown }
+type Store = {
+  jobs: unknown[]
+  candidates: { id: number; aiSummaryJson?: unknown }[]
+  aiSettings?: unknown
+}
 
 // Contract check (ADR 0003): the demo handlers answer like the server and pass the shared schemas.
 const server = setupServer(...handlers)
@@ -133,3 +137,25 @@ test('demo AI settings: persisted without the key, test always succeeds', async 
   const test = await fetch('http://localhost/api/ai/test', { method: 'POST' })
   expect(aiTestResultSchema.parse(await test.json())).toMatchObject({ ok: true, model: 'claude-x' })
 })
+
+test('demo AI actions: 422 without CV, fixture answer after upload, persisted, discarded', async () => {
+  const ai = (kind: string, id: number) => send('POST', `/api/ai/${kind}/${id}`, { lang: 'en' })
+  expect((await ai('summarize', 9999)).status).toBe(404)
+  expect((await ai('summarize', 2)).status).toBe(422)
+
+  const form = new FormData()
+  form.append('file', new File(['x'], 'cv.pdf'))
+  await fetch('http://localhost/api/candidates/2/cv', { method: 'POST', body: form })
+
+  const summarized = candidateSchema.parse(await (await ai('summarize', 2)).json())
+  expect(summarized.aiSummaryJson?.summary).toMatchObject(fixtures.ai[2]!.summary)
+  const both = candidateSchema.parse(await (await ai('competencies', 2)).json())
+  expect(both.aiSummaryJson?.summary).toEqual(summarized.aiSummaryJson?.summary)
+  expect(both.aiSummaryJson?.competencies).toMatchObject(fixtures.ai[2]!.competencies)
+  expect(persisted().candidates.find((c) => c.id === 2)).toMatchObject({
+    aiSummaryJson: both.aiSummaryJson,
+  })
+
+  const gone = await fetch('http://localhost/api/ai/summary/2', { method: 'DELETE' })
+  expect(candidateSchema.parse(await gone.json()).aiSummaryJson).toBeNull()
+}, 10_000)
