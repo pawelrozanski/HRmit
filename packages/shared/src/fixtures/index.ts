@@ -4,6 +4,7 @@ export { ai } from './ai/index.ts'
 export { questions } from './questions.ts'
 export { evaluations, questionRows } from './evaluations.ts'
 export { emailTemplates, emails } from './emails.ts'
+export { meetings } from './meetings.ts'
 
 /**
  * Demo data. Every person and company here is invented; any resemblance to a real

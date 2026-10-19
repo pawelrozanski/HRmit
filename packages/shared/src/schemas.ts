@@ -281,3 +281,45 @@ export type SendEmailInput = z.infer<typeof sendEmailInputSchema>
 /** GET /api/candidates/:id/emails/preview?template=…: the rendered text the UI starts from. */
 export const emailPreviewSchema = sendEmailInputSchema
 export type EmailPreview = z.infer<typeof emailPreviewSchema>
+
+/** Every generated room lives under this prefix; the schema rejects anything else. */
+export const JITSI_PREFIX = 'https://meet.jit.si/hrmit-'
+
+/** A scheduled interview (docs/ARCHITECTURE.md §6). emailId is the invite row, null once deleted. */
+export const meetingSchema = z.object({
+  id: z.number().int(),
+  candidateId: z.number().int(),
+  startsAt: z.iso.datetime(),
+  durationMin: z.number().int().min(15).max(480),
+  jitsiUrl: z.string().url().startsWith(JITSI_PREFIX),
+  emailId: z.number().int().nullable(),
+})
+export type Meeting = z.infer<typeof meetingSchema>
+
+/**
+ * Body of POST /api/candidates/:id/meetings. jitsiUrl, subject and body come from the preview the
+ * recruiter edited; when omitted the server generates a room and renders the invite template.
+ */
+export const meetingInputSchema = meetingSchema
+  .pick({ startsAt: true, durationMin: true })
+  .extend({
+    jitsiUrl: meetingSchema.shape.jitsiUrl.optional(),
+    subject: z.string().min(1).optional(),
+    body: z.string().min(1).optional(),
+  })
+export type MeetingInput = z.infer<typeof meetingInputSchema>
+
+/** GET /api/candidates/:id/meetings/preview?startsAt=…: the invite text the dialog starts from. */
+export const meetingPreviewSchema = z.object({
+  subject: z.string(),
+  body: z.string(),
+  jitsiUrl: meetingSchema.shape.jitsiUrl,
+})
+export type MeetingPreview = z.infer<typeof meetingPreviewSchema>
+
+/** Answer of POST /api/candidates/:id/meetings: no meeting when the invite failed to send. */
+export const meetingResultSchema = z.object({
+  meeting: meetingSchema.nullable(),
+  email: emailSchema,
+})
+export type MeetingResult = z.infer<typeof meetingResultSchema>
