@@ -5,7 +5,9 @@ import {
   aiTestResultSchema,
   candidateSchema,
   fixtures,
+  interviewQuestionSchema,
   jobSchema,
+  questionsProposalSchema,
 } from '@hrmit/shared'
 import { setupServer } from 'msw/node'
 import { afterAll, beforeAll, expect, test, vi } from 'vitest'
@@ -24,6 +26,7 @@ const { DEMO_STORAGE_KEY } = await import('../config.ts')
 const persisted = () => JSON.parse(storage.get(DEMO_STORAGE_KEY) ?? '{}') as Store
 type Store = {
   jobs: unknown[]
+  questions?: { jobId: number; question: string }[]
   candidates: { id: number; aiSummaryJson?: unknown }[]
   aiSettings?: unknown
 }
@@ -176,3 +179,40 @@ test('demo GET /api/ai/preview/:id anonymizes the uploaded text with the shared 
   // Settings were switched to Anthropic by the settings test above.
   expect(preview.provider).toBe('cloud')
 })
+
+test('demo questions: seeded per job, replaced in order, generated only onto an empty list', async () => {
+  const seeded = interviewQuestionSchema.array().parse(await get('/api/jobs/1/questions'))
+  expect(seeded.map((q) => q.question)).toEqual(fixtures.questions[1]!.map((q) => q.question))
+  expect(seeded.map((q) => q.sortOrder)).toEqual(seeded.map((_, i) => i))
+  expect((await fetch('http://localhost/api/jobs/9999/questions')).status).toBe(404)
+
+  const inputs = [
+    { competency: 'B', question: seeded[1]!.question },
+    { competency: 'A', question: seeded[0]!.question },
+  ]
+  const put = await send('PUT', '/api/jobs/1/questions', inputs)
+  const replaced = interviewQuestionSchema.array().parse(await put.json())
+  expect(replaced.map(({ competency, question }) => ({ competency, question }))).toEqual(inputs)
+  expect(replaced.map((q) => q.sortOrder)).toEqual([0, 1])
+  expect(persisted().questions?.filter((q) => q.jobId === 1)).toHaveLength(2)
+  expect(
+    (await send('PUT', '/api/jobs/1/questions', [{ competency: '', question: 'x' }])).status,
+  ).toBe(400)
+
+  // Non-empty list: a proposal, nothing stored. Empty list: stored.
+  const proposal = questionsProposalSchema.parse(
+    await (await send('POST', '/api/ai/questions/1', { lang: 'en' })).json(),
+  )
+  expect(proposal).toEqual({ questions: fixtures.questions[1], applied: false })
+  expect(interviewQuestionSchema.array().parse(await get('/api/jobs/1/questions'))).toEqual(
+    replaced,
+  )
+  await send('PUT', '/api/jobs/1/questions', [])
+  const applied = questionsProposalSchema.parse(
+    await (await send('POST', '/api/ai/questions/1', { lang: 'en' })).json(),
+  )
+  expect(applied.applied).toBe(true)
+  const stored = interviewQuestionSchema.array().parse(await get('/api/jobs/1/questions'))
+  expect(stored.map((q) => q.question)).toEqual(fixtures.questions[1]!.map((q) => q.question))
+  expect((await send('POST', '/api/ai/questions/9999', { lang: 'en' })).status).toBe(404)
+}, 10_000)

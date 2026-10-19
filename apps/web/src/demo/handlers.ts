@@ -5,6 +5,7 @@ import {
   anonymize,
   candidateInputSchema,
   fixtures,
+  interviewQuestionInputSchema,
   jobInputSchema,
   moveStageSchema,
   pipelineStageSchema,
@@ -13,6 +14,8 @@ import {
   type AiSummary,
   type AiTestResult,
   type Health,
+  type InterviewQuestionInput,
+  type QuestionsProposal,
 } from '@hrmit/shared'
 import { save, store } from './store.ts'
 
@@ -25,6 +28,19 @@ export const demoCv = (c: { firstName: string; lastName: string; email: string; 
 ${c.email} | ${c.phone}
 
 ${fixtures.cvText}`
+
+const jobQuestions = (jobId: number) =>
+  store.questions
+    .filter((q) => q.jobId === jobId)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+/** Same contract as the server: the whole list is replaced, sortOrder is the index. */
+function replaceQuestions(jobId: number, inputs: InterviewQuestionInput[]) {
+  store.questions = store.questions.filter((q) => q.jobId !== jobId)
+  let id = nextId(store.questions)
+  store.questions.push(...inputs.map((q, sortOrder) => ({ id: id++, jobId, sortOrder, ...q })))
+  save()
+  return jobQuestions(jobId)
+}
 
 /** One handler per server route. Must return shapes that pass the shared zod schemas. */
 export const handlers = [
@@ -58,6 +74,18 @@ export const handlers = [
     return HttpResponse.json(
       store.candidates.filter((c) => c.jobId === jobId && (!stage || c.stage === stage.data)),
     )
+  }),
+  http.get(`${base}/api/jobs/:id/questions`, ({ params }) => {
+    const jobId = Number(params.id)
+    if (!store.jobs.some((j) => j.id === jobId)) return notFound()
+    return HttpResponse.json(jobQuestions(jobId))
+  }),
+  http.put(`${base}/api/jobs/:id/questions`, async ({ params, request }) => {
+    const body = interviewQuestionInputSchema.array().safeParse(await request.json())
+    if (!body.success) return invalid()
+    const jobId = Number(params.id)
+    if (!store.jobs.some((j) => j.id === jobId)) return notFound()
+    return HttpResponse.json(replaceQuestions(jobId, body.data))
   }),
   http.post(`${base}/api/candidates`, async ({ request }) => {
     const body = candidateInputSchema.safeParse(await request.json())
@@ -162,6 +190,17 @@ export const handlers = [
       },
     ),
   ),
+  // The fixture set of the job (new jobs reuse job 1's) after a model-like pause.
+  http.post(`${base}/api/ai/questions/:jobId`, async ({ params, request }) => {
+    if (!aiActionBodySchema.safeParse(await request.json()).success) return invalid()
+    const jobId = Number(params.jobId)
+    if (!store.jobs.some((j) => j.id === jobId)) return notFound()
+    await delay(1200)
+    const questions = (fixtures.questions[jobId] ?? fixtures.questions[1])!
+    const applied = jobQuestions(jobId).length === 0
+    if (applied) replaceQuestions(jobId, questions)
+    return HttpResponse.json<QuestionsProposal>({ questions, applied })
+  }),
   // The real anonymize() runs in the browser: it is pure and lives in packages/shared.
   http.get(`${base}/api/ai/preview/:candidateId`, ({ params }) => {
     const candidate = store.candidates.find((c) => c.id === Number(params.candidateId))

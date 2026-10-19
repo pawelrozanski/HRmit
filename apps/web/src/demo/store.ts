@@ -3,25 +3,44 @@ import {
   fixtures,
   type AiSettingsView,
   type Candidate,
+  type InterviewQuestion,
   type Job,
 } from '@hrmit/shared'
 import { DEMO_STORAGE_KEY } from '../config.ts'
 
 /** aiSettings holds the view shape only: no key is ever written to localStorage. */
-type Store = { jobs: Job[]; candidates: Candidate[]; aiSettings: AiSettingsView }
+type Store = {
+  jobs: Job[]
+  candidates: Candidate[]
+  questions: InterviewQuestion[]
+  aiSettings: AiSettingsView
+}
+
+/** Fixture question sets flattened into rows, ids counted across jobs like autoincrement. */
+const seedQuestions = (): InterviewQuestion[] =>
+  Object.entries(fixtures.questions)
+    .flatMap(([jobId, set]) =>
+      set.map((q, sortOrder) => ({ id: 0, jobId: Number(jobId), sortOrder, ...q })),
+    )
+    .map((q, i) => ({ ...q, id: i + 1 }))
 
 function load(): Store {
   try {
     const raw = localStorage.getItem(DEMO_STORAGE_KEY)
     // Stores saved before a key existed get its default.
     if (raw)
-      return { aiSettings: AI_SETTINGS_DEFAULTS, ...(JSON.parse(raw) as Partial<Store>) } as Store
+      return {
+        aiSettings: AI_SETTINGS_DEFAULTS,
+        questions: seedQuestions(),
+        ...(JSON.parse(raw) as Partial<Store>),
+      } as Store
   } catch {
     // private mode, quota, corrupt JSON: fall through to fixtures
   }
   return {
     jobs: structuredClone(fixtures.jobs),
     candidates: structuredClone(fixtures.candidates),
+    questions: seedQuestions(),
     aiSettings: AI_SETTINGS_DEFAULTS,
   }
 }
