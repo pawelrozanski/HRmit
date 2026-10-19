@@ -4,7 +4,17 @@ import { afterAll, beforeAll, expect, test, vi } from 'vitest'
 
 // Node has no window.location; MSW needs one to resolve the relative handler paths.
 vi.stubGlobal('location', new URL('http://localhost/'))
+// A minimal localStorage, so the test can check that mutations are persisted for the next load.
+const storage = new Map<string, string>()
+vi.stubGlobal('localStorage', {
+  getItem: (k: string) => storage.get(k) ?? null,
+  setItem: (k: string, v: string) => storage.set(k, v),
+  removeItem: (k: string) => storage.delete(k),
+})
 const { handlers } = await import('./handlers.ts')
+const { DEMO_STORAGE_KEY } = await import('../config.ts')
+const persisted = () => JSON.parse(storage.get(DEMO_STORAGE_KEY) ?? '{}') as Store
+type Store = { jobs: unknown[]; candidates: { id: number }[] }
 
 // Contract check (ADR 0003): the demo handlers answer like the server and pass the shared schemas.
 const server = setupServer(...handlers)
@@ -88,10 +98,12 @@ test('demo candidates: create, edit, upload a CV, delete', async () => {
   const withCv = candidateSchema.parse(await up.json())
   expect(withCv.cvFilename).toBe('cv.pdf')
   expect(withCv.cvText).toBe(fixtures.cvText)
+  expect(persisted().candidates.some((x) => x.id === c.id)).toBe(true)
   expect((await fetch(`http://localhost/api/candidates/${c.id}/cv`)).status).toBe(404)
 
   const del = await fetch(`http://localhost/api/candidates/${c.id}`, { method: 'DELETE' })
   expect(del.status).toBe(204)
   const list = candidateSchema.array().parse(await get('/api/jobs/1/candidates'))
   expect(list.some((x) => x.id === c.id)).toBe(false)
+  expect(persisted().candidates.some((x) => x.id === c.id)).toBe(false)
 })
