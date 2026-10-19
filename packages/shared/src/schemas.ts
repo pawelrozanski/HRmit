@@ -23,7 +23,13 @@ export const jobSchema = z.object({
 })
 export type Job = z.infer<typeof jobSchema>
 
-/** No CV columns yet (roadmap stage 3). */
+/** Body of POST /api/jobs and PUT /api/jobs/:id. Closing a job is a PUT with status 'closed'. */
+export const jobInputSchema = jobSchema.omit({ id: true, createdAt: true }).extend({
+  description: z.string().default(''),
+  status: jobStatusSchema.default('open'),
+})
+export type JobInput = z.input<typeof jobInputSchema>
+
 export const candidateSchema = z.object({
   id: z.number().int(),
   jobId: z.number().int(),
@@ -34,9 +40,23 @@ export const candidateSchema = z.object({
   stage: pipelineStageSchema,
   stageChangedAt: z.string(),
   notes: z.string(),
+  /** Original upload name, display only. The file itself is served by id, never by path. */
+  cvFilename: z.string().nullable(),
+  /** Plain text extracted from the CV; empty when extraction failed, null without a CV. */
+  cvText: z.string().nullable(),
   createdAt: z.string(),
 })
 export type Candidate = z.infer<typeof candidateSchema>
+
+/** Body of POST /api/candidates and PUT /api/candidates/:id. CV fields change only via upload. */
+export const candidateInputSchema = candidateSchema
+  .omit({ id: true, createdAt: true, stageChangedAt: true, cvFilename: true, cvText: true })
+  .extend({
+    phone: z.string().default(''),
+    stage: pipelineStageSchema.default('applied'),
+    notes: z.string().default(''),
+  })
+export type CandidateInput = z.input<typeof candidateInputSchema>
 
 /** Body of PATCH /api/candidates/:id/stage. */
 export const moveStageSchema = z.object({ stage: pipelineStageSchema })

@@ -70,6 +70,21 @@ export const candidates: Candidate[] = seeds.map(
     stage,
     stageChangedAt: T,
     notes,
+    cvFilename: null,
+    cvText: null,
     createdAt: T,
   }),
 )
+
+/** Demo uploads ignore the file and attach this text instead (docs/ARCHITECTURE.md §4.2). */
+export const cvText = `Frontend developer with four years of experience building accessible web applications in React and TypeScript.
+
+Experience
+2022 - present: Frontend Developer, Northwind Scheduling (fictional). Owned the booking calendar, introduced component tests, cut bundle size by a third.
+2020 - 2022: Junior Developer, Larkspur Digital (fictional). Marketing sites, design-system work, accessibility audits.
+
+Education
+BSc Computer Science, 2020.
+
+Skills
+React, TypeScript, testing, accessibility (WCAG 2.1), Polish and English.`

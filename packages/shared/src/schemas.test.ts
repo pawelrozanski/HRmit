@@ -1,5 +1,12 @@
 import { expect, test } from 'vitest'
-import { candidateSchema, healthSchema, jobSchema, pipelineStageSchema } from './schemas.ts'
+import {
+  candidateInputSchema,
+  candidateSchema,
+  healthSchema,
+  jobInputSchema,
+  jobSchema,
+  pipelineStageSchema,
+} from './schemas.ts'
 import * as fixtures from './fixtures/index.ts'
 
 test('health schema accepts both modes', () => {
@@ -17,4 +24,22 @@ test('fixtures pass the schemas and every candidate points at a job', () => {
   for (const c of fixtures.candidates) expect(jobIds.has(candidateSchema.parse(c).jobId)).toBe(true)
   expect(fixtures.jobs).toHaveLength(3)
   expect(fixtures.candidates.length).toBeGreaterThanOrEqual(15)
+})
+
+test('input schemas fill defaults and reject ids and CV fields', () => {
+  expect(jobInputSchema.parse({ title: 'QA' })).toEqual({
+    title: 'QA',
+    description: '',
+    status: 'open',
+  })
+  expect(() => jobInputSchema.parse({ title: '' })).toThrow()
+  const c = candidateInputSchema.parse({
+    jobId: 1,
+    firstName: 'Ada',
+    lastName: 'Byron',
+    email: 'ada@example.com',
+  })
+  expect(c).toMatchObject({ phone: '', stage: 'applied', notes: '' })
+  expect('cvText' in c).toBe(false)
+  expect(() => candidateInputSchema.parse({ ...c, email: 'nope' })).toThrow()
 })
