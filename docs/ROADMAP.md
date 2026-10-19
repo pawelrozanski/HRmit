@@ -70,6 +70,8 @@ _(done 2026-10-19; "Test connection" saves the form first, so it always tests wh
 
 ## Stage 5: CV summary and competencies with AI
 
+_(done 2026-10-19; the OpenAI-compatible provider needs `supportsStructuredOutputs: true` or the zod schema never reaches Ollama; "edit" is deferred, a result can be regenerated or discarded; the 7b model sometimes writes fewer than three sentences, the schema describes the length but does not enforce it)_
+
 - Server: provider factory, prompts, zod output schemas (summary, competencies). `generateObject` through Vercel AI SDK.
 - Routes: `POST /ai/summarize/:id`, `POST /ai/competencies/:id`; result saved to `ai_summary_json`.
 - UI: "Summarize with AI" and "Extract competencies" buttons, typing effect, "AI suggestion" label and disclaimer, edit or discard.
