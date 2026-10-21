@@ -135,11 +135,11 @@ export function InterviewGuide({ jobId }: Props) {
           {draft.map((q, i) => (
             <li key={i} className="grid gap-2">
               {q.competency !== draft[i - 1]?.competency && (
-                <h3 className="mt-2 text-sm font-semibold text-brand-dark">
+                <h3 className="mt-2 text-sm font-semibold text-primary">
                   {q.competency.trim() || t('questions.noCompetency')}
                 </h3>
               )}
-              <div className="grid gap-2 rounded-lg border bg-white p-2 sm:grid-cols-[1fr_2fr_auto]">
+              <div className="grid gap-2 rounded-lg border bg-card p-2 sm:grid-cols-[1fr_2fr_auto]">
                 <Input
                   aria-label={t('questions.competency')}
                   placeholder={t('questions.competency')}
@@ -217,7 +217,7 @@ function ProposalBlock({ proposal, disabled, onUse, onClose }: ProposalProps) {
   return (
     <div className="grid gap-3 rounded-lg border border-brand/40 bg-brand/5 p-3 text-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge className="bg-brand-dark text-white">{t('ai.badge')}</Badge>
+        <Badge>{t('ai.badge')}</Badge>
         {proposal.applied && <Badge variant="outline">{t('questions.applied')}</Badge>}
       </div>
       <p className="text-xs text-muted-foreground">{t('questions.disclaimer')}</p>

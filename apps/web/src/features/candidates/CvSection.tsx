@@ -78,7 +78,7 @@ export function CvSection({ candidate, onUploaded }: Props) {
               <a
                 href={cvUrl(candidate.id)}
                 download
-                className="inline-flex items-center gap-1 text-brand-dark hover:underline"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
               >
                 <Download className="size-4" /> {t('cv.download')}
               </a>

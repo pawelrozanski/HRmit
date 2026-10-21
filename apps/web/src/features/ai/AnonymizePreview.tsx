@@ -60,9 +60,7 @@ export function AnonymizePreview({
                   <span className="text-xs text-muted-foreground">{t('ai.noReplacements')}</span>
                 ) : (
                   preview.replacements.map((r) => (
-                    <Badge key={r.kind} className="bg-brand-dark text-white">
-                      {t(`ai.kinds.${r.kind}`, { count: r.count })}
-                    </Badge>
+                    <Badge key={r.kind}>{t(`ai.kinds.${r.kind}`, { count: r.count })}</Badge>
                   ))
                 )}
               </div>
@@ -83,7 +81,7 @@ function Column({ title, text }: { title: string; text: string }) {
   return (
     <div className="grid gap-1">
       <span className="text-xs font-medium text-muted-foreground uppercase">{title}</span>
-      <pre className="max-h-96 overflow-auto rounded-lg border bg-cream p-3 font-sans text-xs whitespace-pre-wrap">
+      <pre className="max-h-96 overflow-auto rounded-lg border bg-muted p-3 font-sans text-xs whitespace-pre-wrap">
         {text}
       </pre>
     </div>

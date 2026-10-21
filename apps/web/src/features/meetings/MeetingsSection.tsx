@@ -67,7 +67,7 @@ export function MeetingsSection({ candidate, onScheduled }: Props) {
                 href={m.jitsiUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-brand-dark underline"
+                className="inline-flex items-center gap-1 text-primary underline"
               >
                 Jitsi <ExternalLink className="size-3" aria-hidden />
               </a>
@@ -186,7 +186,7 @@ function ScheduleDialog({ candidate, onClose, onScheduled }: DialogProps) {
                 href={draft.jitsiUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="break-all text-brand-dark underline"
+                className="break-all text-primary underline"
               >
                 {draft.jitsiUrl}
               </a>

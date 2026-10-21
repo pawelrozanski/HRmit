@@ -44,7 +44,7 @@ export function JobsPage() {
               className="block rounded-lg border bg-card p-4 transition-colors hover:border-brand focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
             >
               <div className="flex items-start justify-between gap-3 pr-10">
-                <h3 className="font-medium text-brand-dark">{job.title}</h3>
+                <h3 className="font-medium text-primary">{job.title}</h3>
                 <Badge variant={job.status === 'open' ? 'default' : 'outline'}>
                   {t(`jobs.status.${job.status}`)}
                 </Badge>

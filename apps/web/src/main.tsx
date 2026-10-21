@@ -5,6 +5,7 @@ import { App } from './App.tsx'
 import { IS_DEMO } from './config.ts'
 import './i18n/index.ts'
 import './index.css'
+import './theme.ts'
 
 // Demo build only: the import is code-split, so MSW never ships in the local build.
 if (IS_DEMO) {

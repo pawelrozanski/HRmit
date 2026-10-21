@@ -63,7 +63,7 @@ export function Scorecard({ candidate, onOpenGuide }: Props) {
     return (
       <p className="text-sm text-muted-foreground">
         {t('scorecard.empty')}{' '}
-        <button type="button" className="text-brand-dark underline" onClick={onOpenGuide}>
+        <button type="button" className="text-primary underline" onClick={onOpenGuide}>
           {t('candidates.guide')}
         </button>
       </p>
@@ -81,7 +81,7 @@ export function Scorecard({ candidate, onOpenGuide }: Props) {
         const avg = scored.reduce((sum, e) => sum + (e.score ?? 0), 0) / scored.length
         return (
           <section key={competency} className="grid gap-2">
-            <h3 className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm font-semibold text-brand-dark">
+            <h3 className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm font-semibold text-primary">
               {competency}
               <span className="font-normal text-muted-foreground">
                 {scored.length
@@ -94,14 +94,14 @@ export function Scorecard({ candidate, onOpenGuide }: Props) {
               </span>
             </h3>
             {entries.map((e) => (
-              <div key={e.questionId} className="grid gap-2 rounded-lg border bg-white p-2">
+              <div key={e.questionId} className="grid gap-2 rounded-lg border bg-card p-2">
                 <p className="text-sm">{e.question}</p>
                 <div className="flex flex-wrap items-center gap-2">
                   <div role="radiogroup" aria-label={t('scorecard.score')} className="flex gap-1">
                     {SCORES.map((n) => (
                       <label
                         key={n}
-                        className="flex size-8 cursor-pointer items-center justify-center rounded-md border text-sm has-checked:border-brand has-checked:bg-brand-dark has-checked:text-white has-focus-visible:ring-2 has-focus-visible:ring-ring"
+                        className="flex size-8 cursor-pointer items-center justify-center rounded-md border text-sm has-checked:border-brand has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:ring-2 has-focus-visible:ring-ring"
                       >
                         <input
                           type="radio"

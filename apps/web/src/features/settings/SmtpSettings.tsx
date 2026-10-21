@@ -142,7 +142,7 @@ function SmtpForm({ initial }: { initial: SmtpSettingsView }) {
       {result && (
         <p
           role="status"
-          className={result.ok ? 'text-sm text-brand-dark' : 'text-sm text-destructive'}
+          className={result.ok ? 'text-sm text-primary' : 'text-sm text-destructive'}
         >
           {result.ok
             ? t('smtp.testOk', { from: form.from })

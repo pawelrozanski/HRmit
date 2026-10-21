@@ -77,7 +77,7 @@ export function CandidatesPage() {
 
   return (
     <BlindContext value={blind}>
-      <Link to=".." className="text-sm text-brand-dark hover:underline">
+      <Link to=".." className="text-sm text-primary hover:underline">
         ← {t('common.back')}
       </Link>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -110,7 +110,7 @@ export function CandidatesPage() {
             className={cn(
               '-mb-px border-b-2 px-3 py-1.5 text-sm font-medium',
               view === v
-                ? 'border-brand text-brand-dark'
+                ? 'border-brand text-primary'
                 : 'border-transparent text-muted-foreground hover:text-foreground',
             )}
           >

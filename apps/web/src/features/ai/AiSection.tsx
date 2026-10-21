@@ -82,7 +82,7 @@ export function AiSection({ candidate, onChange }: Props) {
       {ai && (ai.summary || ai.competencies) && (
         <div className="grid gap-3 rounded-lg border border-brand/40 bg-brand/5 p-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="bg-brand-dark text-white">{t('ai.badge')}</Badge>
+            <Badge>{t('ai.badge')}</Badge>
             {isLocal !== null && (
               <Badge variant="outline">{t(isLocal ? 'ai.local' : 'ai.cloud')}</Badge>
             )}
