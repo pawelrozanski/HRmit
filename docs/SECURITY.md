@@ -36,6 +36,7 @@ Final review across stages 0 to 11, done on 2026-10-19. Each stage had its own s
 
 - `DELETE /api/candidates/:id` removes the row and, through foreign keys with `ON DELETE CASCADE`, its evaluations, emails and meetings, then unlinks the CV file. This is the right-to-erasure path.
 - Deleting a job cascades to its candidates and questions the same way.
+- Employees (0.3.0) are personal data of the hiring side. `DELETE /api/employees/:id` is a hard delete and cascades to the team memberships; deleting a team removes its memberships and leaves its recruitments without a team. Employee data is never part of an AI prompt and goes through the same loopback-only API.
 - Everything else is one folder: `data/`. Deleting it deletes the installation's data.
 
 ## Cloud AI and the limits of anonymization

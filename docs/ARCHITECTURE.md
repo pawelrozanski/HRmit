@@ -73,6 +73,9 @@ Why a monorepo: the web app imports the server's route _types_ (not its code) an
 
 ```mermaid
 erDiagram
+  teams ||--o{ jobs : hires_for
+  teams ||--o{ team_members : has
+  employees ||--o{ team_members : belongs_to
   jobs ||--o{ candidates : has
   jobs ||--o{ interview_questions : defines
   candidates ||--o{ evaluations : scored_by
@@ -82,10 +85,32 @@ erDiagram
 
   jobs {
     int id PK
+    int team_id FK "nullable, ON DELETE SET NULL"
     text title
     text description
     text status "open | closed"
     text created_at
+  }
+  teams {
+    int id PK
+    text name "unique, case-insensitive"
+    text description
+    text created_at
+  }
+  employees {
+    int id PK
+    text first_name
+    text last_name
+    text position
+    text email
+    text hired_at "ISO date, nullable"
+    text duties "free text, one per line"
+    text created_at
+  }
+  team_members {
+    int team_id PK,FK "ON DELETE CASCADE"
+    int employee_id PK,FK "ON DELETE CASCADE"
+    text role "member | lead"
   }
   candidates {
     int id PK
@@ -146,6 +171,8 @@ erDiagram
 
 Design notes:
 
+- **Glossary: job vs recruitment.** The entity is a `job` in the database, the API (`/api/jobs`, `jobId`) and the shared schemas; the UI calls it a _recruitment_ ("Recruitments" / "Rekrutacje") since 0.3.0. Renaming the technical name would have touched every table, route and test for a label.
+- **Employees are the hiring side**, never candidates: interviewers and hiring managers grouped into teams. An employee can be in several teams with one role per team (`member` or `lead`, at most one lead is a convention, not a constraint). A job may belong to one team; deleting the team leaves the job without one (`SET NULL`), deleting an employee or a team removes its memberships (`CASCADE`). Employees never reach an AI prompt.
 - **One CV per candidate**, stored as columns, not a separate table. A second upload replaces the first. (ponytail: add a `cv_files` table only if versioning is ever requested.)
 - **Pipeline stage is a text column**, validated by a zod enum in `packages/shared`. No stage-history table in MVP; `stage_changed_at` is enough for the kanban.
 - **Interview questions belong to the job, not the candidate.** This is what makes the interview _structured_: every candidate for a job gets the same questions and is scored on the same competencies. The scorecard is `evaluations` joined with the job's questions.
@@ -174,7 +201,9 @@ Calling `api.api.candidates.$get()` in the UI is type-checked against the server
 
 | Resource    | Endpoints (MVP)                                                                                                                                                                            |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| jobs        | list, create, update, close                                                                                                                                                                |
+| jobs        | list (filter by team), create, update, close; `teamId` must name an existing team                                                                                                          |
+| employees   | list (`?q=` on name or position, `?teamId=`), create, get (with teams), update, delete (hard, memberships cascade)                                                                         |
+| teams       | list (with member and open job counts), create (409 on a duplicate name), get (members with role, jobs), update, delete (jobs keep, `teamId` null), add members, set role, remove member   |
 | candidates  | list (filter by job and stage), create, update, delete, move stage, upload CV, download CV                                                                                                 |
 | ai          | `POST /ai/summarize/:candidateId`, `POST /ai/competencies/:candidateId`, `POST /ai/questions/:jobId`, `GET /ai/preview/:candidateId` (anonymized text), `POST /ai/test` (connection check) |
 | questions   | list by job, update, reorder                                                                                                                                                               |
@@ -204,7 +233,7 @@ if (import.meta.env.VITE_DEMO === 'true') {
 - **Emails** in demo are recorded with `status: 'demo'` and shown in an "Outbox" view instead of being sent.
 - A fixed banner reads: _Demo mode. All candidates are fictional._
 - Routing: `/` is the landing page, `/demo/*` is the app. In the local build the app lives at `/*` and the landing page is not rendered. Vite `base` is `/HRmit/` for GitHub Pages.
-- App routes (relative to the mount point): `/` jobs, `/jobs/:id` pipeline and interview guide, `/settings` a layout with a vertical tab list and nested routes `general` (language, theme, about), `ai`, `email`, `templates`; `/settings` redirects to `/settings/general` and the old `/templates` to `/settings/templates`.
+- App routes (relative to the mount point): `/` redirects to `/recruitments`, `/recruitments/:id` pipeline and interview guide (`/jobs/:id` redirects there), `/employees`, `/teams` and `/teams/:id`, `/settings` a layout with a vertical tab list and nested routes `general` (language, theme, about), `ai`, `email`, `templates`; `/settings` redirects to `/settings/general` and the old `/templates` to `/settings/templates`.
 
 Why this counts as the same frontend and not a mock-up: the handlers are a second implementation of the API contract, validated by the same zod schemas. If a demo handler returns a wrong shape, the shared schema test fails.
 

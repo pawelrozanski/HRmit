@@ -4,6 +4,20 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-21
+
+### Added
+
+- Employees (`/employees`): the hiring side of the company with position, email, hire date and duties. Search by name or position, filter by team, details drawer, edit and a confirmed hard delete that also removes team memberships. Twelve fictional employees in the fixtures.
+- Teams (`/teams`, `/teams/:id`): cards with member and open-recruitment counts, a team view with the members list, a Lead/Member role toggle, "Remove from team" and an "Add members" dialog that adds several employees at once from a searchable checkbox list (keyboard: Tab, Space, Enter). Deleting a team keeps its recruitments and says how many are affected. Four fixture teams: Sales, IT, Customer Support, Marketing.
+- A recruitment can belong to a team: team select in the form, team badge in the list and a team filter above it. `GET /api/jobs?teamId=`.
+- Migration 0008 (additive): `employees`, `teams`, `team_members`, `jobs.team_id`; existing databases get the fixture teams and employees once, their jobs stay unassigned.
+- Icons from lucide in the header navigation, page headings, buttons and empty states.
+
+### Changed
+
+- "Jobs" are labelled "Recruitments" (PL "Rekrutacje") in the UI; the entity stays a `job` in the API and the database (glossary in `docs/ARCHITECTURE.md`). Routes move to `/recruitments` and `/recruitments/:id`; `/jobs/:id` redirects. Navigation order: Recruitments, Employees, Teams, Settings. The placeholder Teams page is gone.
+
 ## [0.2.1] - 2026-10-21
 
 ### Added
@@ -58,7 +72,8 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/pawelrozanski/HRmit/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/pawelrozanski/HRmit/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/pawelrozanski/HRmit/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/pawelrozanski/HRmit/releases/tag/v0.1.0
