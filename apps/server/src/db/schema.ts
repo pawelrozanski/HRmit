@@ -1,8 +1,65 @@
-import { getTableColumns } from 'drizzle-orm'
-import { integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
-import { EMAIL_TEMPLATE_KEYS, PIPELINE_STAGES, type AiSummary } from '@hrmit/shared'
+import { getTableColumns, sql } from 'drizzle-orm'
+import {
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+  unique,
+  uniqueIndex,
+} from 'drizzle-orm/sqlite-core'
+import {
+  EMAIL_TEMPLATE_KEYS,
+  PIPELINE_STAGES,
+  TEAM_MEMBER_ROLES,
+  type AiSummary,
+} from '@hrmit/shared'
 
 // docs/ARCHITECTURE.md §3.
+
+/** Hiring teams. The name is unique case-insensitively (an index on lower(name)). */
+export const teams = sqliteTable(
+  'teams',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    name: text('name').notNull(),
+    description: text('description').notNull().default(''),
+    createdAt: text('created_at').notNull(),
+  },
+  (t) => [uniqueIndex('teams_name_unique').on(sql`lower(${t.name})`)],
+)
+
+/**
+ * The hiring side: interviewers and hiring managers. Personal data, hard-deleted with their
+ * memberships (docs/SECURITY.md); never part of an AI prompt.
+ */
+export const employees = sqliteTable('employees', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  firstName: text('first_name').notNull(),
+  lastName: text('last_name').notNull(),
+  position: text('position').notNull(),
+  email: text('email').notNull(),
+  /** ISO date, null when unknown. */
+  hiredAt: text('hired_at'),
+  duties: text('duties').notNull().default(''),
+  createdAt: text('created_at').notNull(),
+})
+
+/** Memberships: an employee can be in several teams, with one role per team. */
+export const teamMembers = sqliteTable(
+  'team_members',
+  {
+    teamId: integer('team_id')
+      .notNull()
+      .references(() => teams.id, { onDelete: 'cascade' }),
+    employeeId: integer('employee_id')
+      .notNull()
+      .references(() => employees.id, { onDelete: 'cascade' }),
+    role: text('role', { enum: TEAM_MEMBER_ROLES }).notNull().default('member'),
+  },
+  (t) => [primaryKey({ columns: [t.teamId, t.employeeId] })],
+)
+
+/** A job is what the UI calls a recruitment (glossary in docs/ARCHITECTURE.md). */
 export const jobs = sqliteTable('jobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
@@ -10,6 +67,8 @@ export const jobs = sqliteTable('jobs', {
   status: text('status', { enum: ['open', 'closed'] })
     .notNull()
     .default('open'),
+  /** The hiring team; a deleted team leaves the job without one. */
+  teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
   createdAt: text('created_at').notNull(),
 })
 

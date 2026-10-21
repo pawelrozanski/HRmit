@@ -5,6 +5,8 @@ import {
   candidateInputSchema,
   emailSchema,
   emailTemplateSchema,
+  employeeInputSchema,
+  employeeSchema,
   competenciesSchema,
   cvSummarySchema,
   evaluationSchema,
@@ -16,6 +18,8 @@ import {
   pipelineStageSchema,
   questionsGenerationSchema,
   questionsProposalSchema,
+  teamMemberLinkSchema,
+  teamRowSchema,
 } from './schemas.ts'
 import * as fixtures from './fixtures/index.ts'
 
@@ -32,7 +36,7 @@ test('pipeline stage rejects unknown stages', () => {
 test('fixtures pass the schemas and every candidate points at a job', () => {
   const jobIds = new Set(fixtures.jobs.map((j) => jobSchema.parse(j).id))
   for (const c of fixtures.candidates) expect(jobIds.has(candidateSchema.parse(c).jobId)).toBe(true)
-  expect(fixtures.jobs).toHaveLength(3)
+  expect(fixtures.jobs).toHaveLength(4)
   expect(fixtures.candidates.length).toBeGreaterThanOrEqual(15)
 })
 
@@ -41,6 +45,7 @@ test('input schemas fill defaults and reject ids and CV fields', () => {
     title: 'QA',
     description: '',
     status: 'open',
+    teamId: null,
   })
   expect(() => jobInputSchema.parse({ title: '' })).toThrow()
   const c = candidateInputSchema.parse({
@@ -113,4 +118,26 @@ test('fixture email templates cover every key and fixture emails point at candid
     emailSchema.parse(e)
     expect(fixtures.candidates.some((c) => c.id === e.candidateId)).toBe(true)
   }
+})
+
+test('fixture teams and employees pass the schemas; one lead per team, valid links', () => {
+  for (const e of fixtures.employees) employeeSchema.parse(e)
+  for (const t of fixtures.teams) teamRowSchema.parse(t)
+  const employeeIds = new Set(fixtures.employees.map((e) => e.id))
+  const teamIds = new Set(fixtures.teams.map((t) => t.id))
+  for (const m of fixtures.teamMembers) {
+    teamMemberLinkSchema.parse(m)
+    expect(employeeIds.has(m.employeeId)).toBe(true)
+    expect(teamIds.has(m.teamId)).toBe(true)
+  }
+  for (const t of fixtures.teams)
+    expect(fixtures.teamMembers.filter((m) => m.teamId === t.id && m.role === 'lead')).toHaveLength(
+      1,
+    )
+  for (const j of fixtures.jobs) if (j.teamId !== null) expect(teamIds.has(j.teamId)).toBe(true)
+
+  const input = { firstName: 'A', lastName: 'B', position: 'C', email: 'a@example.com' }
+  expect(employeeInputSchema.parse(input)).toMatchObject({ hiredAt: null, duties: '' })
+  expect(() => employeeInputSchema.parse({ ...input, hiredAt: '2026-13-01' })).toThrow()
+  expect(jobInputSchema.parse({ title: 'x' }).teamId).toBeNull()
 })

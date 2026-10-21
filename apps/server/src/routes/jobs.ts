@@ -10,7 +10,7 @@ import {
   type PipelineStage,
 } from '@hrmit/shared'
 import { db } from '../db/index.ts'
-import { candidateColumns, candidates, interviewQuestions, jobs } from '../db/schema.ts'
+import { candidateColumns, candidates, interviewQuestions, jobs, teams } from '../db/schema.ts'
 
 export const listQuestions = (jobId: number) =>
   db
@@ -55,6 +55,20 @@ const jobExists = (id: number) =>
     .where(eq(jobs.id, id))
     .then((rows) => rows.length > 0)
 
+const teamExists = (id: number) =>
+  db
+    .select({ id: teams.id })
+    .from(teams)
+    .where(eq(teams.id, id))
+    .then((rows) => rows.length > 0)
+
+/** ?teamId= filters the list; a non-integer is a 400. */
+const teamQuery = validator('query', (q, c): { teamId?: number } | Response => {
+  if (q.teamId === undefined) return {}
+  const teamId = Number(q.teamId)
+  return Number.isInteger(teamId) ? { teamId } : c.json({ error: 'invalid teamId' }, 400)
+})
+
 const stageQuery = validator('query', (q, c): { stage?: PipelineStage } | Response => {
   const stage = q.stage === undefined ? undefined : pipelineStageSchema.safeParse(q.stage)
   if (stage && !stage.success) return c.json({ error: 'invalid stage' }, 400)
@@ -62,19 +76,33 @@ const stageQuery = validator('query', (q, c): { stage?: PipelineStage } | Respon
 })
 
 export const jobsRoute = new Hono()
-  .get('/', async (c) => c.json(await db.select().from(jobs).orderBy(jobs.id)))
+  .get('/', teamQuery, async (c) => {
+    const { teamId } = c.req.valid('query')
+    const rows = await db
+      .select()
+      .from(jobs)
+      .where(teamId === undefined ? undefined : eq(jobs.teamId, teamId))
+      .orderBy(jobs.id)
+    return c.json(rows)
+  })
   .post('/', zValidator('json', jobInputSchema), async (c) => {
+    const input = c.req.valid('json')
+    if (input.teamId !== null && !(await teamExists(input.teamId)))
+      return c.json({ error: 'unknown team' }, 400)
     const [row] = await db
       .insert(jobs)
-      .values({ ...c.req.valid('json'), createdAt: new Date().toISOString() })
+      .values({ ...input, createdAt: new Date().toISOString() })
       .returning()
     return c.json(row, 201)
   })
   // Full replace. Closing a job is a PUT with status 'closed'.
   .put('/:id', zValidator('json', jobInputSchema), async (c) => {
+    const input = c.req.valid('json')
+    if (input.teamId !== null && !(await teamExists(input.teamId)))
+      return c.json({ error: 'unknown team' }, 400)
     const [row] = await db
       .update(jobs)
-      .set(c.req.valid('json'))
+      .set(input)
       .where(eq(jobs.id, Number(c.req.param('id'))))
       .returning()
     return row ? c.json(row) : c.json({ error: 'not found' }, 404)

@@ -14,11 +14,16 @@ export type Health = z.infer<typeof healthSchema>
 
 export const jobStatusSchema = z.enum(['open', 'closed'])
 
+/**
+ * A job is what the UI calls a "recruitment" (see the glossary in docs/ARCHITECTURE.md).
+ * teamId is the hiring team, null when none is assigned.
+ */
 export const jobSchema = z.object({
   id: z.number().int(),
   title: z.string().min(1),
   description: z.string(),
   status: jobStatusSchema,
+  teamId: z.number().int().nullable(),
   createdAt: z.string(),
 })
 export type Job = z.infer<typeof jobSchema>
@@ -27,8 +32,87 @@ export type Job = z.infer<typeof jobSchema>
 export const jobInputSchema = jobSchema.omit({ id: true, createdAt: true }).extend({
   description: z.string().default(''),
   status: jobStatusSchema.default('open'),
+  teamId: z.number().int().nullable().default(null),
 })
 export type JobInput = z.input<typeof jobInputSchema>
+
+/**
+ * Employees are the hiring side (interviewers, hiring managers), never candidates. They are
+ * personal data too: hard-deleted with their memberships, and never part of an AI prompt.
+ */
+export const employeeSchema = z.object({
+  id: z.number().int(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  position: z.string().min(1),
+  email: z.string().email(),
+  /** ISO date (YYYY-MM-DD) or null when unknown. */
+  hiredAt: z.iso.date().nullable(),
+  /** Free text, one duty per line. */
+  duties: z.string(),
+  createdAt: z.string(),
+})
+export type Employee = z.infer<typeof employeeSchema>
+
+/** Body of POST /api/employees and PUT /api/employees/:id. */
+export const employeeInputSchema = employeeSchema.omit({ id: true, createdAt: true }).extend({
+  hiredAt: z.iso.date().nullable().default(null),
+  duties: z.string().default(''),
+})
+export type EmployeeInput = z.input<typeof employeeInputSchema>
+
+export const TEAM_MEMBER_ROLES = ['member', 'lead'] as const
+export const teamMemberRoleSchema = z.enum(TEAM_MEMBER_ROLES)
+export type TeamMemberRole = z.infer<typeof teamMemberRoleSchema>
+
+/** One membership row: an employee can be in several teams, with one role per team. */
+export const teamMemberLinkSchema = z.object({
+  teamId: z.number().int(),
+  employeeId: z.number().int(),
+  role: teamMemberRoleSchema,
+})
+export type TeamMemberLink = z.infer<typeof teamMemberLinkSchema>
+
+/** GET /api/employees and /api/employees/:id: the employee with the teams they belong to. */
+export const employeeWithTeamsSchema = employeeSchema.extend({
+  teams: z.object({ id: z.number().int(), name: z.string(), role: teamMemberRoleSchema }).array(),
+})
+export type EmployeeWithTeams = z.infer<typeof employeeWithTeamsSchema>
+
+/** A team as stored. Names are unique case-insensitively. */
+export const teamRowSchema = z.object({
+  id: z.number().int(),
+  name: z.string().min(1),
+  description: z.string(),
+  createdAt: z.string(),
+})
+export type TeamRow = z.infer<typeof teamRowSchema>
+
+/** GET /api/teams: each team with its counts. */
+export const teamSchema = teamRowSchema.extend({
+  memberCount: z.number().int(),
+  openJobCount: z.number().int(),
+})
+export type Team = z.infer<typeof teamSchema>
+
+/** Body of POST /api/teams and PUT /api/teams/:id. A duplicate name answers 409. */
+export const teamInputSchema = teamRowSchema.omit({ id: true, createdAt: true }).extend({
+  description: z.string().default(''),
+})
+export type TeamInput = z.input<typeof teamInputSchema>
+
+/** GET /api/teams/:id and the answer of every membership change: members with role, jobs. */
+export const teamDetailSchema = teamSchema.extend({
+  members: employeeSchema.extend({ role: teamMemberRoleSchema }).array(),
+  jobs: jobSchema.array(),
+})
+export type TeamDetail = z.infer<typeof teamDetailSchema>
+
+/** Body of POST /api/teams/:id/members. Employees already in the team are ignored. */
+export const addMembersSchema = z.object({ employeeIds: z.number().int().array().min(1) })
+
+/** Body of PATCH /api/teams/:id/members/:employeeId. */
+export const setMemberRoleSchema = z.object({ role: teamMemberRoleSchema })
 
 /**
  * AI output schemas (ADR 0004): descriptive fields only. No score, rank, fit, recommendation,

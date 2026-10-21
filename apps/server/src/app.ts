@@ -2,8 +2,10 @@ import { Hono } from 'hono'
 import { VERSION, type Health } from '@hrmit/shared'
 import { aiRoute } from './routes/ai.ts'
 import { candidatesRoute } from './routes/candidates.ts'
+import { employeesRoute } from './routes/employees.ts'
 import { jobsRoute } from './routes/jobs.ts'
 import { settingsRoute } from './routes/settings.ts'
+import { teamsRoute } from './routes/teams.ts'
 import { templatesRoute } from './routes/templates.ts'
 
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]'])
@@ -33,6 +35,8 @@ export const app = new Hono()
   .get('/api/health', (c) => c.json<Health>({ ok: true, mode: 'local', version: VERSION }))
   .route('/api/jobs', jobsRoute)
   .route('/api/candidates', candidatesRoute)
+  .route('/api/employees', employeesRoute)
+  .route('/api/teams', teamsRoute)
   .route('/api/settings', settingsRoute)
   .route('/api/templates', templatesRoute)
   .route('/api/ai', aiRoute)

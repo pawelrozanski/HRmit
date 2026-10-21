@@ -116,4 +116,41 @@ export const questions: Record<number, InterviewQuestionInput[]> = {
         'Describe how you learned a product you had to support. What helped you most in the first weeks?',
     },
   ],
+  4: [
+    {
+      competency: 'Writing',
+      question:
+        'Tell me about a piece you wrote that had to explain something technical to a non-technical reader. How did you decide what to leave out?',
+    },
+    {
+      competency: 'Writing',
+      question:
+        'Describe a time an editor or colleague disagreed with your draft. What did you change and what did you keep?',
+    },
+    {
+      competency: 'Audience research',
+      question:
+        'Walk me through how you found out what a customer group was actually searching for. What surprised you?',
+    },
+    {
+      competency: 'Audience research',
+      question:
+        'Tell me about a topic you dropped from a content plan because the data said nobody cared. How did you make the case?',
+    },
+    {
+      competency: 'Planning',
+      question:
+        'Describe a content calendar you ran for at least a quarter. How did you handle a launch that moved?',
+    },
+    {
+      competency: 'Planning',
+      question:
+        'Tell me about a time you had more ideas than budget. How did you choose what to produce first?',
+    },
+    {
+      competency: 'Measuring results',
+      question:
+        'Tell me about a piece that underperformed. What did you look at, and what did you do differently next time?',
+    },
+  ],
 }

@@ -5,6 +5,7 @@ export { questions } from './questions.ts'
 export { evaluations, questionRows } from './evaluations.ts'
 export { emailTemplates, emails } from './emails.ts'
 export { meetings } from './meetings.ts'
+export { employees, teamMembers, teams } from './teams.ts'
 
 /**
  * Demo data. Every person and company here is invented; any resemblance to a real
@@ -19,6 +20,7 @@ export const jobs: Job[] = [
     description:
       'Build and maintain the recruiter-facing panel of a small HR product. React, TypeScript, accessibility and clean component design matter more than framework trivia. Hybrid, Warsaw or remote within the EU.',
     status: 'open',
+    teamId: 2,
     createdAt: T,
   },
   {
@@ -27,6 +29,7 @@ export const jobs: Job[] = [
     description:
       'Partner with two engineering teams on hiring plans, onboarding and development paths. Own the structured interview process and coach hiring managers on bias-aware interviewing.',
     status: 'open',
+    teamId: null,
     createdAt: T,
   },
   {
@@ -35,6 +38,16 @@ export const jobs: Job[] = [
     description:
       'First line of contact for customers of a B2B scheduling tool. Written English and Polish, patience, and the habit of turning repeated questions into help-center articles.',
     status: 'closed',
+    teamId: 3,
+    createdAt: T,
+  },
+  {
+    id: 4,
+    title: 'Content Marketing Specialist',
+    description:
+      'Write and plan the blog, help center and product announcements of a B2B scheduling tool. Clear English, an eye for what customers actually search for, comfortable with analytics and a small budget.',
+    status: 'open',
+    teamId: 4,
     createdAt: T,
   },
 ]

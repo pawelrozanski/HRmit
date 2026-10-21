@@ -41,8 +41,17 @@ await migrate(db, async (queries) => sqlite.exec(queries.join(';\n')), {
 })
 
 // First run: seed from the shared fixtures so the UI is not empty.
-const [{ n } = { n: 0 }] = await db.select({ n: count() }).from(schema.jobs)
-if (n === 0) {
+const countOf = async (table: typeof schema.jobs | typeof schema.teams | typeof schema.employees) =>
+  (await db.select({ n: count() }).from(table))[0]?.n ?? 0
+// Teams first: fixture jobs point at them. 0.3.0 added these tables, so an existing database
+// gets them seeded once as well, with the user's jobs left unassigned.
+if ((await countOf(schema.teams)) === 0 && (await countOf(schema.employees)) === 0) {
+  await db.insert(schema.teams).values(fixtures.teams)
+  await db.insert(schema.employees).values(fixtures.employees)
+  await db.insert(schema.teamMembers).values(fixtures.teamMembers)
+}
+
+if ((await countOf(schema.jobs)) === 0) {
   await db.insert(schema.jobs).values(fixtures.jobs)
   await db.insert(schema.candidates).values(fixtures.candidates)
   await db.insert(schema.interviewQuestions).values(fixtures.questionRows)
