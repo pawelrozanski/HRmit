@@ -8,7 +8,7 @@ import { useApi } from '@/api/useApi.ts'
 import { Button } from '@/components/ui/button.tsx'
 import { cn } from '@/lib/utils.ts'
 import { Switch } from '@/components/ui/switch.tsx'
-import { InterviewGuide } from '../jobs/InterviewGuide.tsx'
+import { InterviewGuide } from '../recruitments/InterviewGuide.tsx'
 import { KanbanBoard } from '../pipeline/KanbanBoard.tsx'
 import { BlindContext } from './BlindContext.ts'
 import { CandidateDrawer } from './CandidateDrawer.tsx'
@@ -29,7 +29,7 @@ export function CandidatesPage() {
   const job = useApi(
     () =>
       api.api.jobs
-        .$get()
+        .$get({ query: {} })
         .then((r) => r.json())
         .then((jobs) => jobs.find((j) => String(j.id) === id)),
     [id],

@@ -33,10 +33,11 @@
     "docs": "Dokumentacja"
   },
   "nav": {
-    "jobs": "Stanowiska",
+    "recruitments": "Rekrutacje",
+    "employees": "Pracownicy",
+    "teams": "Zespoły",
     "settings": "Ustawienia",
-    "skip": "Przejdź do treści",
-    "teams": "Zespoły"
+    "skip": "Przejdź do treści"
   },
   "common": {
     "loading": "Ładowanie…",
@@ -48,9 +49,9 @@
     "edit": "Edytuj",
     "delete": "Usuń"
   },
-  "jobs": {
-    "title": "Stanowiska",
-    "empty": "Brak stanowisk.",
+  "recruitments": {
+    "title": "Rekrutacje",
+    "empty": "Brak rekrutacji.",
     "status": {
       "open": "Otwarte",
       "closed": "Zamknięte"
@@ -59,12 +60,16 @@
     "candidateCount_few": "{{count}} kandydatów",
     "candidateCount_many": "{{count}} kandydatów",
     "candidateCount_other": "{{count}} kandydatów",
-    "new": "Nowe stanowisko",
-    "edit": "Edytuj stanowisko",
+    "new": "Nowa rekrutacja",
+    "edit": "Edytuj rekrutację",
     "formHint": "Tytuł i opis zobaczą kandydaci oraz asystent AI.",
     "titleLabel": "Tytuł",
     "descriptionLabel": "Opis",
-    "statusLabel": "Status"
+    "statusLabel": "Status",
+    "teamLabel": "Zespół",
+    "noTeam": "Bez zespołu",
+    "filterTeam": "Filtruj według zespołu",
+    "allTeams": "Wszystkie zespoły"
   },
   "candidates": {
     "title": "Kandydaci",
@@ -336,7 +341,68 @@
   },
   "teams": {
     "title": "Zespoły",
-    "soon": "Wkrótce",
-    "text": "Wspólne pipeline’y dla zespołu rekrutacyjnego są planowane po jednoosobowym MVP. Na razie nie ma tu nic do ustawienia."
+    "empty": "Brak zespołów. Utwórz pierwszy, aby pogrupować pracowników i rekrutacje.",
+    "new": "Nowy zespół",
+    "edit": "Edytuj zespół",
+    "formHint": "Krótka nazwa i czym zespół się zajmuje.",
+    "name": "Nazwa",
+    "description": "Opis",
+    "nameTaken": "Zespół o tej nazwie już istnieje.",
+    "memberCount_one": "{{count}} członek",
+    "memberCount_few": "{{count}} członków",
+    "memberCount_many": "{{count}} członków",
+    "memberCount_other": "{{count}} członków",
+    "openCount_one": "{{count}} otwarta rekrutacja",
+    "openCount_few": "{{count}} otwarte rekrutacje",
+    "openCount_many": "{{count}} otwartych rekrutacji",
+    "openCount_other": "{{count}} otwartych rekrutacji",
+    "members": "Członkowie",
+    "noMembers": "Brak członków.",
+    "addMembers": "Dodaj członków",
+    "addMembersHint": "Zaznacz pracowników do dodania. Spacja zaznacza, Enter dodaje.",
+    "searchEmployees": "Szukaj pracowników",
+    "everyoneIn": "Wszyscy pracownicy są już w tym zespole.",
+    "add_one": "Dodaj {{count}}",
+    "add_few": "Dodaj {{count}}",
+    "add_many": "Dodaj {{count}}",
+    "add_other": "Dodaj {{count}}",
+    "role": "Rola",
+    "roles": {
+      "member": "Członek",
+      "lead": "Lider"
+    },
+    "makeLead": "Ustaw jako lidera",
+    "makeMember": "Ustaw jako członka",
+    "remove": "Usuń z zespołu",
+    "recruitments": "Rekrutacje",
+    "noRecruitments": "Żadna rekrutacja nie jest przypisana do tego zespołu.",
+    "deleteConfirm": "Usunąć {{name}}? Rekrutacje ({{jobs}}) zostaną bez zespołu, a członkostwa ({{members}}) zostaną usunięte. Pracownicy nie są usuwani.",
+    "deleteFailed": "Nie udało się usunąć zespołu. Spróbuj ponownie.",
+    "notFound": "Ten zespół nie istnieje."
+  },
+  "employees": {
+    "title": "Pracownicy",
+    "intro": "Strona rekrutująca: osoby prowadzące rozmowy i menedżerowie. Dane pracowników nigdy nie trafiają do dostawcy AI.",
+    "search": "Szukaj po nazwisku lub stanowisku",
+    "filterTeam": "Filtruj według zespołu",
+    "allTeams": "Wszystkie zespoły",
+    "empty": "Nie masz jeszcze pracowników.",
+    "noMatch": "Żaden pracownik nie pasuje.",
+    "new": "Nowy pracownik",
+    "edit": "Edytuj pracownika",
+    "formHint": "Dane pracownika zostają w Twojej lokalnej bazie.",
+    "details": "Dane pracownika",
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
+    "position": "Stanowisko",
+    "email": "E-mail",
+    "hiredAt": "Zatrudniony od",
+    "duties": "Obowiązki",
+    "dutiesHint": "Jeden obowiązek w wierszu.",
+    "noDuties": "Brak wpisanych obowiązków.",
+    "noTeams": "Nie należy do żadnego zespołu.",
+    "teams": "Zespoły",
+    "deleteConfirm": "Usunąć {{name}}? To usuwa pracownika i jego członkostwa w zespołach. Nie da się tego cofnąć.",
+    "deleteFailed": "Nie udało się usunąć pracownika. Spróbuj ponownie."
   }
 }

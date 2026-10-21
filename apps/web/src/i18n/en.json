@@ -33,10 +33,11 @@
     "docs": "Docs"
   },
   "nav": {
-    "jobs": "Jobs",
+    "recruitments": "Recruitments",
+    "employees": "Employees",
+    "teams": "Teams",
     "settings": "Settings",
-    "skip": "Skip to content",
-    "teams": "Teams"
+    "skip": "Skip to content"
   },
   "common": {
     "loading": "Loading…",
@@ -48,21 +49,25 @@
     "edit": "Edit",
     "delete": "Delete"
   },
-  "jobs": {
-    "title": "Jobs",
-    "empty": "No jobs yet.",
+  "recruitments": {
+    "title": "Recruitments",
+    "empty": "No recruitments yet.",
     "status": {
       "open": "Open",
       "closed": "Closed"
     },
     "candidateCount_one": "{{count}} candidate",
     "candidateCount_other": "{{count}} candidates",
-    "new": "New job",
-    "edit": "Edit job",
+    "new": "New recruitment",
+    "edit": "Edit recruitment",
     "formHint": "Title and description are what candidates and the AI assistant will see.",
     "titleLabel": "Title",
     "descriptionLabel": "Description",
-    "statusLabel": "Status"
+    "statusLabel": "Status",
+    "teamLabel": "Team",
+    "noTeam": "No team",
+    "filterTeam": "Filter by team",
+    "allTeams": "All teams"
   },
   "candidates": {
     "title": "Candidates",
@@ -318,7 +323,62 @@
   },
   "teams": {
     "title": "Teams",
-    "soon": "Coming soon",
-    "text": "Shared pipelines for a hiring team are planned after the single-user MVP. Nothing to set up here yet."
+    "empty": "No teams yet. Create the first one to group employees and recruitments.",
+    "new": "New team",
+    "edit": "Edit team",
+    "formHint": "A short name and what the team does.",
+    "name": "Name",
+    "description": "Description",
+    "nameTaken": "A team with this name already exists.",
+    "memberCount_one": "{{count}} member",
+    "memberCount_other": "{{count}} members",
+    "openCount_one": "{{count}} open recruitment",
+    "openCount_other": "{{count}} open recruitments",
+    "members": "Members",
+    "noMembers": "No members yet.",
+    "addMembers": "Add members",
+    "addMembersHint": "Tick the employees to add. Space toggles, Enter adds.",
+    "searchEmployees": "Search employees",
+    "everyoneIn": "Every employee is already in this team.",
+    "add_one": "Add {{count}}",
+    "add_other": "Add {{count}}",
+    "role": "Role",
+    "roles": {
+      "member": "Member",
+      "lead": "Lead"
+    },
+    "makeLead": "Make lead",
+    "makeMember": "Make member",
+    "remove": "Remove from team",
+    "recruitments": "Recruitments",
+    "noRecruitments": "No recruitment assigned to this team.",
+    "deleteConfirm": "Delete {{name}}? {{jobs}} recruitment(s) will keep existing without a team and {{members}} membership(s) will be removed. Employees are not deleted.",
+    "deleteFailed": "Could not delete the team. Try again.",
+    "notFound": "This team does not exist."
+  },
+  "employees": {
+    "title": "Employees",
+    "intro": "The hiring side: interviewers and hiring managers. Employees are never sent to an AI provider.",
+    "search": "Search by name or position",
+    "filterTeam": "Filter by team",
+    "allTeams": "All teams",
+    "empty": "You have no employees yet.",
+    "noMatch": "No employee matches.",
+    "new": "New employee",
+    "edit": "Edit employee",
+    "formHint": "Employee details stay in your local database.",
+    "details": "Employee details",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "position": "Position",
+    "email": "Email",
+    "hiredAt": "Hired on",
+    "duties": "Duties",
+    "dutiesHint": "One duty per line.",
+    "noDuties": "No duties listed.",
+    "noTeams": "Not in any team.",
+    "teams": "Teams",
+    "deleteConfirm": "Delete {{name}}? This removes the employee and their team memberships. It cannot be undone.",
+    "deleteFailed": "Could not delete the employee. Try again."
   }
 }
