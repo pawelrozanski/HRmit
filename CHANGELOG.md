@@ -4,7 +4,12 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
-## [0.3.0] - 2026-10-21
+## [0.3.1] - 2026-10-22
+
+### Added
+
+- Notes on employees: a "Notes" section in the employee drawer with a textarea (Ctrl+Enter adds), the list newest first with date and time, and a confirmed delete per note. The employees list shows a note count next to the name. Six fictional notes in the fixtures, seeded once on existing databases.
+- `GET/POST /api/employees/:id/notes`, `DELETE /api/employees/:id/notes/:noteId`; `noteCount` on the employees list and detail. Migration 0009 (additive): `employee_notes`, cascading with the employee.
 
 ### Added
 
@@ -72,7 +77,8 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/pawelrozanski/HRmit/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/pawelrozanski/HRmit/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/pawelrozanski/HRmit/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/pawelrozanski/HRmit/compare/v0.1.0...v0.2.0

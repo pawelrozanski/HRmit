@@ -145,6 +145,10 @@ _(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were t
 
 ## After the MVP
 
+### 0.3.1: Notes on employees
+
+_(done 2026-10-22; additive migration 0009 adds `employee_notes` with `ON DELETE CASCADE`, verified against a rolled-back copy of `data/hrmit.db` where the twelve employees and their memberships survived and the six fixture notes were seeded exactly once; the note count rides on the employees list as a correlated subquery, so the list stays one request)_
+
 ### 0.3.0: Employees, teams and the recruitments label
 
 _(done 2026-10-21; additive migration 0008 adds `employees`, `teams`, `team_members` and `jobs.team_id`, verified against a copy of an existing `data/hrmit.db` where the jobs survived with `team_id` null and the fixture teams and employees were seeded once; the entity stays a `job` in the API and the database and is labelled a recruitment in the UI, see the glossary in ARCHITECTURE.md §3; a team lead is a `role` column on the membership, not a column on the team, so a team can temporarily have none or several; deleting a team keeps its recruitments and the confirm dialog states how many are affected; employees are hard-deleted; the demo store backfills the three new keys into stores saved before 0.3.0; the add-members dialog is a native checkbox list, verified by keyboard in the in-app browser and in the Playwright run)_

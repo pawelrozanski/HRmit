@@ -76,6 +76,7 @@ erDiagram
   teams ||--o{ jobs : hires_for
   teams ||--o{ team_members : has
   employees ||--o{ team_members : belongs_to
+  employees ||--o{ employee_notes : has
   jobs ||--o{ candidates : has
   jobs ||--o{ interview_questions : defines
   candidates ||--o{ evaluations : scored_by
@@ -111,6 +112,12 @@ erDiagram
     int team_id PK,FK "ON DELETE CASCADE"
     int employee_id PK,FK "ON DELETE CASCADE"
     text role "member | lead"
+  }
+  employee_notes {
+    int id PK
+    int employee_id FK "ON DELETE CASCADE"
+    text body "plain text, 1..2000"
+    text created_at
   }
   candidates {
     int id PK
@@ -172,7 +179,7 @@ erDiagram
 Design notes:
 
 - **Glossary: job vs recruitment.** The entity is a `job` in the database, the API (`/api/jobs`, `jobId`) and the shared schemas; the UI calls it a _recruitment_ ("Recruitments" / "Rekrutacje") since 0.3.0. Renaming the technical name would have touched every table, route and test for a label.
-- **Employees are the hiring side**, never candidates: interviewers and hiring managers grouped into teams. An employee can be in several teams with one role per team (`member` or `lead`, at most one lead is a convention, not a constraint). A job may belong to one team; deleting the team leaves the job without one (`SET NULL`), deleting an employee or a team removes its memberships (`CASCADE`). Employees never reach an AI prompt.
+- **Employees are the hiring side**, never candidates: interviewers and hiring managers grouped into teams. An employee can be in several teams with one role per team (`member` or `lead`, at most one lead is a convention, not a constraint). A job may belong to one team; deleting the team leaves the job without one (`SET NULL`), deleting an employee or a team removes its memberships (`CASCADE`). Employees and their notes (`employee_notes`, free text, newest first, deleted with the employee) never reach an AI prompt.
 - **One CV per candidate**, stored as columns, not a separate table. A second upload replaces the first. (ponytail: add a `cv_files` table only if versioning is ever requested.)
 - **Pipeline stage is a text column**, validated by a zod enum in `packages/shared`. No stage-history table in MVP; `stage_changed_at` is enough for the kanban.
 - **Interview questions belong to the job, not the candidate.** This is what makes the interview _structured_: every candidate for a job gets the same questions and is scored on the same competencies. The scorecard is `evaluations` joined with the job's questions.
@@ -199,18 +206,18 @@ export const api = hc<AppType>(import.meta.env.BASE_URL)
 
 Calling `api.api.candidates.$get()` in the UI is type-checked against the server. Rename a field on the server and the web build fails. No hand-written API types, no OpenAPI generator.
 
-| Resource    | Endpoints (MVP)                                                                                                                                                                            |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| jobs        | list (filter by team), create, update, close; `teamId` must name an existing team                                                                                                          |
-| employees   | list (`?q=` on name or position, `?teamId=`), create, get (with teams), update, delete (hard, memberships cascade)                                                                         |
-| teams       | list (with member and open job counts), create (409 on a duplicate name), get (members with role, jobs), update, delete (jobs keep, `teamId` null), add members, set role, remove member   |
-| candidates  | list (filter by job and stage), create, update, delete, move stage, upload CV, download CV                                                                                                 |
-| ai          | `POST /ai/summarize/:candidateId`, `POST /ai/competencies/:candidateId`, `POST /ai/questions/:jobId`, `GET /ai/preview/:candidateId` (anonymized text), `POST /ai/test` (connection check) |
-| questions   | list by job, update, reorder                                                                                                                                                               |
-| evaluations | `GET /candidates/:id/scorecard` (questions joined with evaluations), `PUT` (upsert)                                                                                                        |
-| emails      | list by candidate, send from template, preview                                                                                                                                             |
-| meetings    | create (generates Jitsi link and sends the `.ics` invite)                                                                                                                                  |
-| settings    | get (secrets masked), update                                                                                                                                                               |
+| Resource    | Endpoints (MVP)                                                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| jobs        | list (filter by team), create, update, close; `teamId` must name an existing team                                                                                                                                          |
+| employees   | list (`?q=` on name or position, `?teamId=`, with teams and `noteCount`), create, get, update, delete (hard, memberships and notes cascade); notes: `GET/POST /employees/:id/notes`, `DELETE /employees/:id/notes/:noteId` |
+| teams       | list (with member and open job counts), create (409 on a duplicate name), get (members with role, jobs), update, delete (jobs keep, `teamId` null), add members, set role, remove member                                   |
+| candidates  | list (filter by job and stage), create, update, delete, move stage, upload CV, download CV                                                                                                                                 |
+| ai          | `POST /ai/summarize/:candidateId`, `POST /ai/competencies/:candidateId`, `POST /ai/questions/:jobId`, `GET /ai/preview/:candidateId` (anonymized text), `POST /ai/test` (connection check)                                 |
+| questions   | list by job, update, reorder                                                                                                                                                                                               |
+| evaluations | `GET /candidates/:id/scorecard` (questions joined with evaluations), `PUT` (upsert)                                                                                                                                        |
+| emails      | list by candidate, send from template, preview                                                                                                                                                                             |
+| meetings    | create (generates Jitsi link and sends the `.ics` invite)                                                                                                                                                                  |
+| settings    | get (secrets masked), update                                                                                                                                                                                               |
 
 Every request body is validated with the shared zod schemas through `@hono/zod-validator`.
 

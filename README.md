@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml"><img src="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-C2410C.svg" alt="MIT license" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.3.0-F26B1D.svg" alt="Version 0.3.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.3.1-F26B1D.svg" alt="Version 0.3.1" /></a>
 </p>
 
 ## What it does
@@ -22,6 +22,7 @@
 - **CV upload** (PDF, DOCX, validated by magic bytes) with text extraction, stored on your disk.
 - **Import from CV**: a new candidate's name, email and phone prefilled from the uploaded CV by the local model (or a regex fallback), for you to check.
 - **Employees and teams**: the hiring side with positions, duties and a team lead per team; a recruitment can be assigned to a team and filtered by it. Employees are never sent to an AI provider.
+- **Employee notes**: short plain-text notes on an employee (availability, agreements, preferences), newest first, deleted with the employee.
 - **AI assistant** that summarizes a CV, extracts competencies and proposes structured interview questions per job. It describes; it never scores, ranks or rejects.
 - **Structured interviews**: one editable question list per job, grouped by competency, the same for every candidate.
 - **Scorecards** with identical criteria, averages per competency, never a single ranking number. Works in **blind-screening** mode, which hides names and contact details.
@@ -120,7 +121,7 @@ Short version; the full review is in [docs/SECURITY.md](docs/SECURITY.md).
 
 ## Roadmap and out of scope
 
-Stages 0 to 11 of [docs/ROADMAP.md](docs/ROADMAP.md) are shipped as 0.1.0, CV import, the settings sidebar and the dark theme as 0.2.0, employees and teams as 0.3.0; see [CHANGELOG.md](CHANGELOG.md). Tracked but not planned: inbound applications over IMAP, Google Meet, a desktop installer, multi-user with authentication, a local NER model for anonymization, stage history and audit log.
+Stages 0 to 11 of [docs/ROADMAP.md](docs/ROADMAP.md) are shipped as 0.1.0, CV import, the settings sidebar and the dark theme as 0.2.0, employees and teams as 0.3.0, employee notes as 0.3.1; see [CHANGELOG.md](CHANGELOG.md). Tracked but not planned: inbound applications over IMAP, Google Meet, a desktop installer, multi-user with authentication, a local NER model for anonymization, stage history and audit log.
 
 Issues and pull requests are welcome; please keep commits small and follow Conventional Commits.
 
