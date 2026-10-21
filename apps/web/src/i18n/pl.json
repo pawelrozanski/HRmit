@@ -403,6 +403,20 @@
     "noTeams": "Nie należy do żadnego zespołu.",
     "teams": "Zespoły",
     "deleteConfirm": "Usunąć {{name}}? To usuwa pracownika i jego członkostwa w zespołach. Nie da się tego cofnąć.",
-    "deleteFailed": "Nie udało się usunąć pracownika. Spróbuj ponownie."
+    "deleteFailed": "Nie udało się usunąć pracownika. Spróbuj ponownie.",
+    "notes": {
+      "title": "Notatki",
+      "label": "Nowa notatka",
+      "hint": "Zwykły tekst. Ctrl+Enter dodaje notatkę.",
+      "add": "Dodaj notatkę",
+      "empty": "Brak notatek.",
+      "delete": "Usuń notatkę",
+      "deleteConfirm": "Usunąć tę notatkę? Nie da się tego cofnąć.",
+      "failed": "Nie udało się zapisać zmiany. Spróbuj ponownie.",
+      "count_one": "{{count}} notatka",
+      "count_few": "{{count}} notatki",
+      "count_many": "{{count}} notatek",
+      "count_other": "{{count}} notatki"
+    }
   }
 }

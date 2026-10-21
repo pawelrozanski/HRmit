@@ -1,5 +1,5 @@
 import type { EmployeeWithTeams } from '@hrmit/shared'
-import { Plus, Search, Users } from 'lucide-react'
+import { NotebookPen, Plus, Search, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/api/client.ts'
@@ -119,6 +119,15 @@ export function EmployeesPage() {
               >
                 <span className="font-medium text-primary">{fullName(e)}</span>
                 <span className="text-sm text-muted-foreground">{e.position}</span>
+                {e.noteCount > 0 && (
+                  <span
+                    className="flex items-center gap-1 text-xs text-muted-foreground"
+                    aria-label={t('employees.notes.count', { count: e.noteCount })}
+                  >
+                    <NotebookPen className="size-3.5" aria-hidden="true" />
+                    {e.noteCount}
+                  </span>
+                )}
                 <span className="ml-auto flex flex-wrap gap-1.5">
                   {e.teams.map((team) => (
                     <Badge key={team.id} variant={team.role === 'lead' ? 'default' : 'outline'}>

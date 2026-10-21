@@ -8,6 +8,7 @@ import {
   emailPreviewSchema,
   emailSchema,
   emailTemplateSchema,
+  employeeNoteSchema,
   employeeWithTeamsSchema,
   fixtures,
   interviewQuestionSchema,
@@ -47,6 +48,7 @@ type Store = {
   templates?: { key: string; subject: string }[]
   emails?: { candidateId: number; status: string }[]
   meetings?: { candidateId: number }[]
+  employeeNotes?: { id: number; employeeId: number }[]
   teams?: { id: number }[]
   teamMembers?: { teamId: number }[]
 }
@@ -407,6 +409,7 @@ test('demo employees and teams: counts from the store, add members, lead role, c
   ])
   const employees = employeeWithTeamsSchema.array().parse(await get('/api/employees?q=hanna'))
   expect(employees.map((e) => e.teams.map((t) => t.name))).toEqual([['Customer Support', 'IT']])
+  expect(employees[0]!.noteCount).toBe(3)
   expect(employeeWithTeamsSchema.array().parse(await get('/api/employees?teamId=4'))).toHaveLength(
     2,
   )
@@ -472,4 +475,27 @@ test('demo employees and teams: counts from the store, add members, lead role, c
   const jobs = jobSchema.array().parse(await get('/api/jobs'))
   expect(jobs.find((j) => j.title === 'Counsel')?.teamId).toBeNull()
   expect(persisted().teams?.some((t) => t.id === team.id)).toBe(false)
+})
+
+test('demo employee notes: newest first, add, delete, 404s, gone with the employee', async () => {
+  const notes = async (id: number) =>
+    employeeNoteSchema.array().parse(await get(`/api/employees/${id}/notes`))
+  expect((await notes(4)).map((n) => n.body)[0]).toBe('Out of office 20-24 October.')
+  expect((await fetch('http://localhost/api/employees/9999/notes')).status).toBe(404)
+  expect((await send('POST', '/api/employees/1/notes', { body: ' ' })).status).toBe(400)
+  const posted = await send('POST', '/api/employees/1/notes', { body: ' Likes Tuesdays ' })
+  expect(posted.status).toBe(201)
+  const note = employeeNoteSchema.parse(await posted.json())
+  expect(note).toMatchObject({ employeeId: 1, body: 'Likes Tuesdays' })
+  expect((await notes(1)).map((n) => n.id)).toEqual([note.id])
+  expect(employeeWithTeamsSchema.parse(await get('/api/employees/1')).noteCount).toBe(1)
+  expect(persisted().employeeNotes?.some((n) => n.id === note.id)).toBe(true)
+  const del = (eid: number, nid: number) =>
+    fetch(`http://localhost/api/employees/${eid}/notes/${nid}`, { method: 'DELETE' })
+  expect((await del(2, note.id)).status).toBe(404)
+  expect((await del(1, note.id)).status).toBe(204)
+  expect((await del(1, note.id)).status).toBe(404)
+  await send('POST', '/api/employees/1/notes', { body: 'gone' })
+  await fetch('http://localhost/api/employees/1', { method: 'DELETE' })
+  expect(persisted().employeeNotes?.some((n) => n.employeeId === 1)).toBe(false)
 })

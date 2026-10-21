@@ -4,6 +4,7 @@ import {
   addMembersSchema,
   aiActionBodySchema,
   employeeInputSchema,
+  employeeNoteInputSchema,
   aiSettingsSchema,
   anonymize,
   candidateInputSchema,
@@ -115,7 +116,11 @@ const employeeTeams = (employeeId: number) =>
     .map((m) => ({ ...store.teams.find((t) => t.id === m.teamId)!, role: m.role }))
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(({ id, name, role }) => ({ id, name, role }))
-const withTeams = (e: (typeof store.employees)[number]) => ({ ...e, teams: employeeTeams(e.id) })
+const withTeams = (e: (typeof store.employees)[number]) => ({
+  ...e,
+  teams: employeeTeams(e.id),
+  noteCount: store.employeeNotes.filter((n) => n.employeeId === e.id).length,
+})
 const teamCounts = (t: (typeof store.teams)[number]): Team => ({
   ...t,
   memberCount: store.teamMembers.filter((m) => m.teamId === t.id).length,
@@ -516,6 +521,39 @@ export const handlers = [
     if (i < 0) return notFound()
     store.employees.splice(i, 1)
     store.teamMembers = store.teamMembers.filter((m) => m.employeeId !== id)
+    store.employeeNotes = store.employeeNotes.filter((n) => n.employeeId !== id)
+    save()
+    return new HttpResponse(null, { status: 204 })
+  }),
+  http.get(`${base}/api/employees/:id/notes`, ({ params }) => {
+    const id = Number(params.id)
+    if (!store.employees.some((e) => e.id === id)) return notFound()
+    const rows = store.employeeNotes
+      .filter((n) => n.employeeId === id)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id)
+    return HttpResponse.json(rows)
+  }),
+  http.post(`${base}/api/employees/:id/notes`, async ({ params, request }) => {
+    const id = Number(params.id)
+    if (!store.employees.some((e) => e.id === id)) return notFound()
+    const body = employeeNoteInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const note = {
+      id: nextId(store.employeeNotes),
+      employeeId: id,
+      ...body.data,
+      createdAt: new Date().toISOString(),
+    }
+    store.employeeNotes.push(note)
+    save()
+    return HttpResponse.json(note, { status: 201 })
+  }),
+  http.delete(`${base}/api/employees/:id/notes/:noteId`, ({ params }) => {
+    const i = store.employeeNotes.findIndex(
+      (n) => n.id === Number(params.noteId) && n.employeeId === Number(params.id),
+    )
+    if (i < 0) return notFound()
+    store.employeeNotes.splice(i, 1)
     save()
     return new HttpResponse(null, { status: 204 })
   }),

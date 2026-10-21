@@ -379,6 +379,18 @@
     "noTeams": "Not in any team.",
     "teams": "Teams",
     "deleteConfirm": "Delete {{name}}? This removes the employee and their team memberships. It cannot be undone.",
-    "deleteFailed": "Could not delete the employee. Try again."
+    "deleteFailed": "Could not delete the employee. Try again.",
+    "notes": {
+      "title": "Notes",
+      "label": "New note",
+      "hint": "Plain text. Ctrl+Enter adds the note.",
+      "add": "Add note",
+      "empty": "No notes yet.",
+      "delete": "Delete note",
+      "deleteConfirm": "Delete this note? It cannot be undone.",
+      "failed": "Could not save the change. Try again.",
+      "count_one": "{{count}} note",
+      "count_other": "{{count}} notes"
+    }
   }
 }
