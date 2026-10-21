@@ -1,12 +1,11 @@
 import { Hono } from 'hono'
-import type { Health } from '@hrmit/shared'
+import { VERSION, type Health } from '@hrmit/shared'
 import { aiRoute } from './routes/ai.ts'
 import { candidatesRoute } from './routes/candidates.ts'
 import { jobsRoute } from './routes/jobs.ts'
 import { settingsRoute } from './routes/settings.ts'
 import { templatesRoute } from './routes/templates.ts'
 
-export const VERSION = '0.1.0'
 
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]'])
 const isLoopback = (url: string) => {

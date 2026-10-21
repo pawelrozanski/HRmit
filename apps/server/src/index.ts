@@ -2,7 +2,8 @@ import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
-import { app, VERSION } from './app.ts'
+import { VERSION } from '@hrmit/shared'
+import { app } from './app.ts'
 import { log } from './log.ts'
 
 const PORT = Number(process.env.PORT ?? 3000)

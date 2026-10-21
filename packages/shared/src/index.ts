@@ -1,3 +1,4 @@
+export * from './version.ts'
 export * from './schemas.ts'
 export * from './anonymize.ts'
 export * from './cvImport.ts'

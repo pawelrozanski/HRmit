@@ -34,6 +34,7 @@ import {
   type Scorecard,
   type SmtpTestResult,
   type TemplateVars,
+  VERSION,
 } from '@hrmit/shared'
 import { save, store } from './store.ts'
 
@@ -103,7 +104,7 @@ const scorecard = (candidateId: number, jobId: number): Scorecard => ({
 /** One handler per server route. Must return shapes that pass the shared zod schemas. */
 export const handlers = [
   http.get(`${base}/api/health`, () =>
-    HttpResponse.json<Health>({ ok: true, mode: 'demo', version: '0.0.0' }),
+    HttpResponse.json<Health>({ ok: true, mode: 'demo', version: VERSION }),
   ),
   http.get(`${base}/api/jobs`, () => HttpResponse.json(store.jobs)),
   http.post(`${base}/api/jobs`, async ({ request }) => {
