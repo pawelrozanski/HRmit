@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { Mark, Wordmark } from '../components/Brand.tsx'
 import { LanguageSwitch } from '../components/LanguageSwitch.tsx'
 import { Button } from '@/components/ui/button.tsx'
 
@@ -23,9 +24,16 @@ export function Landing() {
       <div className="self-end">
         <LanguageSwitch />
       </div>
-      <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" className="size-28" />
-      <h1 className="text-4xl font-bold text-primary">HRmit</h1>
-      <p className="text-xl">{t('tagline')}</p>
+      {/* Lockup from the brand sheet: mark on the left, wordmark and tagline on the right. */}
+      <div className="flex w-full flex-col items-center gap-6 rounded-3xl bg-card p-8 sm:flex-row sm:justify-center sm:gap-10 sm:text-left">
+        <Mark className="h-40 w-auto" />
+        <div>
+          <h1 className="text-6xl leading-none">
+            <Wordmark />
+          </h1>
+          <p className="mt-3 text-xl text-muted-foreground">{t('tagline')}</p>
+        </div>
+      </div>
       <p className="max-w-xl text-muted-foreground">{t('landing.lead')}</p>
       <div className="flex gap-4">
         <Button asChild size="lg">
