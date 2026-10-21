@@ -1,7 +1,9 @@
 import { HttpResponse, delay, http } from 'msw'
 import {
   JITSI_PREFIX,
+  addMembersSchema,
   aiActionBodySchema,
+  employeeInputSchema,
   aiSettingsSchema,
   anonymize,
   candidateInputSchema,
@@ -16,7 +18,9 @@ import {
   pipelineStageSchema,
   renderTemplate,
   sendEmailInputSchema,
+  setMemberRoleSchema,
   smtpSettingsSchema,
+  teamInputSchema,
   isLocalProvider,
   type AiPreview,
   type AiSummary,
@@ -33,6 +37,8 @@ import {
   type QuestionsProposal,
   type Scorecard,
   type SmtpTestResult,
+  type Team,
+  type TeamDetail,
   type TemplateVars,
   VERSION,
 } from '@hrmit/shared'
@@ -101,15 +107,55 @@ const scorecard = (candidateId: number, jobId: number): Scorecard => ({
   }),
 })
 
+const byName = <T extends { lastName: string; firstName: string }>(a: T, b: T) =>
+  a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName)
+const employeeTeams = (employeeId: number) =>
+  store.teamMembers
+    .filter((m) => m.employeeId === employeeId)
+    .map((m) => ({ ...store.teams.find((t) => t.id === m.teamId)!, role: m.role }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(({ id, name, role }) => ({ id, name, role }))
+const withTeams = (e: (typeof store.employees)[number]) => ({ ...e, teams: employeeTeams(e.id) })
+const teamCounts = (t: (typeof store.teams)[number]): Team => ({
+  ...t,
+  memberCount: store.teamMembers.filter((m) => m.teamId === t.id).length,
+  openJobCount: store.jobs.filter((j) => j.teamId === t.id && j.status === 'open').length,
+})
+const teamDetail = (id: number): TeamDetail | undefined => {
+  const team = store.teams.find((t) => t.id === id)
+  if (!team) return undefined
+  const members = store.teamMembers
+    .filter((m) => m.teamId === id)
+    .map((m) => ({ ...store.employees.find((e) => e.id === m.employeeId)!, role: m.role }))
+    .sort((a, b) => Number(b.role === 'lead') - Number(a.role === 'lead') || byName(a, b))
+  return { ...teamCounts(team), members, jobs: store.jobs.filter((j) => j.teamId === id) }
+}
+const nameTaken = (name: string, exceptId?: number) =>
+  store.teams.some((t) => t.id !== exceptId && t.name.toLowerCase() === name.toLowerCase())
+const teamIdParam = (request: Request) => {
+  const raw = new URL(request.url).searchParams.get('teamId')
+  if (raw === null) return undefined
+  const teamId = Number(raw)
+  return Number.isInteger(teamId) ? teamId : NaN
+}
+
 /** One handler per server route. Must return shapes that pass the shared zod schemas. */
 export const handlers = [
   http.get(`${base}/api/health`, () =>
     HttpResponse.json<Health>({ ok: true, mode: 'demo', version: VERSION }),
   ),
-  http.get(`${base}/api/jobs`, () => HttpResponse.json(store.jobs)),
+  http.get(`${base}/api/jobs`, ({ request }) => {
+    const teamId = teamIdParam(request)
+    if (Number.isNaN(teamId)) return HttpResponse.json({ error: 'invalid teamId' }, { status: 400 })
+    return HttpResponse.json(
+      teamId === undefined ? store.jobs : store.jobs.filter((j) => j.teamId === teamId),
+    )
+  }),
   http.post(`${base}/api/jobs`, async ({ request }) => {
     const body = jobInputSchema.safeParse(await request.json())
     if (!body.success) return invalid()
+    if (body.data.teamId !== null && !store.teams.some((t) => t.id === body.data.teamId))
+      return invalid()
     const job = { id: nextId(store.jobs), ...body.data, createdAt: new Date().toISOString() }
     store.jobs.push(job)
     save()
@@ -118,6 +164,8 @@ export const handlers = [
   http.put(`${base}/api/jobs/:id`, async ({ params, request }) => {
     const body = jobInputSchema.safeParse(await request.json())
     if (!body.success) return invalid()
+    if (body.data.teamId !== null && !store.teams.some((t) => t.id === body.data.teamId))
+      return invalid()
     const job = store.jobs.find((j) => j.id === Number(params.id))
     if (!job) return notFound()
     Object.assign(job, body.data)
@@ -421,5 +469,126 @@ export const handlers = [
     store.meetings.push(meeting)
     save()
     return HttpResponse.json<MeetingResult>({ meeting, email }, { status: 201 })
+  }),
+  http.get(`${base}/api/employees`, ({ request }) => {
+    const teamId = teamIdParam(request)
+    if (Number.isNaN(teamId)) return HttpResponse.json({ error: 'invalid teamId' }, { status: 400 })
+    const q = (new URL(request.url).searchParams.get('q') ?? '').trim().toLowerCase()
+    const inTeam = new Set(
+      store.teamMembers.filter((m) => m.teamId === teamId).map((m) => m.employeeId),
+    )
+    const rows = store.employees
+      .filter((e) => teamId === undefined || inTeam.has(e.id))
+      .filter(
+        (e) => !q || [e.firstName, e.lastName, e.position].some((s) => s.toLowerCase().includes(q)),
+      )
+      .sort(byName)
+    return HttpResponse.json(rows.map(withTeams))
+  }),
+  http.post(`${base}/api/employees`, async ({ request }) => {
+    const body = employeeInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const employee = {
+      id: nextId(store.employees),
+      ...body.data,
+      createdAt: new Date().toISOString(),
+    }
+    store.employees.push(employee)
+    save()
+    return HttpResponse.json(withTeams(employee), { status: 201 })
+  }),
+  http.get(`${base}/api/employees/:id`, ({ params }) => {
+    const employee = store.employees.find((e) => e.id === Number(params.id))
+    return employee ? HttpResponse.json(withTeams(employee)) : notFound()
+  }),
+  http.put(`${base}/api/employees/:id`, async ({ params, request }) => {
+    const body = employeeInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const employee = store.employees.find((e) => e.id === Number(params.id))
+    if (!employee) return notFound()
+    Object.assign(employee, body.data)
+    save()
+    return HttpResponse.json(withTeams(employee))
+  }),
+  http.delete(`${base}/api/employees/:id`, ({ params }) => {
+    const id = Number(params.id)
+    const i = store.employees.findIndex((e) => e.id === id)
+    if (i < 0) return notFound()
+    store.employees.splice(i, 1)
+    store.teamMembers = store.teamMembers.filter((m) => m.employeeId !== id)
+    save()
+    return new HttpResponse(null, { status: 204 })
+  }),
+  http.get(`${base}/api/teams`, () =>
+    HttpResponse.json(store.teams.map(teamCounts).sort((a, b) => a.name.localeCompare(b.name))),
+  ),
+  http.post(`${base}/api/teams`, async ({ request }) => {
+    const body = teamInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    if (nameTaken(body.data.name))
+      return HttpResponse.json({ error: 'name taken' }, { status: 409 })
+    const team = { id: nextId(store.teams), ...body.data, createdAt: new Date().toISOString() }
+    store.teams.push(team)
+    save()
+    return HttpResponse.json(teamDetail(team.id), { status: 201 })
+  }),
+  http.get(`${base}/api/teams/:id`, ({ params }) => {
+    const team = teamDetail(Number(params.id))
+    return team ? HttpResponse.json(team) : notFound()
+  }),
+  http.put(`${base}/api/teams/:id`, async ({ params, request }) => {
+    const body = teamInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const team = store.teams.find((t) => t.id === Number(params.id))
+    if (!team) return notFound()
+    if (nameTaken(body.data.name, team.id))
+      return HttpResponse.json({ error: 'name taken' }, { status: 409 })
+    Object.assign(team, body.data)
+    save()
+    return HttpResponse.json(teamDetail(team.id))
+  }),
+  // Jobs keep existing without a team; memberships go with the team.
+  http.delete(`${base}/api/teams/:id`, ({ params }) => {
+    const id = Number(params.id)
+    const i = store.teams.findIndex((t) => t.id === id)
+    if (i < 0) return notFound()
+    store.teams.splice(i, 1)
+    store.teamMembers = store.teamMembers.filter((m) => m.teamId !== id)
+    for (const job of store.jobs) if (job.teamId === id) job.teamId = null
+    save()
+    return new HttpResponse(null, { status: 204 })
+  }),
+  http.post(`${base}/api/teams/:id/members`, async ({ params, request }) => {
+    const body = addMembersSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const teamId = Number(params.id)
+    if (!store.teams.some((t) => t.id === teamId)) return notFound()
+    const ids = new Set(body.data.employeeIds)
+    if (![...ids].every((id) => store.employees.some((e) => e.id === id))) return invalid()
+    for (const employeeId of ids)
+      if (!store.teamMembers.some((m) => m.teamId === teamId && m.employeeId === employeeId))
+        store.teamMembers.push({ teamId, employeeId, role: 'member' })
+    save()
+    return HttpResponse.json(teamDetail(teamId))
+  }),
+  http.patch(`${base}/api/teams/:id/members/:employeeId`, async ({ params, request }) => {
+    const body = setMemberRoleSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const link = store.teamMembers.find(
+      (m) => m.teamId === Number(params.id) && m.employeeId === Number(params.employeeId),
+    )
+    if (!link) return notFound()
+    link.role = body.data.role
+    save()
+    return HttpResponse.json(teamDetail(link.teamId))
+  }),
+  http.delete(`${base}/api/teams/:id/members/:employeeId`, ({ params }) => {
+    const i = store.teamMembers.findIndex(
+      (m) => m.teamId === Number(params.id) && m.employeeId === Number(params.employeeId),
+    )
+    if (i < 0) return notFound()
+    store.teamMembers.splice(i, 1)
+    save()
+    return new HttpResponse(null, { status: 204 })
   }),
 ]

@@ -6,11 +6,14 @@ import {
   type Candidate,
   type Email,
   type EmailTemplate,
+  type Employee,
   type Evaluation,
   type InterviewQuestion,
   type Job,
   type Meeting,
   type SmtpSettingsView,
+  type TeamMemberLink,
+  type TeamRow,
 } from '@hrmit/shared'
 import { DEMO_STORAGE_KEY } from '../config.ts'
 
@@ -25,6 +28,9 @@ type Store = {
   templates: EmailTemplate[]
   emails: Email[]
   meetings: Meeting[]
+  employees: Employee[]
+  teams: TeamRow[]
+  teamMembers: TeamMemberLink[]
 }
 
 /** A fictional sender, so {{companyName}} renders in the demo send dialog. */
@@ -45,8 +51,9 @@ const seedEvaluations = () =>
 function load(): Store {
   try {
     const raw = localStorage.getItem(DEMO_STORAGE_KEY)
-    // Stores saved before a key existed get its default.
-    if (raw)
+    // Stores saved before a key existed get its default; jobs saved before 0.3.0 get teamId null.
+    if (raw) {
+      const saved = JSON.parse(raw) as Partial<Store>
       return {
         aiSettings: AI_SETTINGS_DEFAULTS,
         questions: structuredClone(fixtures.questionRows),
@@ -55,8 +62,13 @@ function load(): Store {
         templates: structuredClone(fixtures.emailTemplates),
         emails: structuredClone(fixtures.emails),
         meetings: structuredClone(fixtures.meetings),
-        ...(JSON.parse(raw) as Partial<Store>),
+        employees: structuredClone(fixtures.employees),
+        teams: structuredClone(fixtures.teams),
+        teamMembers: structuredClone(fixtures.teamMembers),
+        ...saved,
+        jobs: (saved.jobs ?? []).map((j) => ({ ...j, teamId: j.teamId ?? null })),
       } as Store
+    }
   } catch {
     // private mode, quota, corrupt JSON: fall through to fixtures
   }
@@ -70,6 +82,9 @@ function load(): Store {
     templates: structuredClone(fixtures.emailTemplates),
     emails: structuredClone(fixtures.emails),
     meetings: structuredClone(fixtures.meetings),
+    employees: structuredClone(fixtures.employees),
+    teams: structuredClone(fixtures.teams),
+    teamMembers: structuredClone(fixtures.teamMembers),
   }
 }
 

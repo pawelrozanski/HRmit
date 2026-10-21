@@ -8,6 +8,7 @@ import {
   emailPreviewSchema,
   emailSchema,
   emailTemplateSchema,
+  employeeWithTeamsSchema,
   fixtures,
   interviewQuestionSchema,
   jobSchema,
@@ -18,6 +19,8 @@ import {
   scorecardSchema,
   smtpSettingsViewSchema,
   smtpTestResultSchema,
+  teamDetailSchema,
+  teamSchema,
 } from '@hrmit/shared'
 import { setupServer } from 'msw/node'
 import { afterAll, beforeAll, expect, test, vi } from 'vitest'
@@ -44,6 +47,8 @@ type Store = {
   templates?: { key: string; subject: string }[]
   emails?: { candidateId: number; status: string }[]
   meetings?: { candidateId: number }[]
+  teams?: { id: number }[]
+  teamMembers?: { teamId: number }[]
 }
 
 // Contract check (ADR 0003): the demo handlers answer like the server and pass the shared schemas.
@@ -390,4 +395,81 @@ test('demo POST /api/ai/parse-cv returns the fictional import for any file', asy
   const result = cvImportSchema.parse(await res.json())
   expect(result.fields).toEqual(fixtures.cvImport)
   expect(result.cvText).toContain(fixtures.cvImport.email)
+})
+
+test('demo employees and teams: counts from the store, add members, lead role, cascades', async () => {
+  const teams = teamSchema.array().parse(await get('/api/teams'))
+  expect(teams.map((t) => [t.name, t.memberCount, t.openJobCount])).toEqual([
+    ['Customer Support', 4, 0],
+    ['IT', 4, 1],
+    ['Marketing', 2, 1],
+    ['Sales', 4, 0],
+  ])
+  const employees = employeeWithTeamsSchema.array().parse(await get('/api/employees?q=hanna'))
+  expect(employees.map((e) => e.teams.map((t) => t.name))).toEqual([['Customer Support', 'IT']])
+  expect(employeeWithTeamsSchema.array().parse(await get('/api/employees?teamId=4'))).toHaveLength(
+    2,
+  )
+  expect(
+    jobSchema
+      .array()
+      .parse(await get('/api/jobs?teamId=2'))
+      .map((j) => j.id),
+  ).toEqual([1])
+  expect((await fetch('http://localhost/api/jobs?teamId=x')).status).toBe(400)
+
+  expect((await send('POST', '/api/teams', { name: 'it' })).status).toBe(409)
+  const created = await send('POST', '/api/teams', { name: 'Legal', description: 'Contracts' })
+  expect(created.status).toBe(201)
+  const team = teamDetailSchema.parse(await created.json())
+  expect(team).toMatchObject({ name: 'Legal', memberCount: 0, members: [], jobs: [] })
+
+  const emp = await send('POST', '/api/employees', {
+    firstName: 'Ada',
+    lastName: 'Test',
+    position: 'Counsel',
+    email: 'ada.test@example.com',
+  })
+  expect(emp.status).toBe(201)
+  const employee = employeeWithTeamsSchema.parse(await emp.json())
+  expect(employee).toMatchObject({ hiredAt: null, duties: '', teams: [] })
+
+  const added = await send('POST', `/api/teams/${team.id}/members`, {
+    employeeIds: [employee.id, 1, 1],
+  })
+  expect(teamDetailSchema.parse(await added.json()).members.map((m) => m.id)).toEqual([
+    1,
+    employee.id,
+  ])
+  const lead = await send('PATCH', `/api/teams/${team.id}/members/${employee.id}`, {
+    role: 'lead',
+  })
+  expect(teamDetailSchema.parse(await lead.json()).members[0]).toMatchObject({
+    id: employee.id,
+    role: 'lead',
+  })
+  expect((await send('POST', '/api/jobs', { title: 'Counsel', teamId: team.id })).status).toBe(201)
+  expect((await send('POST', '/api/jobs', { title: 'x', teamId: 999 })).status).toBe(400)
+  expect(
+    teamSchema
+      .array()
+      .parse(await get('/api/teams'))
+      .find((t) => t.id === team.id),
+  ).toMatchObject({ memberCount: 2, openJobCount: 1 })
+  expect(persisted().teamMembers?.filter((m) => m.teamId === team.id)).toHaveLength(2)
+
+  // Deleting the employee drops the membership; deleting the team keeps the job without a team.
+  await fetch(`http://localhost/api/employees/${employee.id}`, { method: 'DELETE' })
+  expect((await fetch(`http://localhost/api/employees/${employee.id}`)).status).toBe(404)
+  expect(teamDetailSchema.parse(await get(`/api/teams/${team.id}`)).members).toHaveLength(1)
+  expect(
+    (await fetch(`http://localhost/api/teams/${team.id}/members/1`, { method: 'DELETE' })).status,
+  ).toBe(204)
+  expect((await fetch('http://localhost/api/employees/1')).status).toBe(200)
+  expect((await fetch(`http://localhost/api/teams/${team.id}`, { method: 'DELETE' })).status).toBe(
+    204,
+  )
+  const jobs = jobSchema.array().parse(await get('/api/jobs'))
+  expect(jobs.find((j) => j.title === 'Counsel')?.teamId).toBeNull()
+  expect(persisted().teams?.some((t) => t.id === team.id)).toBe(false)
 })
