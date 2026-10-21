@@ -30,7 +30,9 @@
   --muted-foreground: color-mix(in oklch, var(--color-ink) 65%, white);
   --accent: var(--color-cream);
   --accent-foreground: var(--color-ink);
-  --destructive: var(--color-red-600);
+  --destructive: var(
+    --color-red-700
+  ); /* red-600 on the 10% tint of the destructive button is 4.2:1 */
   --border: color-mix(in oklch, var(--color-ink) 15%, white);
   --input: color-mix(in oklch, var(--color-ink) 25%, white);
   --ring: var(--color-brand);

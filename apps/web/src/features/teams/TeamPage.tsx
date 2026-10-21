@@ -131,7 +131,8 @@ export function TeamPage() {
               >
                 <span className="font-medium">{fullName(m)}</span>
                 <span className="text-muted-foreground">{m.position}</span>
-                <Badge variant={m.role === 'lead' ? 'default' : 'outline'}>
+                {/* Keyed on the role: a remount instead of a color transition after the toggle. */}
+                <Badge key={m.role} variant={m.role === 'lead' ? 'default' : 'outline'}>
                   {t(`teams.roles.${m.role}`)}
                 </Badge>
                 <span className="ml-auto flex gap-1">
