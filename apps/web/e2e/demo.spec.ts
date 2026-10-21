@@ -62,7 +62,9 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await page.keyboard.press('Tab') // "Reset demo"
   await page.keyboard.press('Tab') // "HRmit"
   await page.keyboard.press('Tab')
-  await expect(page.getByRole('link', { name: 'Jobs' })).toBeFocused()
+  await expect(page.getByRole('link', { name: 'Recruitments' })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'Employees' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Teams' })).toBeFocused()
   await page.keyboard.press('Tab')
@@ -95,7 +97,7 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
 
   // Language select switches the UI to Polish.
   await page.getByRole('combobox', { name: 'Language' }).selectOption('pl')
-  await expect(page.getByRole('link', { name: 'Stanowiska' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Rekrutacje' })).toBeVisible()
   await expect(page.getByRole('status')).toContainText('Tryb demo')
 })
 
@@ -103,4 +105,68 @@ test('/templates redirects into settings', async ({ page }) => {
   await page.goto('./demo/templates')
   await expect(page).toHaveURL(/\/settings\/templates$/)
   await expect(page.getByRole('heading', { name: 'Email templates' })).toBeVisible()
+})
+
+test('/jobs/:id redirects to the recruitment', async ({ page }) => {
+  await page.goto('./demo/jobs/1')
+  await expect(page).toHaveURL(/\/recruitments\/1$/)
+  await expect(page.getByRole('heading', { name: 'Frontend Developer (React)' })).toBeVisible()
+})
+
+test('employees and teams: create a team, add two members, assign a recruitment', async ({
+  page,
+}) => {
+  await page.goto('./demo/employees')
+  await expect(page.getByRole('heading', { name: 'Employees' })).toBeVisible()
+  await page.getByRole('searchbox', { name: 'Search by name or position' }).fill('support')
+  await expect(page.getByRole('button', { name: /Zofia Mazur/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Hanna Sorlie/ })).toHaveCount(0)
+  await page.getByRole('button', { name: /Zofia Mazur/ }).click()
+  const drawer = page.getByRole('dialog')
+  await expect(drawer.getByRole('heading', { name: 'Zofia Mazur' })).toBeVisible()
+  await expect(drawer.getByText('Escalates product bugs to engineering.')).toBeVisible()
+  await expectNoSeriousA11y(page)
+  await page.keyboard.press('Escape')
+
+  await page.goto('./demo/teams')
+  await expect(page.getByRole('link', { name: /Marketing/ })).toContainText('2 members')
+  await expectNoSeriousA11y(page)
+  await page.getByRole('button', { name: 'New team' }).click()
+  await page.getByRole('textbox', { name: 'Name' }).fill('Legal')
+  await page.getByRole('textbox', { name: 'Description' }).fill('Contracts and compliance.')
+  await page.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByRole('link', { name: /Legal/ }).click()
+  await expect(page.getByRole('heading', { name: 'Legal' })).toBeVisible()
+  await expect(page.getByText('No members yet.')).toBeVisible()
+
+  // Keyboard path through the add-members dialog: search, Tab to the boxes, Space, Enter.
+  await page.getByRole('button', { name: 'Add members' }).click()
+  const search = page.getByRole('searchbox', { name: 'Search employees' })
+  await expect(search).toBeFocused()
+  await search.fill('ma')
+  await page.keyboard.press('Tab')
+  await page.keyboard.press('Space')
+  await page.keyboard.press('Tab')
+  await page.keyboard.press('Space')
+  await expect(page.getByRole('button', { name: 'Add 2' })).toBeEnabled()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('heading', { name: 'Members (2)' })).toBeVisible()
+  await page.getByRole('button', { name: 'Make lead: Elena Castellanos' }).click()
+  await expect(page.getByRole('listitem').filter({ hasText: 'Elena Castellanos' })).toContainText(
+    'Lead',
+  )
+  await expectNoSeriousA11y(page)
+
+  // Assign a recruitment to the new team and see it on the team page and in the filter.
+  await page.goto('./demo/recruitments')
+  await page.getByRole('button', { name: 'Edit recruitment' }).nth(1).click()
+  await page.getByRole('combobox', { name: 'Team' }).selectOption({ label: 'Legal' })
+  await page.getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('combobox', { name: 'Filter by team' }).selectOption({ label: 'Legal' })
+  await expect(page.getByRole('link', { name: /HR Business Partner/ })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Frontend Developer/ })).toHaveCount(0)
+  await page.goto('./demo/teams')
+  await expect(page.getByRole('link', { name: /Legal/ })).toContainText('2 members')
+  await expect(page.getByRole('link', { name: /Legal/ })).toContainText('1 open recruitment')
 })
