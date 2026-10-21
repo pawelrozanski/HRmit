@@ -1,10 +1,9 @@
 <p align="center">
-  <img src="docs/logo.svg" alt="HRmit hermit crab logo" width="120" height="120" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand/lockup-dark.png" />
+    <img src="apps/web/public/brand/lockup-light.png" alt="HRmit: a hermit crab carrying its shell. Your recruitment data stays home." width="360" />
+  </picture>
 </p>
-
-<h1 align="center">HRmit</h1>
-
-<p align="center"><strong>Your recruitment data stays home.</strong></p>
 
 <p align="center">
   Local-first applicant tracking system with an AI assistant.<br/>
@@ -14,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml"><img src="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-C2410C.svg" alt="MIT license" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.2.0-F26B1D.svg" alt="Version 0.2.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.2.1-F26B1D.svg" alt="Version 0.2.1" /></a>
 </p>
 
 ## What it does

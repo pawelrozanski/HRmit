@@ -4,6 +4,17 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-21
+
+### Added
+
+- Brand assets from the logo sheet under apps/web/public/brand: the hermit-crab mark in a light and a dark variant, the app icon, favicons (16/32/64) and an Apple touch icon; the header and the landing page use the mark with the two-tone wordmark, the README shows the lockup in light and dark.
+- Empty "Teams" page in the header navigation as a placeholder for the multi-user edition.
+
+### Changed
+
+- The hand-drawn SVG logo is replaced by the official artwork.
+
 ## [0.2.0] - 2026-10-21
 
 ### Added
@@ -47,6 +58,7 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/pawelrozanski/HRmit/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/pawelrozanski/HRmit/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/pawelrozanski/HRmit/releases/tag/v0.1.0
