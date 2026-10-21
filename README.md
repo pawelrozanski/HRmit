@@ -14,20 +14,21 @@
 <p align="center">
   <a href="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml"><img src="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-C2410C.svg" alt="MIT license" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.1.0-F26B1D.svg" alt="Version 0.1.0" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.2.0-F26B1D.svg" alt="Version 0.2.0" /></a>
 </p>
 
 ## What it does
 
 - **Jobs and candidates** with a kanban pipeline: applied → screening → interview → offer / rejected. Drag cards, or use the stage select for keyboard use.
 - **CV upload** (PDF, DOCX, validated by magic bytes) with text extraction, stored on your disk.
+- **Import from CV**: a new candidate's name, email and phone prefilled from the uploaded CV by the local model (or a regex fallback), for you to check.
 - **AI assistant** that summarizes a CV, extracts competencies and proposes structured interview questions per job. It describes; it never scores, ranks or rejects.
 - **Structured interviews**: one editable question list per job, grouped by competency, the same for every candidate.
 - **Scorecards** with identical criteria, averages per competency, never a single ranking number. Works in **blind-screening** mode, which hides names and contact details.
 - **Email templates** (invitation, reminder, rejection) sent as plain text over your own SMTP, with a per-candidate history.
 - **Interview invites** with a Jitsi room link and an `.ics` attachment.
 - **AI provider settings**: local Ollama by default, bring-your-own-key cloud (Anthropic or any OpenAI-compatible API) as an opt-in, with an anonymization preview showing exactly what would leave the machine.
-- English and Polish UI.
+- English and Polish UI, light and high-contrast dark theme, keyboard navigation (skip link, arrow-key settings tabs, focus rings).
 
 ## Screenshots
 
@@ -81,7 +82,7 @@ Open http://localhost:5173. The API runs on `127.0.0.1:3000` and is not reachabl
 ollama pull qwen2.5:7b-instruct
 ```
 
-Then press "Test connection" in Settings. Any other Ollama model name works; cloud providers are configured on the same page.
+Then press "Test connection" in Settings → AI settings. Any other Ollama model name works; cloud providers are configured on the same page.
 
 **Docker Compose (alternative):**
 
@@ -105,7 +106,7 @@ Environment variables of the server, all optional:
 | `OLLAMA_BASE_URL`   | `http://localhost:11434/v1` | Default AI base URL when none is stored in Settings (the container uses `host.docker.internal`). |
 | `HRMIT_LOG_PROMPTS` | unset                       | `1` logs AI prompts, in their anonymized form only, for debugging.                               |
 
-Everything else (provider, model, key, SMTP) is edited in the UI and stored in the database, secrets encrypted.
+Everything else (provider, model, key, SMTP, email templates) is edited in the UI and stored in the database, secrets encrypted. Language and theme (light, dark, system) live under Settings → General and are kept in the browser's `localStorage`.
 
 ## Security model
 
@@ -119,7 +120,7 @@ Short version; the full review is in [docs/SECURITY.md](docs/SECURITY.md).
 
 ## Roadmap and out of scope
 
-Stages 0 to 11 of [docs/ROADMAP.md](docs/ROADMAP.md) are shipped as 0.1.0; see [CHANGELOG.md](CHANGELOG.md). Tracked but not planned: inbound applications over IMAP, Google Meet, a desktop installer, multi-user with authentication, a local NER model for anonymization, stage history and audit log.
+Stages 0 to 11 of [docs/ROADMAP.md](docs/ROADMAP.md) are shipped as 0.1.0, CV import, the settings sidebar and the dark theme as 0.2.0; see [CHANGELOG.md](CHANGELOG.md). Tracked but not planned: inbound applications over IMAP, Google Meet, a desktop installer, multi-user with authentication, a local NER model for anonymization, stage history and audit log.
 
 Issues and pull requests are welcome; please keep commits small and follow Conventional Commits.
 

@@ -204,6 +204,7 @@ if (import.meta.env.VITE_DEMO === 'true') {
 - **Emails** in demo are recorded with `status: 'demo'` and shown in an "Outbox" view instead of being sent.
 - A fixed banner reads: _Demo mode. All candidates are fictional._
 - Routing: `/` is the landing page, `/demo/*` is the app. In the local build the app lives at `/*` and the landing page is not rendered. Vite `base` is `/HRmit/` for GitHub Pages.
+- App routes (relative to the mount point): `/` jobs, `/jobs/:id` pipeline and interview guide, `/settings` a layout with a vertical tab list and nested routes `general` (language, theme, about), `ai`, `email`, `templates`; `/settings` redirects to `/settings/general` and the old `/templates` to `/settings/templates`.
 
 Why this counts as the same frontend and not a mock-up: the handlers are a second implementation of the API contract, validated by the same zod schemas. If a demo handler returns a wrong shape, the shared schema test fails.
 
@@ -282,7 +283,7 @@ sequenceDiagram
 
 ## 8. Internationalization
 
-- UI strings in `apps/web/src/i18n/{en,pl}.json`, loaded with `react-i18next`. Default language follows the browser, fallback `en`, switchable in the header; the choice is stored in `localStorage`.
+- UI strings in `apps/web/src/i18n/{en,pl}.json`, loaded with `react-i18next`. Default language follows the browser, fallback `en`, switchable under Settings → General (and on the landing page); the choice is stored in `localStorage`. The theme (`light` | `dark` | `system`) is chosen on the same tab and stored under `hrmit-theme`; `data-theme` on `<html>` switches the CSS variables in `apps/web/src/index.css`.
 - Code, comments, commits, docs: English.
 - Demo fixtures: English only.
 - AI prompts ask the model to answer in the UI language (passed as a parameter).

@@ -4,9 +4,20 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-21
+
 ### Added
 
 - "Import from CV" in the new-candidate form: the CV is parsed, a local model (or a regex heuristic when no local model is configured) prefills name, email and phone for review, and the file is uploaded with the candidate. The raw CV is never sent to a cloud provider, because a person who is not in the database yet cannot be anonymized.
+- Settings with a left sidebar of categories (`/settings/general`, `/settings/ai`, `/settings/email`, `/settings/templates`); on narrow screens the sidebar becomes a scrollable row above the content.
+- General tab: language, theme (Light, Dark (high contrast), System) and an About block with the version and mode from `/api/health`, the changelog and the repository.
+- High-contrast dark theme. The choice is stored in `localStorage` (`hrmit-theme`), applied before first paint, and "System" follows `prefers-color-scheme` live. Native controls follow through `color-scheme`.
+- Keyboard navigation: a "Skip to content" link as the first focusable element, header links with `aria-current="page"`, settings sidebar as a vertical tab list with arrow keys, Home and End.
+
+### Changed
+
+- Email templates live under Settings; `/templates` redirects to `/settings/templates` and the header keeps Jobs and Settings. Language is chosen in Settings → General instead of the header.
+- One `VERSION` constant in `packages/shared`, used by the server, the demo handler and the About block.
 
 ## [0.1.0] - 2026-10-19
 
@@ -36,5 +47,6 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/pawelrozanski/HRmit/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/pawelrozanski/HRmit/releases/tag/v0.1.0
