@@ -20,12 +20,16 @@ export function SettingsLayout() {
   const refs = useRef<(HTMLAnchorElement | null)[]>([])
 
   const onKeyDown = (e: KeyboardEvent) => {
+    // From the focused tab, not from `selected`: navigation re-renders in a transition,
+    // so a quick second key press would otherwise read a stale index.
+    const from = refs.current.indexOf(e.target as HTMLAnchorElement)
+    if (from < 0) return
     const last = SETTINGS_TABS.length - 1
     const next =
       e.key === 'ArrowDown' || e.key === 'ArrowRight'
-        ? (selected + 1) % SETTINGS_TABS.length
+        ? (from + 1) % SETTINGS_TABS.length
         : e.key === 'ArrowUp' || e.key === 'ArrowLeft'
-          ? (selected + last) % SETTINGS_TABS.length
+          ? (from + last) % SETTINGS_TABS.length
           : e.key === 'Home'
             ? 0
             : e.key === 'End'
