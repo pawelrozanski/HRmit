@@ -64,6 +64,8 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Jobs' })).toBeFocused()
   await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'Teams' })).toBeFocused()
+  await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Settings' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.getByRole('tab', { name: 'General' })).toBeFocused()

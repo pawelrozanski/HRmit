@@ -35,7 +35,8 @@
   "nav": {
     "jobs": "Jobs",
     "settings": "Settings",
-    "skip": "Skip to content"
+    "skip": "Skip to content",
+    "teams": "Teams"
   },
   "common": {
     "loading": "Loading…",
@@ -314,5 +315,10 @@
     "minutes_other": "{{count}} minutes",
     "link": "Jitsi room",
     "send": "Send invite"
+  },
+  "teams": {
+    "title": "Teams",
+    "soon": "Coming soon",
+    "text": "Shared pipelines for a hiring team are planned after the single-user MVP. Nothing to set up here yet."
   }
 }

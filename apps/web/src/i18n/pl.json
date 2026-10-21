@@ -35,7 +35,8 @@
   "nav": {
     "jobs": "Stanowiska",
     "settings": "Ustawienia",
-    "skip": "Przejdź do treści"
+    "skip": "Przejdź do treści",
+    "teams": "Zespoły"
   },
   "common": {
     "loading": "Ładowanie…",
@@ -332,5 +333,10 @@
     "minutes_other": "{{count}} minuty",
     "link": "Pokój Jitsi",
     "send": "Wyślij zaproszenie"
+  },
+  "teams": {
+    "title": "Zespoły",
+    "soon": "Wkrótce",
+    "text": "Wspólne pipeline’y dla zespołu rekrutacyjnego są planowane po jednoosobowym MVP. Na razie nie ma tu nic do ustawienia."
   }
 }
