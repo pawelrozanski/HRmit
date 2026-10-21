@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/dialog.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
-import { SmtpSettings } from './SmtpSettings.tsx'
 
 /** Suggested endpoint per provider; swapped in when the user has not customized the URL. */
 const DEFAULT_URL: Record<AiProvider, string> = {
@@ -30,17 +29,12 @@ const DEFAULT_URL: Record<AiProvider, string> = {
   'openai-compatible': 'https://api.openai.com/v1',
 }
 
-export function SettingsPage() {
+export function AiSettings() {
   const { t } = useTranslation()
   const loaded = useApi(() => api.api.settings.ai.$get().then((r) => r.json()), [])
   if (loaded.error) return <p className="text-destructive">{t('common.error')}</p>
   if (!loaded.data) return <p className="text-muted-foreground">{t('common.loading')}</p>
-  return (
-    <div className="grid gap-10">
-      <SettingsForm initial={loaded.data} />
-      <SmtpSettings />
-    </div>
-  )
+  return <SettingsForm initial={loaded.data} />
 }
 
 function SettingsForm({ initial }: { initial: AiSettingsView }) {
@@ -139,7 +133,7 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
               href="https://ollama.com"
               target="_blank"
               rel="noreferrer"
-              className="text-brand-dark underline"
+              className="text-primary underline"
             >
               ollama.com
             </a>
@@ -208,7 +202,7 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
       {result && (
         <p
           role="status"
-          className={result.ok ? 'text-sm text-brand-dark' : 'text-sm text-destructive'}
+          className={result.ok ? 'text-sm text-primary' : 'text-sm text-destructive'}
         >
           {result.ok
             ? t('settings.testOk', { model: result.model, ms: result.latencyMs })
@@ -242,7 +236,7 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
               </ul>
             </div>
             <p className="text-xs text-muted-foreground">
-              <Link to=".." className="text-brand-dark underline">
+              <Link to=".." className="text-primary underline">
                 {t('settings.cloud.previewLink')}
               </Link>{' '}
               {t('settings.cloud.previewHint')}

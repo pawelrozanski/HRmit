@@ -6,7 +6,6 @@ import { jobsRoute } from './routes/jobs.ts'
 import { settingsRoute } from './routes/settings.ts'
 import { templatesRoute } from './routes/templates.ts'
 
-
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]'])
 const isLoopback = (url: string) => {
   try {

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea.tsx'
 const PLACEHOLDERS = ['firstName', 'lastName', 'jobTitle', 'companyName', 'startsAt', 'jitsiUrl']
 
 /** One form per template key. Save PUTs all three; the server replaces subject and body per key. */
-export function TemplatesPage() {
+export function TemplatesSettings() {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<EmailTemplate[] | null>(null)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle')
@@ -49,7 +49,7 @@ export function TemplatesPage() {
         <p className="mt-1 text-sm text-muted-foreground">{t('templates.intro')}</p>
         <p className="mt-2 flex flex-wrap gap-1.5 text-xs text-muted-foreground">
           {PLACEHOLDERS.map((p) => (
-            <code key={p} className="rounded bg-white px-1.5 py-0.5 text-ink">
+            <code key={p} className="rounded bg-card px-1.5 py-0.5 text-foreground">
               {`{{${p}}}`}
             </code>
           ))}
@@ -59,8 +59,8 @@ export function TemplatesPage() {
         const row = draft.find((x) => x.key === key)
         if (!row) return null
         return (
-          <section key={key} className="grid gap-3 rounded-lg border bg-white p-4">
-            <h3 className="font-semibold text-brand-dark">{t(`templates.keys.${key}`)}</h3>
+          <section key={key} className="grid gap-3 rounded-lg border bg-card p-4">
+            <h3 className="font-semibold text-primary">{t(`templates.keys.${key}`)}</h3>
             <div className="grid gap-1.5">
               <Label htmlFor={`${key}-subject`}>{t('templates.subject')}</Label>
               <Input

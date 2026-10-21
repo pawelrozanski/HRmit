@@ -35,7 +35,7 @@
   "nav": {
     "jobs": "Jobs",
     "settings": "Settings",
-    "templates": "Templates"
+    "skip": "Skip to content"
   },
   "common": {
     "loading": "Loading…",
@@ -124,6 +124,27 @@
     "failed": "Upload failed. Try again."
   },
   "settings": {
+    "tabs": {
+      "general": "General",
+      "ai": "AI settings",
+      "email": "Email (SMTP)",
+      "templates": "Email templates"
+    },
+    "sections": "Settings sections",
+    "language": "Language",
+    "languages": {
+      "en": "English",
+      "pl": "Polski"
+    },
+    "theme": "Theme",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark (high contrast)",
+      "system": "System"
+    },
+    "about": "About HRmit",
+    "version": "Version {{version}}, {{mode}} mode.",
+    "changelog": "Changelog",
     "title": "AI settings",
     "privacy": "Ollama runs on your computer and sees the full text. Cloud providers only ever receive anonymized data (names and contact details replaced), and only after you opt in. Your key is stored encrypted and never shown again.",
     "provider": "Provider",

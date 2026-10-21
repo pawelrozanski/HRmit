@@ -35,7 +35,7 @@
   "nav": {
     "jobs": "Stanowiska",
     "settings": "Ustawienia",
-    "templates": "Szablony"
+    "skip": "Przejdź do treści"
   },
   "common": {
     "loading": "Ładowanie…",
@@ -126,6 +126,27 @@
     "failed": "Wysyłanie nie powiodło się. Spróbuj ponownie."
   },
   "settings": {
+    "tabs": {
+      "general": "Ogólne",
+      "ai": "Ustawienia AI",
+      "email": "E-mail (SMTP)",
+      "templates": "Szablony e-maili"
+    },
+    "sections": "Sekcje ustawień",
+    "language": "Język",
+    "languages": {
+      "en": "English",
+      "pl": "Polski"
+    },
+    "theme": "Motyw",
+    "themes": {
+      "light": "Jasny",
+      "dark": "Ciemny (wysoki kontrast)",
+      "system": "Systemowy"
+    },
+    "about": "O HRmit",
+    "version": "Wersja {{version}}, tryb {{mode}}.",
+    "changelog": "Lista zmian",
     "title": "Ustawienia AI",
     "privacy": "Ollama działa na Twoim komputerze i widzi pełny tekst. Dostawcy w chmurze otrzymują wyłącznie zanonimizowane dane (imiona, nazwiska i dane kontaktowe są zastępowane) i tylko po Twojej wyraźnej zgodzie. Klucz jest przechowywany w postaci zaszyfrowanej i nigdy nie jest ponownie wyświetlany.",
     "provider": "Dostawca",
