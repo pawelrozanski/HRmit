@@ -44,6 +44,16 @@ export const employees = sqliteTable('employees', {
   createdAt: text('created_at').notNull(),
 })
 
+/** Free-text notes on an employee (plain text). Personal data: gone with the employee. */
+export const employeeNotes = sqliteTable('employee_notes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  employeeId: integer('employee_id')
+    .notNull()
+    .references(() => employees.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  createdAt: text('created_at').notNull(),
+})
+
 /** Memberships: an employee can be in several teams, with one role per team. */
 export const teamMembers = sqliteTable(
   'team_members',

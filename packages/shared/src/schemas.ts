@@ -76,8 +76,22 @@ export type TeamMemberLink = z.infer<typeof teamMemberLinkSchema>
 /** GET /api/employees and /api/employees/:id: the employee with the teams they belong to. */
 export const employeeWithTeamsSchema = employeeSchema.extend({
   teams: z.object({ id: z.number().int(), name: z.string(), role: teamMemberRoleSchema }).array(),
+  noteCount: z.number().int(),
 })
 export type EmployeeWithTeams = z.infer<typeof employeeWithTeamsSchema>
+
+/** A free-text note on an employee (plain text, never HTML). Deleted with the employee. */
+export const employeeNoteSchema = z.object({
+  id: z.number().int(),
+  employeeId: z.number().int(),
+  body: z.string(),
+  createdAt: z.string(),
+})
+export type EmployeeNote = z.infer<typeof employeeNoteSchema>
+
+/** Body of POST /api/employees/:id/notes. */
+export const employeeNoteInputSchema = z.object({ body: z.string().trim().min(1).max(2000) })
+export type EmployeeNoteInput = z.input<typeof employeeNoteInputSchema>
 
 /** A team as stored. Names are unique case-insensitively. */
 export const teamRowSchema = z.object({

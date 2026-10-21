@@ -1,6 +1,9 @@
+import { count, eq } from 'drizzle-orm'
 import { expect, test } from 'vitest'
-import { employeeWithTeamsSchema, fixtures } from '@hrmit/shared'
+import { employeeNoteSchema, employeeWithTeamsSchema, fixtures } from '@hrmit/shared'
 import { app } from '../app.ts'
+import { db } from '../db/index.ts'
+import { employeeNotes } from '../db/schema.ts'
 
 const json = (method: string, path: string, body: unknown) =>
   app.request(path, {
@@ -20,6 +23,8 @@ test('GET /api/employees lists fixtures with teams, searches and filters by team
     'Customer Support:member',
     'IT:lead',
   ])
+  expect(hanna.noteCount).toBe(3)
+  expect(all.find((e) => e.firstName === 'Zofia')!.noteCount).toBe(0)
 
   expect((await list('?q=SUPPORT')).map((e) => e.position)).toEqual([
     'Support Specialist',
@@ -74,4 +79,51 @@ test('POST, GET, PUT, DELETE /api/employees validate and hard-delete with member
   expect((await del()).status).toBe(404)
   const sales = (await (await app.request('/api/teams/1')).json()) as { members: { id: number }[] }
   expect(sales.members.some((m) => m.id === employee.id)).toBe(false)
+})
+
+test('employee notes: newest first, add, validate, delete, cascade with the employee', async () => {
+  const notes = async (id: number) =>
+    employeeNoteSchema.array().parse(await (await app.request(`/api/employees/${id}/notes`)).json())
+  expect((await notes(4)).map((n) => n.body)).toEqual([
+    'Out of office 20-24 October.',
+    'Prefers morning slots for panels.',
+    'Agreed to run the React interviews in Q4.',
+  ])
+  expect((await app.request('/api/employees/9999/notes')).status).toBe(404)
+
+  const created = await json('POST', '/api/employees', {
+    firstName: 'Ada',
+    lastName: 'Notes',
+    position: 'Recruiter',
+    email: 'ada.notes@example.com',
+  })
+  const employee = employeeWithTeamsSchema.parse(await created.json())
+  expect(employee.noteCount).toBe(0)
+  const post = (id: number, body: string) => json('POST', `/api/employees/${id}/notes`, { body })
+  expect((await post(employee.id, '  ')).status).toBe(400)
+  expect((await post(9999, 'x')).status).toBe(404)
+  const posted = await post(employee.id, '  Hello\nthere  ')
+  expect(posted.status).toBe(201)
+  const note = employeeNoteSchema.parse(await posted.json())
+  expect(note).toMatchObject({ employeeId: employee.id, body: 'Hello\nthere' })
+  expect((await notes(employee.id)).map((n) => n.id)).toEqual([note.id])
+  const get = async () =>
+    employeeWithTeamsSchema.parse(await (await app.request(`/api/employees/${employee.id}`)).json())
+  expect((await get()).noteCount).toBe(1)
+
+  const del = (eid: number, nid: number) =>
+    app.request(`/api/employees/${eid}/notes/${nid}`, { method: 'DELETE' })
+  expect((await del(4, note.id)).status).toBe(404)
+  expect((await del(employee.id, note.id)).status).toBe(204)
+  expect((await del(employee.id, note.id)).status).toBe(404)
+  expect((await get()).noteCount).toBe(0)
+
+  await post(employee.id, 'gone with the employee')
+  await app.request(`/api/employees/${employee.id}`, { method: 'DELETE' })
+  expect((await app.request(`/api/employees/${employee.id}/notes`)).status).toBe(404)
+  const [row] = await db
+    .select({ n: count() })
+    .from(employeeNotes)
+    .where(eq(employeeNotes.employeeId, employee.id))
+  expect(row?.n).toBe(0)
 })

@@ -5,7 +5,7 @@ export { questions } from './questions.ts'
 export { evaluations, questionRows } from './evaluations.ts'
 export { emailTemplates, emails } from './emails.ts'
 export { meetings } from './meetings.ts'
-export { employees, teamMembers, teams } from './teams.ts'
+export { employeeNotes, employees, teamMembers, teams } from './teams.ts'
 
 /**
  * Demo data. Every person and company here is invented; any resemblance to a real

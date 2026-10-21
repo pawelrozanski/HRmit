@@ -1,4 +1,4 @@
-import type { Employee, TeamMemberLink, TeamRow } from '../schemas.ts'
+import type { Employee, EmployeeNote, TeamMemberLink, TeamRow } from '../schemas.ts'
 
 /**
  * The hiring side of the demo: teams and the employees in them. Everyone is invented and every
@@ -152,4 +152,44 @@ export const teamMembers: TeamMemberLink[] = [
   { teamId: 3, employeeId: 4, role: 'member' },
   { teamId: 4, employeeId: 11, role: 'lead' },
   { teamId: 4, employeeId: 12, role: 'member' },
+]
+
+/** Short working notes on three employees, newest last. */
+export const employeeNotes: EmployeeNote[] = [
+  {
+    id: 1,
+    employeeId: 4,
+    body: 'Agreed to run the React interviews in Q4.',
+    createdAt: '2026-09-03T10:15:00.000Z',
+  },
+  {
+    id: 2,
+    employeeId: 4,
+    body: 'Prefers morning slots for panels.',
+    createdAt: '2026-09-10T08:40:00.000Z',
+  },
+  {
+    id: 3,
+    employeeId: 4,
+    body: 'Out of office 20-24 October.',
+    createdAt: '2026-09-28T14:05:00.000Z',
+  },
+  {
+    id: 4,
+    employeeId: 8,
+    body: 'Wants a second interviewer on every support panel.',
+    createdAt: '2026-09-05T11:30:00.000Z',
+  },
+  {
+    id: 5,
+    employeeId: 8,
+    body: 'Can take Polish-language interviews.',
+    createdAt: '2026-09-17T09:00:00.000Z',
+  },
+  {
+    id: 6,
+    employeeId: 11,
+    body: 'Asked for the marketing take-home brief to be shortened.',
+    createdAt: '2026-09-12T15:20:00.000Z',
+  },
 ]

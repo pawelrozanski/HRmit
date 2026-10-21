@@ -41,14 +41,27 @@ await migrate(db, async (queries) => sqlite.exec(queries.join(';\n')), {
 })
 
 // First run: seed from the shared fixtures so the UI is not empty.
-const countOf = async (table: typeof schema.jobs | typeof schema.teams | typeof schema.employees) =>
-  (await db.select({ n: count() }).from(table))[0]?.n ?? 0
+const countOf = async (
+  table:
+    | typeof schema.jobs
+    | typeof schema.teams
+    | typeof schema.employees
+    | typeof schema.employeeNotes,
+) => (await db.select({ n: count() }).from(table))[0]?.n ?? 0
 // Teams first: fixture jobs point at them. 0.3.0 added these tables, so an existing database
 // gets them seeded once as well, with the user's jobs left unassigned.
 if ((await countOf(schema.teams)) === 0 && (await countOf(schema.employees)) === 0) {
   await db.insert(schema.teams).values(fixtures.teams)
   await db.insert(schema.employees).values(fixtures.employees)
   await db.insert(schema.teamMembers).values(fixtures.teamMembers)
+}
+// 0.3.1 added notes: seeded once, only for employees that still exist (a fixture employee may be gone).
+if ((await countOf(schema.employeeNotes)) === 0) {
+  const ids = new Set(
+    (await db.select({ id: schema.employees.id }).from(schema.employees)).map((r) => r.id),
+  )
+  const notes = fixtures.employeeNotes.filter((n) => ids.has(n.employeeId))
+  if (notes.length) await db.insert(schema.employeeNotes).values(notes)
 }
 
 if ((await countOf(schema.jobs)) === 0) {
