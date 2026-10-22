@@ -1,3 +1,4 @@
+import { AI_PROVIDER_IDS } from './aiProviders.ts'
 import { z } from 'zod'
 
 /** Pipeline stages, in kanban order. The only place this list exists. */
@@ -271,7 +272,7 @@ export type CandidateInput = z.input<typeof candidateInputSchema>
 export const moveStageSchema = z.object({ stage: pipelineStageSchema })
 
 /** AI provider settings. ADR 0005: Ollama on localhost by default, cloud providers are BYOK. */
-export const aiProviderSchema = z.enum(['ollama', 'anthropic', 'openai-compatible'])
+export const aiProviderSchema = z.enum(AI_PROVIDER_IDS)
 export type AiProvider = z.infer<typeof aiProviderSchema>
 
 /** Body of PUT /api/settings/ai. apiKey omitted or '' keeps the stored key, null clears it. */
@@ -311,6 +312,10 @@ export const aiPreviewSchema = z.object({
   provider: z.enum(['local', 'cloud']),
 })
 export type AiPreview = z.infer<typeof aiPreviewSchema>
+
+/** GET /api/ai/models: the models installed in Ollama (empty for every other provider). */
+export const aiModelsSchema = z.object({ models: z.array(z.string()) })
+export type AiModels = z.infer<typeof aiModelsSchema>
 
 /** Email templates (docs/ARCHITECTURE.md §6): one editable text per key, placeholders in {{ }}. */
 export const EMAIL_TEMPLATE_KEYS = ['invite', 'reminder', 'rejection'] as const

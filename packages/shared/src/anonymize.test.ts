@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
-import { anonymize, isLocalBaseUrl, isLocalProvider, isValidPesel } from './anonymize.ts'
+import { anonymize, isLocalBaseUrl, isValidPesel } from './anonymize.ts'
+import { isLocalProvider } from './aiProviders.ts'
 
 const lukasz = {
   id: 7,
@@ -85,12 +86,16 @@ test('isLocalBaseUrl and isLocalProvider', () => {
     expect(isLocalBaseUrl(u), u).toBe(false)
   expect(isLocalProvider({ provider: 'ollama', baseUrl: 'https://remote.example' })).toBe(true)
   expect(isLocalProvider({ provider: 'anthropic', baseUrl: 'http://localhost/v1' })).toBe(false)
+  expect(isLocalProvider({ provider: 'lmstudio', baseUrl: 'https://remote.example' })).toBe(true)
+  expect(isLocalProvider({ provider: 'groq', baseUrl: 'http://localhost/v1' })).toBe(false)
+  expect(isLocalProvider({ provider: 'custom', baseUrl: 'http://localhost:1234/v1' })).toBe(true)
+  expect(isLocalProvider({ provider: 'custom', baseUrl: 'https://openrouter.ai/api/v1' })).toBe(
+    false,
+  )
+  // Databases from before 0.3.3 stored 'openai-compatible' for what is now 'custom'.
   expect(
     isLocalProvider({ provider: 'openai-compatible', baseUrl: 'http://localhost:1234/v1' }),
   ).toBe(true)
-  expect(
-    isLocalProvider({ provider: 'openai-compatible', baseUrl: 'https://openrouter.ai/api/v1' }),
-  ).toBe(false)
 })
 
 test('without a candidate only the pattern passes run (job descriptions)', () => {

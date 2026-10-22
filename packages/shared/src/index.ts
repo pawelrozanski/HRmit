@@ -1,6 +1,7 @@
 export * from './version.ts'
 export * from './schemas.ts'
 export * from './anonymize.ts'
+export * from './aiProviders.ts'
 export * from './cvImport.ts'
 export * from './email.ts'
 export * from './ics.ts'

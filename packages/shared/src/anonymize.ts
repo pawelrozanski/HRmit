@@ -156,10 +156,3 @@ export function isLocalBaseUrl(url: string): boolean {
   const [a, b] = [Number(m[1]), Number(m[2])]
   return a === 127 || a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
 }
-
-/** Ollama is local by definition; an OpenAI-compatible endpoint is local if its host is. */
-export function isLocalProvider(s: { provider: string; baseUrl: string }): boolean {
-  return (
-    s.provider === 'ollama' || (s.provider === 'openai-compatible' && isLocalBaseUrl(s.baseUrl))
-  )
-}

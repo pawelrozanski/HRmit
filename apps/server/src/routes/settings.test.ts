@@ -37,7 +37,15 @@ test('PUT stores the key encrypted and GET never returns it', async () => {
   expect((await (await put({ ...body, apiKey: null })).json()).hasApiKey).toBe(false)
 
   expect((await put({ ...body, baseUrl: 'not a url' })).status).toBe(400)
-  expect((await put({ ...body, provider: 'openai' })).status).toBe(400)
+  expect((await put({ ...body, provider: 'nope' })).status).toBe(400)
+})
+
+test('a provider id from before 0.3.3 reads as custom', async () => {
+  await db
+    .insert(settings)
+    .values({ key: 'ai.provider', value: 'openai-compatible' })
+    .onConflictDoUpdate({ target: settings.key, set: { value: 'openai-compatible' } })
+  expect((await get()).provider).toBe('custom')
 })
 
 test('a blob encrypted under another master.key reads as no key, not a 500', async () => {

@@ -10,8 +10,10 @@ import {
   cvContactSchema,
   cvSummarySchema,
   extractContact,
+  getProvider,
   isLocalProvider,
   questionsGenerationSchema,
+  type AiModels,
   type AiPreview,
   type AiSummary,
   type AiTestResult,
@@ -135,6 +137,21 @@ export const aiRoute = new Hono()
       const error = sanitize(err, settings.apiKey)
       log.warn('ai test failed', { provider: settings.provider, model: settings.model, error })
       return c.json<AiTestResult>({ ok: false, error })
+    }
+  })
+  // Installed Ollama models for the settings datalist. Only Ollama has a listing endpoint we
+  // know; every other provider gets an empty list and the UI falls back to the catalog.
+  .get('/models', async (c) => {
+    const settings = await getAiSettings()
+    if (getProvider(settings.provider).id !== 'ollama') return c.json<AiModels>({ models: [] })
+    try {
+      const base = (settings.baseUrl || getProvider('ollama').baseUrl).replace(/\/v1\/?$/, '')
+      const res = await fetch(`${base}/api/tags`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const { models } = (await res.json()) as { models?: { name: string }[] }
+      return c.json<AiModels>({ models: (models ?? []).map((m) => m.name) })
+    } catch (err) {
+      return c.json({ error: sanitize(err, null) }, 502)
     }
   })
   .route('/summarize', action('summary', cvSummarySchema, summarizePrompt))

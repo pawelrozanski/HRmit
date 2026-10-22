@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import {
   AI_SETTINGS_DEFAULTS,
   SMTP_SETTINGS_DEFAULTS,
+  normalizeProviderId,
   type AiSettings,
   type SmtpSettings,
 } from '@hrmit/shared'
@@ -46,7 +47,7 @@ export async function getAiSettings(): Promise<AiSettings & { apiKey: string | n
     ['ai.provider', 'ai.baseUrl', 'ai.model', 'ai.apiKey'].map(getSetting),
   )
   return {
-    provider: (provider as AiSettings['provider']) ?? AI_SETTINGS_DEFAULTS.provider,
+    provider: normalizeProviderId(provider ?? AI_SETTINGS_DEFAULTS.provider),
     // OLLAMA_BASE_URL: the container default, where localhost is not the host machine.
     baseUrl: baseUrl ?? process.env.OLLAMA_BASE_URL ?? AI_SETTINGS_DEFAULTS.baseUrl,
     model: model ?? AI_SETTINGS_DEFAULTS.model,

@@ -2,6 +2,7 @@ import { expect, test, vi } from 'vitest'
 import { eq } from 'drizzle-orm'
 import {
   AI_SETTINGS_DEFAULTS,
+  aiModelsSchema,
   aiPreviewSchema,
   aiTestResultSchema,
   candidateSchema,
@@ -125,6 +126,42 @@ test('AI actions: 404, 422 without CV text, then summary and competencies merged
   const gone = await app.request('/api/ai/summary/1', { method: 'DELETE' })
   expect(candidateSchema.parse(await gone.json()).aiSummaryJson).toBeNull()
   expect((await app.request('/api/ai/summary/9999', { method: 'DELETE' })).status).toBe(404)
+})
+
+test('any catalog cloud provider gets the anonymized prompt (openai)', async () => {
+  expect((await putSettings({ provider: 'openai', baseUrl: '', model: 'gpt-x' })).status).toBe(400)
+  await putSettings({ provider: 'openai', baseUrl: 'https://api.openai.com/v1', model: 'gpt-x' })
+  generateObject.mockResolvedValueOnce({ object: fixtures.ai[1]!.summary })
+  expect((await act('summarize', 1)).status).toBe(200)
+  const prompt = generateObject.mock.calls.at(-1)?.[0].prompt as string
+  expect(prompt).toContain('Candidate #1')
+  expect(prompt).not.toContain(amelia.lastName)
+  await putSettings(AI_SETTINGS_DEFAULTS)
+})
+
+test('GET /api/ai/models lists Ollama tags, empty for cloud, sanitized on failure', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch')
+  fetchMock.mockResolvedValueOnce(
+    Response.json({ models: [{ name: 'qwen2.5:7b-instruct' }, { name: 'gemma3:4b' }] }),
+  )
+  const res = await app.request('/api/ai/models')
+  expect(res.status).toBe(200)
+  expect(aiModelsSchema.parse(await res.json())).toEqual({
+    models: ['qwen2.5:7b-instruct', 'gemma3:4b'],
+  })
+  expect(fetchMock).toHaveBeenLastCalledWith('http://localhost:11434/api/tags')
+
+  fetchMock.mockRejectedValueOnce(new Error('ECONNREFUSED 127.0.0.1:11434\n  at x'))
+  const failed = await app.request('/api/ai/models')
+  expect(failed.status).toBe(502)
+  expect(await failed.json()).toEqual({ error: 'ECONNREFUSED 127.0.0.1:11434' })
+
+  fetchMock.mockClear()
+  await putSettings({ ...CLOUD, apiKey: KEY })
+  expect(await (await app.request('/api/ai/models')).json()).toEqual({ models: [] })
+  expect(fetchMock).not.toHaveBeenCalled()
+  fetchMock.mockRestore()
+  await putSettings(AI_SETTINGS_DEFAULTS)
 })
 
 test('GET /api/ai/preview/:id shows original next to anonymized and names the provider', async () => {

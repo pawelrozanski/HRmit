@@ -49,11 +49,16 @@ test('parse-cv falls back to the heuristic when the model fails', async () => {
 })
 
 test('parse-cv never sends the raw CV to a cloud provider', async () => {
-  await putSettings({ provider: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', model: 'm' })
-  generateObject.mockClear()
-  const result = cvImportSchema.parse(await (await parse('cv.pdf', CV)).json())
-  expect(result.source).toBe('heuristic')
-  expect(generateObject).not.toHaveBeenCalled()
+  for (const cloud of [
+    { provider: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', model: 'm' },
+    { provider: 'groq', baseUrl: 'https://api.groq.com/openai/v1', model: 'm' },
+  ]) {
+    await putSettings(cloud)
+    generateObject.mockClear()
+    const result = cvImportSchema.parse(await (await parse('cv.pdf', CV)).json())
+    expect(result.source, cloud.provider).toBe('heuristic')
+    expect(generateObject).not.toHaveBeenCalled()
+  }
   await putSettings(AI_SETTINGS_DEFAULTS)
 })
 
