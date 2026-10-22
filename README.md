@@ -28,7 +28,7 @@
 - **Scorecards** with identical criteria, averages per competency, never a single ranking number. Works in **blind-screening** mode, which hides names and contact details.
 - **Email templates** (invitation, reminder, rejection) sent as plain text over your own SMTP, with a per-candidate history.
 - **Interview invites** with a Jitsi room link and an `.ics` attachment.
-- **AI provider settings**: local Ollama by default, bring-your-own-key cloud (Anthropic or any OpenAI-compatible API) as an opt-in, with an anonymization preview showing exactly what would leave the machine.
+- **AI provider settings**: local Ollama (or LM Studio) by default, bring-your-own-key cloud as an opt-in: Anthropic, OpenAI, Google Gemini, Mistral, DeepSeek, xAI, Perplexity, OpenRouter, Groq, Together AI, Fireworks AI or any OpenAI-compatible endpoint, picked from a catalog with suggested models, with an anonymization preview showing exactly what would leave the machine.
 - English and Polish UI, light and high-contrast dark theme, keyboard navigation (skip link, arrow-key settings tabs, focus rings).
 
 ## Screenshots

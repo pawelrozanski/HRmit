@@ -41,7 +41,7 @@ Final review across stages 0 to 11, done on 2026-10-19. Each stage had its own s
 
 ## Cloud AI and the limits of anonymization
 
-- Default provider is Ollama on localhost; cloud providers are bring-your-own-key and opt-in behind a dialog that names the host and lists what is sent and what never is.
+- Default provider is Ollama on localhost; cloud providers are bring-your-own-key and opt-in behind a dialog that names the host and lists what is sent and what never is. Whether a provider counts as local comes from the catalog in `packages/shared/src/aiProviders.ts` (Ollama and LM Studio), and for the custom endpoint from its host; every other id is treated as cloud, so anonymization and the CV-import refusal apply to all of them.
 - Before any cloud call the CV text and the job description go through `anonymize()`: the candidate's structured fields (name, email, phone) are replaced by `Candidate #<id>` and placeholders, then regex passes remove emails, phones, URLs, PESEL numbers, birth dates and address lines. Name matching is case- and diacritic-insensitive. The user can preview the result on every candidate.
 - **This is a heuristic, not named-entity recognition.** Names that appear only in the CV body (references, former managers, co-authors), employer names and any free text that identifies a person indirectly are sent as they are. If that matters for your data, stay on the local provider. Notes, photos and the CV file itself are never sent to any provider.
 - The output schemas have no field for a score, ranking or verdict, so a model cannot return one ([ADR 0004](adr/0004-ai-assistant-not-judge.md)); a test checks the schemas.

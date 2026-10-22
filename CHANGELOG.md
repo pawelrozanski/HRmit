@@ -4,6 +4,18 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-10-22
+
+### Added
+
+- Provider catalog (`packages/shared/src/aiProviders.ts`): Ollama, LM Studio, Anthropic, OpenAI, Google Gemini, Mistral, DeepSeek, xAI, Perplexity, OpenRouter, Groq, Together AI, Fireworks AI and a custom OpenAI-compatible endpoint, each with a default base URL, a local flag, a one-line description, suggested model ids and key/docs links. Logos from `simple-icons` (CC0) where available, a monogram tile otherwise.
+- `GET /api/ai/models`: the models installed in Ollama (from `/api/tags`), used to fill the model suggestions; empty for every other provider. The demo answers with a fixed list.
+
+### Changed
+
+- AI settings: the provider select is a tile with the logo and name of the current provider; clicking it opens "Choose a provider" (Ollama on top, cloud providers in a grid, Escape closes). Picking a cloud provider shows the existing consent dialog before anything changes; cancelling keeps the previous provider. The model field is free text with a datalist of suggestions, the base URL is read-only for cloud providers (with an "Edit" button) and editable for local and custom ones, the API key field and the "Get an API key" link appear for cloud providers only.
+- `ai.provider` must be a catalog id; `openai-compatible` from older databases and demo stores reads as `custom`. The anonymization rule and the CV-import refusal apply to every non-local id.
+
 ## [0.3.2] - 2026-10-22
 
 ### Changed
