@@ -11,6 +11,7 @@ import { APP_ROOT } from '@/config.ts'
 import { fullName } from '../employees/EmployeeDrawer.tsx'
 import { AddMembersDialog } from './AddMembersDialog.tsx'
 import { TeamForm } from './TeamForm.tsx'
+import { TeamMessages } from './TeamMessages.tsx'
 
 export function TeamPage() {
   const { t } = useTranslation()
@@ -158,6 +159,8 @@ export function TeamPage() {
           </ul>
         )}
       </section>
+
+      <TeamMessages team={current} />
 
       <section className="mt-6" aria-labelledby="team-jobs">
         <h3 id="team-jobs" className="mb-3 flex items-center gap-2 font-semibold">

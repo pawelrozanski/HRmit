@@ -19,6 +19,8 @@ import {
   pipelineStageSchema,
   renderTemplate,
   sendEmailInputSchema,
+  sendEmployeeEmailInputSchema,
+  sendTeamEmailInputSchema,
   setMemberRoleSchema,
   smtpSettingsSchema,
   teamInputSchema,
@@ -28,6 +30,8 @@ import {
   type AiModels,
   type AiTestResult,
   type CvImport,
+  type EmployeeEmail,
+  type TeamSendResult,
   type Email,
   type EmailPreview,
   type EmailTemplateKey,
@@ -52,6 +56,34 @@ const invalid = () => HttpResponse.json({ error: 'invalid body' }, { status: 400
 /** What a typical Ollama install reports; the demo has no Ollama to ask. */
 const DEMO_OLLAMA_MODELS = ['qwen2.5:7b-instruct', 'llama3.1:8b', 'gemma3:4b']
 const nextId = (rows: { id: number }[]) => Math.max(0, ...rows.map((r) => r.id)) + 1
+const newestFirst = <T extends { id: number; sentAt: string }>(rows: T[]) =>
+  [...rows].sort((a, b) => b.sentAt.localeCompare(a.sentAt) || b.id - a.id)
+
+/** The demo outbox for employee messages: same placeholders as the server, status 'demo'. */
+function recordEmployeeEmail(
+  to: { id: number; firstName: string; lastName: string },
+  text: { subject: string; body: string },
+  teamId: number | null,
+  sentAt: string,
+): EmployeeEmail {
+  const vars = {
+    firstName: to.firstName,
+    lastName: to.lastName,
+    companyName: store.smtpSettings.companyName,
+  }
+  const row: EmployeeEmail = {
+    id: nextId(store.employeeEmails),
+    employeeId: to.id,
+    teamId,
+    subject: renderTemplate(text.subject, vars),
+    body: renderTemplate(text.body, vars),
+    status: 'demo',
+    error: null,
+    sentAt,
+  }
+  store.employeeEmails.push(row)
+  return row
+}
 export const demoCv = (c: { firstName: string; lastName: string; email: string; phone: string }) =>
   `${c.firstName} ${c.lastName}
 ${c.email} | ${c.phone}
@@ -532,6 +564,7 @@ export const handlers = [
     store.employees.splice(i, 1)
     store.teamMembers = store.teamMembers.filter((m) => m.employeeId !== id)
     store.employeeNotes = store.employeeNotes.filter((n) => n.employeeId !== id)
+    store.employeeEmails = store.employeeEmails.filter((m) => m.employeeId !== id)
     save()
     return new HttpResponse(null, { status: 204 })
   }),
@@ -567,6 +600,21 @@ export const handlers = [
     store.employeeNotes.splice(i, 1)
     save()
     return new HttpResponse(null, { status: 204 })
+  }),
+  http.get(`${base}/api/employees/:id/emails`, ({ params }) => {
+    const id = Number(params.id)
+    if (!store.employees.some((e) => e.id === id)) return notFound()
+    return HttpResponse.json(newestFirst(store.employeeEmails.filter((m) => m.employeeId === id)))
+  }),
+  // Nothing is sent: the row lands in the employee's history with status 'demo' (docs §4.2).
+  http.post(`${base}/api/employees/:id/emails`, async ({ params, request }) => {
+    const body = sendEmployeeEmailInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const employee = store.employees.find((e) => e.id === Number(params.id))
+    if (!employee) return notFound()
+    const row = recordEmployeeEmail(employee, body.data, null, new Date().toISOString())
+    save()
+    return HttpResponse.json(row, { status: 201 })
   }),
   http.get(`${base}/api/teams`, () =>
     HttpResponse.json(store.teams.map(teamCounts).sort((a, b) => a.name.localeCompare(b.name))),
@@ -606,6 +654,32 @@ export const handlers = [
     for (const job of store.jobs) if (job.teamId === id) job.teamId = null
     save()
     return new HttpResponse(null, { status: 204 })
+  }),
+  http.get(`${base}/api/teams/:id/emails`, ({ params }) => {
+    const teamId = Number(params.id)
+    if (!store.teams.some((t) => t.id === teamId)) return notFound()
+    const rows = newestFirst(store.employeeEmails.filter((m) => m.teamId === teamId)).map((m) => {
+      const e = store.employees.find((x) => x.id === m.employeeId)
+      return { ...m, name: e ? `${e.firstName} ${e.lastName}` : '' }
+    })
+    return HttpResponse.json(rows)
+  }),
+  http.post(`${base}/api/teams/:id/emails`, async ({ params, request }) => {
+    const body = sendTeamEmailInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const teamId = Number(params.id)
+    const team = teamDetail(teamId)
+    if (!team) return notFound()
+    const ids = [...new Set(body.data.employeeIds)]
+    const members = team.members.filter((m) => ids.includes(m.id))
+    if (members.length !== ids.length) return invalid()
+    const sentAt = new Date().toISOString()
+    const result: TeamSendResult = {
+      sent: members.map((m) => recordEmployeeEmail(m, body.data, teamId, sentAt)),
+      failed: [],
+    }
+    save()
+    return HttpResponse.json(result, { status: 201 })
   }),
   http.post(`${base}/api/teams/:id/members`, async ({ params, request }) => {
     const body = addMembersSchema.safeParse(await request.json())

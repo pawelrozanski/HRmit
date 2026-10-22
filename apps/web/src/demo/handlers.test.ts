@@ -9,6 +9,7 @@ import {
   emailPreviewSchema,
   emailSchema,
   emailTemplateSchema,
+  employeeEmailSchema,
   employeeNoteSchema,
   employeeWithTeamsSchema,
   fixtures,
@@ -22,6 +23,8 @@ import {
   smtpSettingsViewSchema,
   smtpTestResultSchema,
   teamDetailSchema,
+  teamEmailSchema,
+  teamSendResultSchema,
   teamSchema,
 } from '@hrmit/shared'
 import { setupServer } from 'msw/node'
@@ -40,12 +43,13 @@ const { demoCv, handlers } = await import('./handlers.ts')
 const { DEMO_STORAGE_KEY } = await import('../config.ts')
 const persisted = () => JSON.parse(storage.get(DEMO_STORAGE_KEY) ?? '{}') as Store
 type Store = {
+  employeeEmails?: { employeeId: number }[]
   jobs: unknown[]
   questions?: { jobId: number; question: string }[]
   candidates: { id: number; aiSummaryJson?: unknown }[]
   evaluations?: { candidateId: number; questionId: number }[]
   aiSettings?: unknown
-  smtpSettings?: { hasPass: boolean }
+  smtpSettings?: { hasPass: boolean; companyName: string }
   templates?: { key: string; subject: string }[]
   emails?: { candidateId: number; status: string }[]
   meetings?: { candidateId: number }[]
@@ -509,4 +513,39 @@ test('demo employee notes: newest first, add, delete, 404s, gone with the employ
   await send('POST', '/api/employees/1/notes', { body: 'gone' })
   await fetch('http://localhost/api/employees/1', { method: 'DELETE' })
   expect(persisted().employeeNotes?.some((n) => n.employeeId === 1)).toBe(false)
+})
+
+test('demo employee and team messages: outbox rows, placeholders, non-member 400, gone with the employee', async () => {
+  const text = { subject: 'Hi {{firstName}}', body: 'From {{companyName}}.' }
+  expect(await get('/api/employees/4/emails')).toEqual([])
+  expect((await fetch('http://localhost/api/employees/9999/emails')).status).toBe(404)
+  expect((await send('POST', '/api/employees/4/emails', { subject: '', body: 'x' })).status).toBe(
+    400,
+  )
+  const one = await send('POST', '/api/employees/4/emails', text)
+  expect(one.status).toBe(201)
+  expect(employeeEmailSchema.parse(await one.json())).toMatchObject({
+    employeeId: 4,
+    teamId: null,
+    status: 'demo',
+    subject: 'Hi Hanna',
+    body: `From ${persisted().smtpSettings?.companyName}.`,
+  })
+  expect((await send('POST', '/api/teams/2/emails', { ...text, employeeIds: [4, 1] })).status).toBe(
+    400,
+  )
+  const many = await send('POST', '/api/teams/2/emails', { ...text, employeeIds: [4, 5] })
+  expect(many.status).toBe(201)
+  const result = teamSendResultSchema.parse(await many.json())
+  expect(result.sent.map((r) => [r.employeeId, r.teamId, r.subject])).toEqual([
+    [4, 2, 'Hi Hanna'],
+    [5, 2, 'Hi Kacper'],
+  ])
+  expect(result.failed).toEqual([])
+  const history = teamEmailSchema.array().parse(await get('/api/teams/2/emails'))
+  expect(history.map((r) => r.name)).toEqual(['Kacper Zielinski', 'Hanna Sorlie'])
+  expect(employeeEmailSchema.array().parse(await get('/api/employees/4/emails'))).toHaveLength(2)
+  expect(persisted().employeeEmails?.length).toBe(3)
+  await fetch('http://localhost/api/employees/5', { method: 'DELETE' })
+  expect(persisted().employeeEmails?.some((m) => m.employeeId === 5)).toBe(false)
 })

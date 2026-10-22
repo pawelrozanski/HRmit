@@ -8,6 +8,7 @@ import {
   type Email,
   type EmailTemplate,
   type Employee,
+  type EmployeeEmail,
   type EmployeeNote,
   type Evaluation,
   type InterviewQuestion,
@@ -32,6 +33,8 @@ type Store = {
   meetings: Meeting[]
   employees: Employee[]
   employeeNotes: EmployeeNote[]
+  /** Messages to employees (0.4.0): nothing is sent in the demo, rows are the outbox. */
+  employeeEmails: EmployeeEmail[]
   teams: TeamRow[]
   teamMembers: TeamMemberLink[]
 }
@@ -65,6 +68,7 @@ function load(): Store {
         emails: structuredClone(fixtures.emails),
         meetings: structuredClone(fixtures.meetings),
         employees: structuredClone(fixtures.employees),
+        employeeEmails: [],
         teams: structuredClone(fixtures.teams),
         teamMembers: structuredClone(fixtures.teamMembers),
         ...saved,
@@ -95,6 +99,7 @@ function load(): Store {
     meetings: structuredClone(fixtures.meetings),
     employees: structuredClone(fixtures.employees),
     employeeNotes: structuredClone(fixtures.employeeNotes),
+    employeeEmails: [],
     teams: structuredClone(fixtures.teams),
     teamMembers: structuredClone(fixtures.teamMembers),
   }

@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/sheet.tsx'
 import { APP_ROOT } from '@/config.ts'
 import { EmployeeForm } from './EmployeeForm.tsx'
+import { EmployeeMessages } from './EmployeeMessages.tsx'
 import { EmployeeNotes } from './EmployeeNotes.tsx'
 
 type Props = {
@@ -98,6 +99,7 @@ export function EmployeeDrawer({ employee, onClose, onChange, onDelete }: Props)
               employeeId={employee.id}
               onCount={(noteCount) => onChange({ ...employee, noteCount })}
             />
+            <EmployeeMessages key={`m${employee.id}`} employee={employee} />
             <div className="flex flex-wrap gap-2 px-4">
               <Button variant="outline" onClick={() => setEditing(true)}>
                 <Pencil data-icon="inline-start" /> {t('common.edit')}
