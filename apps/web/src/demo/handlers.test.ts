@@ -1,5 +1,6 @@
 import {
   AI_SETTINGS_DEFAULTS,
+  aiModelsSchema,
   aiPreviewSchema,
   aiSettingsViewSchema,
   aiTestResultSchema,
@@ -163,6 +164,13 @@ test('demo AI settings: persisted without the key, test always succeeds', async 
 
   const test = await fetch('http://localhost/api/ai/test', { method: 'POST' })
   expect(aiTestResultSchema.parse(await test.json())).toMatchObject({ ok: true, model: 'claude-x' })
+
+  // Installed models only for Ollama; a pre-0.3.3 id still validates as the custom provider.
+  expect(aiModelsSchema.parse(await get('/api/ai/models'))).toEqual({ models: [] })
+  await send('PUT', '/api/settings/ai', AI_SETTINGS_DEFAULTS)
+  expect(aiModelsSchema.parse(await get('/api/ai/models')).models).toContain('qwen2.5:7b-instruct')
+  expect((await send('PUT', '/api/settings/ai', { ...body, provider: 'groq' })).status).toBe(200)
+  expect((await send('PUT', '/api/settings/ai', { ...body, provider: 'nope' })).status).toBe(400)
 })
 
 test('demo AI actions: 422 without CV, fixture answer after upload, persisted, discarded', async () => {

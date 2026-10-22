@@ -101,6 +101,42 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await expect(page.getByRole('status')).toContainText('Tryb demo')
 })
 
+test('AI settings: provider chooser, cloud consent, local switch, axe on the dialog', async ({
+  page,
+}) => {
+  await page.goto('./demo/settings/ai')
+  const tile = page.getByRole('button', { name: /^Choose a provider/ })
+  await expect(tile).toContainText('Ollama')
+  await expect(page.getByLabel('API key')).toHaveCount(0)
+
+  // A cloud provider asks for consent first; cancelling keeps Ollama.
+  await tile.click()
+  const chooser = page.getByRole('dialog', { name: 'Choose a provider' })
+  await expect(chooser.getByRole('button', { name: /^Ollama/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expectNoSeriousA11y(page)
+  await chooser.getByRole('button', { name: /^OpenAI/ }).click()
+  const consent = page.getByRole('dialog', { name: /Send anonymized data to OpenAI/ })
+  await expect(consent).toContainText('api.openai.com')
+  await consent.getByRole('button', { name: 'Cancel' }).click()
+  await expect(consent).toBeHidden()
+  await expect(tile).toContainText('Ollama')
+  await expect(page.getByLabel('Base URL')).toHaveValue('http://localhost:11434/v1')
+
+  // Escape closes the chooser; a local provider switches without consent.
+  await tile.click()
+  await page.keyboard.press('Escape')
+  await expect(chooser).toBeHidden()
+  await tile.click()
+  await chooser.getByRole('button', { name: /^LM Studio/ }).click()
+  await expect(tile).toContainText('LM Studio')
+  await expect(page.getByLabel('Base URL')).toHaveValue('http://localhost:1234/v1')
+  await expect(page.getByLabel('API key')).toHaveCount(0)
+  await expectNoSeriousA11y(page)
+})
+
 test('/templates redirects into settings', async ({ page }) => {
   await page.goto('./demo/templates')
   await expect(page).toHaveURL(/\/settings\/templates$/)

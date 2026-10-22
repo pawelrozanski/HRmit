@@ -25,6 +25,7 @@ import {
   isLocalProvider,
   type AiPreview,
   type AiSummary,
+  type AiModels,
   type AiTestResult,
   type CvImport,
   type Email,
@@ -48,6 +49,8 @@ import { save, store } from './store.ts'
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const notFound = () => HttpResponse.json({ error: 'not found' }, { status: 404 })
 const invalid = () => HttpResponse.json({ error: 'invalid body' }, { status: 400 })
+/** What a typical Ollama install reports; the demo has no Ollama to ask. */
+const DEMO_OLLAMA_MODELS = ['qwen2.5:7b-instruct', 'llama3.1:8b', 'gemma3:4b']
 const nextId = (rows: { id: number }[]) => Math.max(0, ...rows.map((r) => r.id)) + 1
 export const demoCv = (c: { firstName: string; lastName: string; email: string; phone: string }) =>
   `${c.firstName} ${c.lastName}
@@ -293,6 +296,13 @@ export const handlers = [
     store.aiSettings = { ...fields, hasApiKey }
     save()
     return HttpResponse.json(store.aiSettings)
+  }),
+  // The demo has no Ollama: a fixed list after a short pause, empty for other providers.
+  http.get(`${base}/api/ai/models`, async () => {
+    await delay(300)
+    return HttpResponse.json<AiModels>({
+      models: store.aiSettings.provider === 'ollama' ? DEMO_OLLAMA_MODELS : [],
+    })
   }),
   // No model in the demo: the connection test always succeeds after a short pause.
   http.post(`${base}/api/ai/test`, async () => {

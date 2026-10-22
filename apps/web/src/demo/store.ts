@@ -1,5 +1,6 @@
 import {
   AI_SETTINGS_DEFAULTS,
+  normalizeProviderId,
   SMTP_SETTINGS_DEFAULTS,
   fixtures,
   type AiSettingsView,
@@ -57,7 +58,6 @@ function load(): Store {
     if (raw) {
       const saved = JSON.parse(raw) as Partial<Store>
       return {
-        aiSettings: AI_SETTINGS_DEFAULTS,
         questions: structuredClone(fixtures.questionRows),
         evaluations: seedEvaluations(),
         smtpSettings: DEMO_SMTP,
@@ -68,6 +68,10 @@ function load(): Store {
         teams: structuredClone(fixtures.teams),
         teamMembers: structuredClone(fixtures.teamMembers),
         ...saved,
+        // Stores from before 0.3.3 named the custom provider 'openai-compatible'.
+        aiSettings: saved.aiSettings
+          ? { ...saved.aiSettings, provider: normalizeProviderId(saved.aiSettings.provider) }
+          : AI_SETTINGS_DEFAULTS,
         jobs: (saved.jobs ?? []).map((j) => ({ ...j, teamId: j.teamId ?? null })),
         // Notes saved before 0.3.2 have no title.
         employeeNotes: (saved.employeeNotes ?? fixtures.employeeNotes).map((n) => ({
