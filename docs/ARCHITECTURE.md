@@ -77,6 +77,8 @@ erDiagram
   teams ||--o{ team_members : has
   employees ||--o{ team_members : belongs_to
   employees ||--o{ employee_notes : has
+  employees ||--o{ employee_emails : receives
+  teams ||--o{ employee_emails : sent_from
   jobs ||--o{ candidates : has
   jobs ||--o{ interview_questions : defines
   candidates ||--o{ evaluations : scored_by
@@ -107,6 +109,16 @@ erDiagram
     text hired_at "ISO date, nullable"
     text duties "free text, one per line"
     text created_at
+  }
+  employee_emails {
+    int id PK
+    int employee_id FK "ON DELETE CASCADE"
+    int team_id FK "nullable, ON DELETE SET NULL; set when sent from a team view"
+    text subject
+    text body "plain text"
+    text status "sent | failed | demo"
+    text error "sanitized, nullable"
+    text sent_at
   }
   team_members {
     int team_id PK,FK "ON DELETE CASCADE"
@@ -180,7 +192,7 @@ erDiagram
 Design notes:
 
 - **Glossary: job vs recruitment.** The entity is a `job` in the database, the API (`/api/jobs`, `jobId`) and the shared schemas; the UI calls it a _recruitment_ ("Recruitments" / "Rekrutacje") since 0.3.0. Renaming the technical name would have touched every table, route and test for a label.
-- **Employees are the hiring side**, never candidates: interviewers and hiring managers grouped into teams. An employee can be in several teams with one role per team (`member` or `lead`, at most one lead is a convention, not a constraint). A job may belong to one team; deleting the team leaves the job without one (`SET NULL`), deleting an employee or a team removes its memberships (`CASCADE`). Employees and their notes (`employee_notes`, optional title plus plain-text body, newest first, deleted with the employee) never reach an AI prompt.
+- **Employees are the hiring side**, never candidates: interviewers and hiring managers grouped into teams. An employee can be in several teams with one role per team (`member` or `lead`, at most one lead is a convention, not a constraint). A job may belong to one team; deleting the team leaves the job without one (`SET NULL`), deleting an employee or a team removes its memberships (`CASCADE`). Employees and their notes (`employee_notes`, optional title plus plain-text body, newest first, deleted with the employee) never reach an AI prompt. Messages sent to an employee from the panel (`employee_emails`, 0.4.0) are one row per recipient; a send from a team view stamps `team_id` and one shared `sent_at`, which is how the team page groups a send. Rows go with the employee and survive the team.
 - **One CV per candidate**, stored as columns, not a separate table. A second upload replaces the first. (ponytail: add a `cv_files` table only if versioning is ever requested.)
 - **Pipeline stage is a text column**, validated by a zod enum in `packages/shared`. No stage-history table in MVP; `stage_changed_at` is enough for the kanban.
 - **Interview questions belong to the job, not the candidate.** This is what makes the interview _structured_: every candidate for a job gets the same questions and is scored on the same competencies. The scorecard is `evaluations` joined with the job's questions.
@@ -207,18 +219,18 @@ export const api = hc<AppType>(import.meta.env.BASE_URL)
 
 Calling `api.api.candidates.$get()` in the UI is type-checked against the server. Rename a field on the server and the web build fails. No hand-written API types, no OpenAPI generator.
 
-| Resource    | Endpoints (MVP)                                                                                                                                                                                                            |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| jobs        | list (filter by team), create, update, close; `teamId` must name an existing team                                                                                                                                          |
-| employees   | list (`?q=` on name or position, `?teamId=`, with teams and `noteCount`), create, get, update, delete (hard, memberships and notes cascade); notes: `GET/POST /employees/:id/notes`, `DELETE /employees/:id/notes/:noteId` |
-| teams       | list (with member and open job counts), create (409 on a duplicate name), get (members with role, jobs), update, delete (jobs keep, `teamId` null), add members, set role, remove member                                   |
-| candidates  | list (filter by job and stage), create, update, delete, move stage, upload CV, download CV                                                                                                                                 |
-| ai          | `POST /ai/summarize/:candidateId`, `POST /ai/competencies/:candidateId`, `POST /ai/questions/:jobId`, `GET /ai/preview/:candidateId` (anonymized text), `POST /ai/test` (connection check)                                 |
-| questions   | list by job, update, reorder                                                                                                                                                                                               |
-| evaluations | `GET /candidates/:id/scorecard` (questions joined with evaluations), `PUT` (upsert)                                                                                                                                        |
-| emails      | list by candidate, send from template, preview                                                                                                                                                                             |
-| meetings    | create (generates Jitsi link and sends the `.ics` invite)                                                                                                                                                                  |
-| settings    | get (secrets masked), update                                                                                                                                                                                               |
+| Resource    | Endpoints (MVP)                                                                                                                                                                                                                                                                                                                                                             |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| jobs        | list (filter by team), create, update, close; `teamId` must name an existing team                                                                                                                                                                                                                                                                                           |
+| employees   | list (`?q=` on name or position, `?teamId=`, with teams and `noteCount`), create, get, update, delete (hard, memberships, notes and messages cascade); notes: `GET/POST /employees/:id/notes`, `DELETE /employees/:id/notes/:noteId`; messages: `GET/POST /employees/:id/emails` (newest first; 409 without SMTP)                                                           |
+| teams       | list (with member and open job counts), create (409 on a duplicate name), get (members with role, jobs), update, delete (jobs keep, `teamId` null), add members, set role, remove member; messages: `GET /teams/:id/emails` (rows with the recipient's name), `POST /teams/:id/emails` (`employeeIds` must be members, else 400; one mail each; answers `{ sent, failed }`) |
+| candidates  | list (filter by job and stage), create, update, delete, move stage, upload CV, download CV                                                                                                                                                                                                                                                                                  |
+| ai          | `POST /ai/summarize/:candidateId`, `POST /ai/competencies/:candidateId`, `POST /ai/questions/:jobId`, `GET /ai/preview/:candidateId` (anonymized text), `POST /ai/test` (connection check)                                                                                                                                                                                  |
+| questions   | list by job, update, reorder                                                                                                                                                                                                                                                                                                                                                |
+| evaluations | `GET /candidates/:id/scorecard` (questions joined with evaluations), `PUT` (upsert)                                                                                                                                                                                                                                                                                         |
+| emails      | list by candidate, send from template, preview                                                                                                                                                                                                                                                                                                                              |
+| meetings    | create (generates Jitsi link and sends the `.ics` invite)                                                                                                                                                                                                                                                                                                                   |
+| settings    | get (secrets masked), update                                                                                                                                                                                                                                                                                                                                                |
 
 Every request body is validated with the shared zod schemas through `@hono/zod-validator`.
 
@@ -303,6 +315,7 @@ sequenceDiagram
 - Jitsi needs no account and no API: a room exists the moment someone opens the URL. Google Meet is out of MVP (needs OAuth).
 - SMTP credentials live in `settings`, password encrypted. A "Send test email" button validates the config.
 - Every email ever sent is logged in `emails`, so the candidate page shows a communication history.
+- Messages to employees and teams (0.4.0) reuse the same SMTP path and `sendMail()`: the recruiter writes subject and body (plain text, `{{firstName}}`, `{{lastName}}` and `{{companyName}}` filled in per recipient), a team send loops over the picked members and sends one mail per recipient, never a CC or BCC list, and records one `employee_emails` row each. A failed recipient does not stop the others; the answer names who failed. In the demo nothing is sent and rows get status `demo`.
 
 ## 7. Security
 

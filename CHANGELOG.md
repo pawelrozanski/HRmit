@@ -4,6 +4,15 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-22
+
+### Added
+
+- Messages to employees: a "Send message" button in the employee drawer opens a dialog with the recipient shown read-only, a subject (1-200 characters) and a plain-text body (1-10000); Ctrl+Enter sends. A "Messages" section below the notes lists the history newest first with a sent / failed / outbox badge and the date. `GET/POST /api/employees/:id/emails`.
+- Messages to teams: "Send message" on the team page with a recipient picker (checkbox list of the members with the Lead badge, "Select all", "Leads only", "Clear", the selected count next to the button, Send disabled with nobody picked). One mail per recipient, each sent on its own, no CC/BCC; the result reads "Sent to 4 of 5" and names who failed. A "Messages" section lists each send with the date, recipient count and status counts. `GET/POST /api/teams/:id/emails` (400 for a non-member, 409 without SMTP).
+- `{{firstName}}`, `{{lastName}}` and `{{companyName}}` are filled in per recipient in both dialogs. Without SMTP settings the dialog says so and links to Settings → Email (SMTP).
+- Migration 0011 (additive): `employee_emails`, cascading with the employee, `team_id` set null with the team. Demo mode records sends with status `demo` under the `employeeEmails` store key.
+
 ## [0.3.3] - 2026-10-22
 
 ### Added
