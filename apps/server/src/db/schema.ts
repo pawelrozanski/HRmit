@@ -184,3 +184,21 @@ export const meetings = sqliteTable('meetings', {
   jitsiUrl: text('jitsi_url').notNull(),
   emailId: integer('email_id').references(() => emails.id, { onDelete: 'set null' }),
 })
+
+/**
+ * Messages sent from the panel to an employee, directly or from a team view (one row per
+ * recipient). Personal data: gone with the employee; the team link goes null with the team.
+ */
+export const employeeEmails = sqliteTable('employee_emails', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  employeeId: integer('employee_id')
+    .notNull()
+    .references(() => employees.id, { onDelete: 'cascade' }),
+  teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
+  subject: text('subject').notNull(),
+  body: text('body').notNull(),
+  status: text('status', { enum: ['sent', 'failed', 'demo'] }).notNull(),
+  /** Sanitized transport error for failed rows; never contains the SMTP password. */
+  error: text('error'),
+  sentAt: text('sent_at').notNull(),
+})

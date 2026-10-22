@@ -5,11 +5,17 @@ import { validator } from 'hono/validator'
 import {
   employeeInputSchema,
   employeeNoteInputSchema,
+  renderTemplate,
+  sendEmployeeEmailInputSchema,
   type Employee,
+  type EmployeeEmail,
   type EmployeeWithTeams,
 } from '@hrmit/shared'
 import { db } from '../db/index.ts'
-import { employeeNotes, employees, teamMembers, teams } from '../db/schema.ts'
+import { employeeEmails, employeeNotes, employees, teamMembers, teams } from '../db/schema.ts'
+import { log } from '../log.ts'
+import { sendMail, SmtpNotConfigured } from '../mail/send.ts'
+import { getSmtpSettings } from '../settings.ts'
 
 // Plain SQL for the correlated count: drizzle drops the table qualifier in a single-table select.
 const employeeColumns = {
@@ -18,6 +24,41 @@ const employeeColumns = {
 }
 const exists = async (id: number) =>
   (await db.select({ id: employees.id }).from(employees).where(eq(employees.id, id))).length > 0
+
+/**
+ * Send one plain-text message to an employee and record the outcome (docs/ARCHITECTURE.md §6).
+ * {{firstName}}, {{lastName}} and {{companyName}} are filled in per recipient. Throws
+ * SmtpNotConfigured untouched so the route can answer 409 before anything is recorded.
+ */
+export async function sendToEmployee(
+  to: Pick<Employee, 'id' | 'firstName' | 'lastName' | 'email'>,
+  text: { subject: string; body: string },
+  teamId: number | null,
+  sentAt = new Date().toISOString(),
+): Promise<EmployeeEmail> {
+  const vars = {
+    firstName: to.firstName,
+    lastName: to.lastName,
+    companyName: (await getSmtpSettings()).companyName,
+  }
+  const subject = renderTemplate(text.subject, vars)
+  const body = renderTemplate(text.body, vars)
+  let error: string | null = null
+  try {
+    await sendMail(to.email, subject, body)
+  } catch (err) {
+    if (err instanceof SmtpNotConfigured) throw err
+    error = err instanceof Error ? err.message : String(err)
+  }
+  const status = error ? 'failed' : 'sent'
+  // Only ids and the status reach the log: no address, no subject, no body.
+  log[error ? 'warn' : 'info']('employee-email', { employeeId: to.id, teamId, status })
+  const [row] = await db
+    .insert(employeeEmails)
+    .values({ employeeId: to.id, teamId, subject, body, status, error, sentAt })
+    .returning()
+  return row!
+}
 
 /** Attach each employee's teams (one query for the whole list). */
 export async function withTeams(
@@ -151,4 +192,27 @@ export const employeesRoute = new Hono()
       )
       .returning({ id: employeeNotes.id })
     return rows.length ? c.body(null, 204) : c.json({ error: 'not found' }, 404)
+  })
+  .get('/:id/emails', async (c) => {
+    const id = Number(c.req.param('id'))
+    if (!(await exists(id))) return c.json({ error: 'not found' }, 404)
+    const rows = await db
+      .select()
+      .from(employeeEmails)
+      .where(eq(employeeEmails.employeeId, id))
+      .orderBy(desc(employeeEmails.sentAt), desc(employeeEmails.id))
+    return c.json(rows)
+  })
+  .post('/:id/emails', zValidator('json', sendEmployeeEmailInputSchema), async (c) => {
+    const [to] = await db
+      .select()
+      .from(employees)
+      .where(eq(employees.id, Number(c.req.param('id'))))
+    if (!to) return c.json({ error: 'not found' }, 404)
+    try {
+      return c.json(await sendToEmployee(to, c.req.valid('json'), null), 201)
+    } catch (err) {
+      if (err instanceof SmtpNotConfigured) return c.json({ error: 'smtp not configured' }, 409)
+      throw err
+    }
   })

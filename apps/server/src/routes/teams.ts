@@ -1,15 +1,20 @@
 import { zValidator } from '@hono/zod-validator'
-import { and, eq, getTableColumns, inArray, ne, sql } from 'drizzle-orm'
+import { and, desc, eq, getTableColumns, inArray, ne, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import {
   addMembersSchema,
+  sendTeamEmailInputSchema,
   setMemberRoleSchema,
   teamInputSchema,
   type Team,
   type TeamDetail,
+  type TeamSendResult,
 } from '@hrmit/shared'
 import { db } from '../db/index.ts'
-import { employees, jobs, teamMembers, teams } from '../db/schema.ts'
+import { employeeEmails, employees, jobs, teamMembers, teams } from '../db/schema.ts'
+import { log } from '../log.ts'
+import { SmtpNotConfigured } from '../mail/send.ts'
+import { sendToEmployee } from './employees.ts'
 
 const teamColumns = {
   id: teams.id,
@@ -124,4 +129,51 @@ export const teamsRoute = new Hono()
       .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.employeeId, employeeId)))
       .returning()
     return rows.length ? c.body(null, 204) : c.json({ error: 'not found' }, 404)
+  })
+  // History of what was sent from this team view, with the recipient's name; rows of a deleted
+  // employee are gone with them.
+  .get('/:id/emails', async (c) => {
+    const teamId = Number(c.req.param('id'))
+    if (!(await listTeams(teamId)).length) return c.json({ error: 'not found' }, 404)
+    const rows = await db
+      .select({
+        ...getTableColumns(employeeEmails),
+        name: sql<string>`${employees.firstName} || ' ' || ${employees.lastName}`,
+      })
+      .from(employeeEmails)
+      .innerJoin(employees, eq(employees.id, employeeEmails.employeeId))
+      .where(eq(employeeEmails.teamId, teamId))
+      .orderBy(desc(employeeEmails.sentAt), desc(employeeEmails.id))
+    return c.json(rows)
+  })
+  // One mail per recipient, each sent on its own (no CC/BCC between people). All rows of one
+  // send share sentAt, which is how the UI groups them.
+  .post('/:id/emails', zValidator('json', sendTeamEmailInputSchema), async (c) => {
+    const teamId = Number(c.req.param('id'))
+    const team = await detail(teamId)
+    if (!team) return c.json({ error: 'not found' }, 404)
+    const { employeeIds, subject, body } = c.req.valid('json')
+    const ids = [...new Set(employeeIds)]
+    const members = team.members.filter((m) => ids.includes(m.id))
+    if (members.length !== ids.length) return c.json({ error: 'not a member' }, 400)
+    const result: TeamSendResult = { sent: [], failed: [] }
+    const sentAt = new Date().toISOString()
+    for (const m of members) {
+      let row
+      try {
+        row = await sendToEmployee(m, { subject, body }, teamId, sentAt)
+      } catch (err) {
+        if (err instanceof SmtpNotConfigured) return c.json({ error: 'smtp not configured' }, 409)
+        throw err
+      }
+      if (row.status === 'sent') result.sent.push(row)
+      else
+        result.failed.push({
+          employeeId: m.id,
+          name: `${m.firstName} ${m.lastName}`,
+          error: row.error ?? '',
+        })
+    }
+    log.info('team-email', { teamId, sent: result.sent.length, failed: result.failed.length })
+    return c.json(result, 201)
   })

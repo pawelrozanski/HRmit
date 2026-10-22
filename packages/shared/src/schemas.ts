@@ -430,6 +430,47 @@ export const meetingResultSchema = z.object({
 })
 export type MeetingResult = z.infer<typeof meetingResultSchema>
 
+/**
+ * A message sent (or attempted) to an employee from the panel, plain text. Personal data: gone
+ * with the employee. teamId is set when it was sent from a team view, null once that team is gone.
+ */
+export const employeeEmailSchema = z.object({
+  id: z.number().int(),
+  employeeId: z.number().int(),
+  teamId: z.number().int().nullable(),
+  subject: z.string(),
+  body: z.string(),
+  status: z.enum(['sent', 'failed', 'demo']),
+  /** Sanitized transport error for failed rows; never contains the SMTP password. */
+  error: z.string().nullable(),
+  sentAt: z.string(),
+})
+export type EmployeeEmail = z.infer<typeof employeeEmailSchema>
+
+/** Body of POST /api/employees/:id/emails: the recruiter's own text. */
+export const sendEmployeeEmailInputSchema = z.object({
+  subject: z.string().trim().min(1).max(200),
+  body: z.string().trim().min(1).max(10000),
+})
+export type SendEmployeeEmailInput = z.input<typeof sendEmployeeEmailInputSchema>
+
+/** Body of POST /api/teams/:id/emails: one mail per picked member, each sent on its own. */
+export const sendTeamEmailInputSchema = sendEmployeeEmailInputSchema.extend({
+  employeeIds: z.number().int().array().min(1),
+})
+export type SendTeamEmailInput = z.input<typeof sendTeamEmailInputSchema>
+
+/** GET /api/teams/:id/emails: history rows with the recipient's name, newest first. */
+export const teamEmailSchema = employeeEmailSchema.extend({ name: z.string() })
+export type TeamEmail = z.infer<typeof teamEmailSchema>
+
+/** Answer of POST /api/teams/:id/emails. Failed rows are recorded too; here they carry the name. */
+export const teamSendResultSchema = z.object({
+  sent: employeeEmailSchema.array(),
+  failed: z.object({ employeeId: z.number().int(), name: z.string(), error: z.string() }).array(),
+})
+export type TeamSendResult = z.infer<typeof teamSendResultSchema>
+
 /** Prefill for the new-candidate form, parsed from an uploaded CV. Strings may be empty. */
 export const cvContactSchema = z.object({
   firstName: z.string(),
