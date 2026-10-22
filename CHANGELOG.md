@@ -4,6 +4,12 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-10-22
+
+### Changed
+
+- Employee notes have an optional title (max 120 characters) and a body of up to 5000 characters. A note is added in a dialog ("Add note": title, body, Ctrl+Enter saves) and read in a dialog opened from its row; the list shows only the title (or "Untitled note") and the date. Delete moved into the read dialog, still confirmed. Migration 0010 (additive): `employee_notes.title`, null on existing notes.
+
 ## [0.3.1] - 2026-10-22
 
 ### Added
