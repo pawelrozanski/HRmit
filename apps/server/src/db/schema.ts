@@ -50,6 +50,8 @@ export const employeeNotes = sqliteTable('employee_notes', {
   employeeId: integer('employee_id')
     .notNull()
     .references(() => employees.id, { onDelete: 'cascade' }),
+  /** Optional heading; null when the user left it blank (never a placeholder). */
+  title: text('title'),
   body: text('body').notNull(),
   createdAt: text('created_at').notNull(),
 })

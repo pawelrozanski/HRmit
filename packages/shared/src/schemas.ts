@@ -84,13 +84,18 @@ export type EmployeeWithTeams = z.infer<typeof employeeWithTeamsSchema>
 export const employeeNoteSchema = z.object({
   id: z.number().int(),
   employeeId: z.number().int(),
+  /** Null when blank; the UI shows an "Untitled note" placeholder then. */
+  title: z.string().nullable(),
   body: z.string(),
   createdAt: z.string(),
 })
 export type EmployeeNote = z.infer<typeof employeeNoteSchema>
 
-/** Body of POST /api/employees/:id/notes. */
-export const employeeNoteInputSchema = z.object({ body: z.string().trim().min(1).max(2000) })
+/** Body of POST /api/employees/:id/notes. A blank title is stored as null. */
+export const employeeNoteInputSchema = z.object({
+  title: z.string().trim().max(120).optional(),
+  body: z.string().trim().min(1).max(5000),
+})
 export type EmployeeNoteInput = z.input<typeof employeeNoteInputSchema>
 
 /** A team as stored. Names are unique case-insensitively. */

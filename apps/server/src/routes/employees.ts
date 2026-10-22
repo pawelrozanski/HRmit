@@ -132,9 +132,10 @@ export const employeesRoute = new Hono()
   .post('/:id/notes', zValidator('json', employeeNoteInputSchema), async (c) => {
     const id = Number(c.req.param('id'))
     if (!(await exists(id))) return c.json({ error: 'not found' }, 404)
+    const { title, body } = c.req.valid('json')
     const [row] = await db
       .insert(employeeNotes)
-      .values({ employeeId: id, ...c.req.valid('json'), createdAt: new Date().toISOString() })
+      .values({ employeeId: id, title: title || null, body, createdAt: new Date().toISOString() })
       .returning()
     return c.json(row!, 201)
   })

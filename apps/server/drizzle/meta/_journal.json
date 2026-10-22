@@ -71,6 +71,13 @@
       "when": 1792625937414,
       "tag": "0009_employee_notes",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1792666680468,
+      "tag": "0010_note_title",
+      "breakpoints": true
     }
   ]
 }

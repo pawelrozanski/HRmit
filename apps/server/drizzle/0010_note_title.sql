@@ -1,0 +1,1 @@
+ALTER TABLE `employee_notes` ADD `title` text;

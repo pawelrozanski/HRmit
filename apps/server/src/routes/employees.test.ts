@@ -99,20 +99,28 @@ test('employee notes: newest first, add, validate, delete, cascade with the empl
   })
   const employee = employeeWithTeamsSchema.parse(await created.json())
   expect(employee.noteCount).toBe(0)
-  const post = (id: number, body: string) => json('POST', `/api/employees/${id}/notes`, { body })
+  const del = (eid: number, nid: number) =>
+    app.request(`/api/employees/${eid}/notes/${nid}`, { method: 'DELETE' })
+  const post = (id: number, body: string, title?: string) =>
+    json('POST', `/api/employees/${id}/notes`, { body, title })
   expect((await post(employee.id, '  ')).status).toBe(400)
+  expect((await post(employee.id, 'x', 'a'.repeat(121))).status).toBe(400)
   expect((await post(9999, 'x')).status).toBe(404)
-  const posted = await post(employee.id, '  Hello\nthere  ')
+  const posted = await post(employee.id, '  Hello\nthere  ', '  ')
   expect(posted.status).toBe(201)
   const note = employeeNoteSchema.parse(await posted.json())
-  expect(note).toMatchObject({ employeeId: employee.id, body: 'Hello\nthere' })
+  expect(note).toMatchObject({ employeeId: employee.id, title: null, body: 'Hello\nthere' })
+  const titled = employeeNoteSchema.parse(
+    await (await post(employee.id, 'x', ' Availability ')).json(),
+  )
+  expect(titled.title).toBe('Availability')
+  expect((await notes(employee.id)).map((n) => n.title)).toEqual(['Availability', null])
+  await del(employee.id, titled.id)
   expect((await notes(employee.id)).map((n) => n.id)).toEqual([note.id])
   const get = async () =>
     employeeWithTeamsSchema.parse(await (await app.request(`/api/employees/${employee.id}`)).json())
   expect((await get()).noteCount).toBe(1)
 
-  const del = (eid: number, nid: number) =>
-    app.request(`/api/employees/${eid}/notes/${nid}`, { method: 'DELETE' })
   expect((await del(4, note.id)).status).toBe(404)
   expect((await del(employee.id, note.id)).status).toBe(204)
   expect((await del(employee.id, note.id)).status).toBe(404)
