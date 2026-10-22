@@ -541,7 +541,8 @@ export const handlers = [
     const note = {
       id: nextId(store.employeeNotes),
       employeeId: id,
-      ...body.data,
+      title: body.data.title || null,
+      body: body.data.body,
       createdAt: new Date().toISOString(),
     }
     store.employeeNotes.push(note)

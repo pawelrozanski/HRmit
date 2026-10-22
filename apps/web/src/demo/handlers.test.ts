@@ -483,10 +483,13 @@ test('demo employee notes: newest first, add, delete, 404s, gone with the employ
   expect((await notes(4)).map((n) => n.body)[0]).toBe('Out of office 20-24 October.')
   expect((await fetch('http://localhost/api/employees/9999/notes')).status).toBe(404)
   expect((await send('POST', '/api/employees/1/notes', { body: ' ' })).status).toBe(400)
-  const posted = await send('POST', '/api/employees/1/notes', { body: ' Likes Tuesdays ' })
+  const posted = await send('POST', '/api/employees/1/notes', {
+    title: ' ',
+    body: ' Likes Tuesdays ',
+  })
   expect(posted.status).toBe(201)
   const note = employeeNoteSchema.parse(await posted.json())
-  expect(note).toMatchObject({ employeeId: 1, body: 'Likes Tuesdays' })
+  expect(note).toMatchObject({ employeeId: 1, title: null, body: 'Likes Tuesdays' })
   expect((await notes(1)).map((n) => n.id)).toEqual([note.id])
   expect(employeeWithTeamsSchema.parse(await get('/api/employees/1')).noteCount).toBe(1)
   expect(persisted().employeeNotes?.some((n) => n.id === note.id)).toBe(true)

@@ -65,11 +65,15 @@ function load(): Store {
         emails: structuredClone(fixtures.emails),
         meetings: structuredClone(fixtures.meetings),
         employees: structuredClone(fixtures.employees),
-        employeeNotes: structuredClone(fixtures.employeeNotes),
         teams: structuredClone(fixtures.teams),
         teamMembers: structuredClone(fixtures.teamMembers),
         ...saved,
         jobs: (saved.jobs ?? []).map((j) => ({ ...j, teamId: j.teamId ?? null })),
+        // Notes saved before 0.3.2 have no title.
+        employeeNotes: (saved.employeeNotes ?? fixtures.employeeNotes).map((n) => ({
+          ...n,
+          title: n.title ?? null,
+        })),
       } as Store
     }
   } catch {
