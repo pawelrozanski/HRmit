@@ -115,12 +115,8 @@
           "name": "candidates_job_id_jobs_id_fk",
           "tableFrom": "candidates",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -179,9 +175,7 @@
       "indexes": {
         "email_templates_name_unique": {
           "name": "email_templates_name_unique",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": true
         }
       },
@@ -256,12 +250,8 @@
           "name": "emails_candidate_id_candidates_id_fk",
           "tableFrom": "emails",
           "tableTo": "candidates",
-          "columnsFrom": [
-            "candidate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["candidate_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -336,12 +326,8 @@
           "name": "employee_emails_employee_id_employees_id_fk",
           "tableFrom": "employee_emails",
           "tableTo": "employees",
-          "columnsFrom": [
-            "employee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["employee_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -349,12 +335,8 @@
           "name": "employee_emails_team_id_teams_id_fk",
           "tableFrom": "employee_emails",
           "tableTo": "teams",
-          "columnsFrom": [
-            "team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["team_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -408,12 +390,8 @@
           "name": "employee_notes_employee_id_employees_id_fk",
           "tableFrom": "employee_notes",
           "tableTo": "employees",
-          "columnsFrom": [
-            "employee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["employee_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -532,10 +510,7 @@
       "indexes": {
         "evaluations_candidate_id_question_id_unique": {
           "name": "evaluations_candidate_id_question_id_unique",
-          "columns": [
-            "candidate_id",
-            "question_id"
-          ],
+          "columns": ["candidate_id", "question_id"],
           "isUnique": true
         }
       },
@@ -544,12 +519,8 @@
           "name": "evaluations_candidate_id_candidates_id_fk",
           "tableFrom": "evaluations",
           "tableTo": "candidates",
-          "columnsFrom": [
-            "candidate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["candidate_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -557,12 +528,8 @@
           "name": "evaluations_question_id_interview_questions_id_fk",
           "tableFrom": "evaluations",
           "tableTo": "interview_questions",
-          "columnsFrom": [
-            "question_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["question_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -616,12 +583,8 @@
           "name": "interview_questions_job_id_jobs_id_fk",
           "tableFrom": "interview_questions",
           "tableTo": "jobs",
-          "columnsFrom": [
-            "job_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["job_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -684,12 +647,8 @@
           "name": "jobs_team_id_teams_id_fk",
           "tableFrom": "jobs",
           "tableTo": "teams",
-          "columnsFrom": [
-            "team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["team_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -750,12 +709,8 @@
           "name": "meetings_candidate_id_candidates_id_fk",
           "tableFrom": "meetings",
           "tableTo": "candidates",
-          "columnsFrom": [
-            "candidate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["candidate_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -763,12 +718,8 @@
           "name": "meetings_email_id_emails_id_fk",
           "tableFrom": "meetings",
           "tableTo": "emails",
-          "columnsFrom": [
-            "email_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["email_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -833,12 +784,8 @@
           "name": "team_members_team_id_teams_id_fk",
           "tableFrom": "team_members",
           "tableTo": "teams",
-          "columnsFrom": [
-            "team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["team_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -846,22 +793,15 @@
           "name": "team_members_employee_id_employees_id_fk",
           "tableFrom": "team_members",
           "tableTo": "employees",
-          "columnsFrom": [
-            "employee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["employee_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "team_members_team_id_employee_id_pk": {
-          "columns": [
-            "team_id",
-            "employee_id"
-          ],
+          "columns": ["team_id", "employee_id"],
           "name": "team_members_team_id_employee_id_pk"
         }
       },
@@ -904,9 +844,7 @@
       "indexes": {
         "teams_name_unique": {
           "name": "teams_name_unique",
-          "columns": [
-            "lower(\"name\")"
-          ],
+          "columns": ["lower(\"name\")"],
           "isUnique": true
         }
       },

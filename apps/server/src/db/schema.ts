@@ -7,11 +7,7 @@ import {
   unique,
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
-import {
-  PIPELINE_STAGES,
-  TEAM_MEMBER_ROLES,
-  type AiSummary,
-} from '@hrmit/shared'
+import { PIPELINE_STAGES, TEAM_MEMBER_ROLES, type AiSummary } from '@hrmit/shared'
 
 // docs/ARCHITECTURE.md §3.
 

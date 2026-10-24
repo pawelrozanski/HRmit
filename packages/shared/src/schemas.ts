@@ -325,14 +325,14 @@ export type AiModels = z.infer<typeof aiModelsSchema>
 export const EMAIL_TEMPLATE_KEYS = ['invite', 'reminder', 'rejection'] as const
 export type BuiltInTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number]
 
-/** Body of POST /api/templates and PUT /api/templates/:key. '' description is stored as null. */
+/** Body of POST /api/templates and PUT /api/templates/:key. An empty description is stored as null. */
 export const emailTemplateInputSchema = z.object({
   name: z.string().trim().min(1).max(80),
   description: z
     .string()
     .trim()
     .max(200)
-    .optional()
+    .nullish()
     .transform((v) => v || null),
   subject: z.string().min(1),
   body: z.string().min(1),
