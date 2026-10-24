@@ -17,12 +17,12 @@ test('GET /api/dashboard: fixtures give counts, a funnel and no contact fields',
   const d = await load()
   expect(d.counts.openJobs).toBe(fixtures.jobs.filter((j) => j.status === 'open').length)
   expect(d.counts.teams).toBe(fixtures.teams.length)
-  // Fixture meetings are in the past: nothing this week.
+  // Fixture meetings are demo-only, never seeded into the database: nothing this week.
   expect(d.meetings).toEqual([])
   expect(d.counts.meetingsThisWeek).toBe(0)
-  // Fixture stageChangedAt is 2026-09-01, so every non-rejected candidate of an open job is stuck.
-  expect(d.stuck.length).toBe(d.counts.activeCandidates)
-  expect(d.stuck.every((s) => s.stage !== 'rejected' && s.days >= 7)).toBe(true)
+  // Relative fixture dates: Samuel (12 days) and Theo (9 days) wait 7 days or more; job 3 is closed.
+  expect(d.stuck.map((s) => s.candidateId)).toEqual([8, 2])
+  expect(d.stuck[0]).toMatchObject({ stage: 'screening', days: 12 })
   // Closed job 3 is out of the funnel and of the stuck list.
   expect(d.openJobs.map((j) => j.id)).toEqual([1, 2, 4])
   expect(d.stuck.some((s) => s.jobId === 3)).toBe(false)

@@ -6,6 +6,7 @@ import {
   aiTestResultSchema,
   candidateSchema,
   cvImportSchema,
+  dashboardSchema,
   emailPreviewSchema,
   emailSchema,
   emailTemplateSchema,
@@ -64,6 +65,24 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterAll(() => server.close())
 
 const get = (path: string) => fetch(`http://localhost${path}`).then((r) => r.json())
+
+test('demo GET /api/dashboard: relative fixtures give meetings, stuck rows and a failed email', async () => {
+  const d = dashboardSchema.parse(await get('/api/dashboard'))
+  expect(d.counts).toMatchObject({ openJobs: 3, teams: 4, meetingsThisWeek: 2 })
+  expect(d.meetings.map((m) => m.candidateId)).toEqual([1, 7])
+  // Theo (9 days) and Samuel (12 days); job 3 is closed, so its long waits do not count.
+  expect(d.stuck.map((s) => s.candidateId)).toEqual([8, 2])
+  expect(
+    (await get('/api/dashboard?stuckDays=10')).stuck.map(
+      (s: { candidateId: number }) => s.candidateId,
+    ),
+  ).toEqual([8])
+  expect(d.missingScores.map((m) => m.candidateId)).toEqual([4, 7])
+  expect(d.openJobs.find((j) => j.id === 1)?.stages).toMatchObject({ applied: 2, interview: 1 })
+  expect(d.failedEmails).toMatchObject([{ kind: 'candidate', targetId: 2, jobId: 1 }])
+  expect(JSON.stringify(d)).not.toMatch(/@example.com/)
+  expect((await fetch('http://localhost/api/dashboard?stuckDays=0')).status).toBe(400)
+})
 
 test('demo GET /api/jobs returns the fixtures', async () => {
   expect(jobSchema.array().parse(await get('/api/jobs'))).toEqual(fixtures.jobs)

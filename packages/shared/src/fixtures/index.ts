@@ -1,4 +1,7 @@
 import type { Candidate, Job } from '../schemas.ts'
+import { daysFromNow } from './dates.ts'
+
+export { daysFromNow } from './dates.ts'
 
 export { ai } from './ai/index.ts'
 export { questions } from './questions.ts'
@@ -58,28 +61,30 @@ type Seed = [
   lastName: string,
   stage: Candidate['stage'],
   notes: string,
+  /** Days since the last stage change; two of them wait long enough to show on the dashboard. */
+  daysInStage: number,
 ]
 
 const seeds: Seed[] = [
-  [1, 'Amelia', 'Hartwell', 'interview', 'Portfolio shows a strong eye for accessible forms.'],
-  [1, 'Theo', 'Blackwood', 'screening', 'Three years with React, asked about remote setup.'],
-  [1, 'Priya', 'Lennox', 'applied', ''],
-  [1, 'Marcus', 'Fairbanks', 'offer', 'Offer sent on 15 Sep, awaiting answer.'],
-  [1, 'Ingrid', 'Solberg', 'rejected', 'Looking for a backend-heavy role.'],
-  [1, 'Oliver', 'Penhaligon', 'applied', ''],
-  [2, 'Beatrice', 'Ashcombe', 'interview', 'Ran structured interviews at a previous company.'],
-  [2, 'Samuel', 'Okonkwo', 'screening', ''],
-  [2, 'Harriet', 'Vance', 'applied', ''],
-  [2, 'Dmitri', 'Kovalenko', 'rejected', 'Salary expectations above the range.'],
-  [2, 'Clara', 'Whitmore', 'applied', 'Referred by the engineering manager.'],
-  [3, 'Jonah', 'Redfern', 'offer', ''],
-  [3, 'Elise', 'Marchetti', 'interview', 'Bilingual, support experience in SaaS.'],
-  [3, 'Rowan', 'Castellanos', 'screening', ''],
-  [3, 'Felix', 'Brandt', 'applied', ''],
+  [1, 'Amelia', 'Hartwell', 'interview', 'Portfolio shows a strong eye for accessible forms.', 3],
+  [1, 'Theo', 'Blackwood', 'screening', 'Three years with React, asked about remote setup.', 9],
+  [1, 'Priya', 'Lennox', 'applied', '', 1],
+  [1, 'Marcus', 'Fairbanks', 'offer', 'Offer sent last week, awaiting answer.', 5],
+  [1, 'Ingrid', 'Solberg', 'rejected', 'Looking for a backend-heavy role.', 6],
+  [1, 'Oliver', 'Penhaligon', 'applied', '', 2],
+  [2, 'Beatrice', 'Ashcombe', 'interview', 'Ran structured interviews at a previous company.', 4],
+  [2, 'Samuel', 'Okonkwo', 'screening', '', 12],
+  [2, 'Harriet', 'Vance', 'applied', '', 2],
+  [2, 'Dmitri', 'Kovalenko', 'rejected', 'Salary expectations above the range.', 8],
+  [2, 'Clara', 'Whitmore', 'applied', 'Referred by the engineering manager.', 1],
+  [3, 'Jonah', 'Redfern', 'offer', '', 20],
+  [3, 'Elise', 'Marchetti', 'interview', 'Bilingual, support experience in SaaS.', 25],
+  [3, 'Rowan', 'Castellanos', 'screening', '', 30],
+  [3, 'Felix', 'Brandt', 'applied', '', 33],
 ]
 
 export const candidates: Candidate[] = seeds.map(
-  ([jobId, firstName, lastName, stage, notes], i) => ({
+  ([jobId, firstName, lastName, stage, notes, daysInStage], i) => ({
     id: i + 1,
     jobId,
     firstName,
@@ -87,7 +92,7 @@ export const candidates: Candidate[] = seeds.map(
     email: `${firstName}.${lastName}@example.com`.toLowerCase(),
     phone: `+48 600 000 ${String(100 + i).padStart(3, '0')}`,
     stage,
-    stageChangedAt: T,
+    stageChangedAt: daysFromNow(-daysInStage),
     notes,
     cvFilename: null,
     cvText: null,

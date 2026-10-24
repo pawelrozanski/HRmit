@@ -30,6 +30,7 @@ import {
   type AiModels,
   type AiTestResult,
   type CvImport,
+  type Dashboard,
   type EmployeeEmail,
   type TeamSendResult,
   type Email,
@@ -46,6 +47,7 @@ import {
   type Team,
   type TeamDetail,
   type TemplateVars,
+  PIPELINE_STAGES,
   VERSION,
 } from '@hrmit/shared'
 import { save, store } from './store.ts'
@@ -179,11 +181,119 @@ const teamIdParam = (request: Request) => {
   return Number.isInteger(teamId) ? teamId : NaN
 }
 
+/**
+ * Same rules as the server route (apps/server/src/routes/dashboard.ts), computed from the store so
+ * a move on the board shows up here at once.
+ */
+function dashboard(stuckDays: number): Dashboard {
+  const DAY = 86_400_000
+  const now = Date.now()
+  const openJobs = store.jobs.filter((j) => j.status === 'open')
+  const jobOf = (c: { jobId: number }) => store.jobs.find((j) => j.id === c.jobId)!
+  const person = (c: (typeof store.candidates)[number]) => ({
+    candidateId: c.id,
+    firstName: c.firstName,
+    lastName: c.lastName,
+    jobId: c.jobId,
+    jobTitle: jobOf(c).title,
+  })
+  const active = store.candidates.filter(
+    (c) => jobOf(c).status === 'open' && c.stage !== 'rejected',
+  )
+  const meetings = store.meetings
+    .filter((m) => {
+      const t = Date.parse(m.startsAt)
+      return t >= now && t < now + 7 * DAY
+    })
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .map((m) => {
+      const c = store.candidates.find((x) => x.id === m.candidateId)!
+      return {
+        ...person(c),
+        id: m.id,
+        startsAt: m.startsAt,
+        durationMin: m.durationMin,
+        jitsiUrl: m.jitsiUrl,
+      }
+    })
+  const stuck = active
+    .filter((c) => now - Date.parse(c.stageChangedAt) >= stuckDays * DAY)
+    .sort((a, b) => a.stageChangedAt.localeCompare(b.stageChangedAt))
+    .map((c) => ({
+      ...person(c),
+      stage: c.stage,
+      days: Math.floor((now - Date.parse(c.stageChangedAt)) / DAY),
+    }))
+  const missingScores = active
+    .filter((c) => c.stage === 'interview' || c.stage === 'offer')
+    .map((c) => ({
+      ...person(c),
+      scored: store.evaluations.filter((e) => e.candidateId === c.id && e.score !== null).length,
+      total: store.questions.filter((q) => q.jobId === c.jobId).length,
+    }))
+    .filter((r) => r.total > 0 && r.scored < r.total)
+  const since = now - 30 * DAY
+  const failedEmails: Dashboard['failedEmails'] = [
+    ...store.emails
+      .filter((e) => e.status === 'failed' && Date.parse(e.sentAt) > since)
+      .map((e) => ({
+        kind: 'candidate' as const,
+        id: e.id,
+        targetId: e.candidateId,
+        jobId: store.candidates.find((c) => c.id === e.candidateId)?.jobId ?? null,
+        teamId: null,
+        subject: e.subject,
+        sentAt: e.sentAt,
+      })),
+    ...store.employeeEmails
+      .filter((e) => e.status === 'failed' && Date.parse(e.sentAt) > since)
+      .map((e) => ({
+        kind: 'employee' as const,
+        id: e.id,
+        targetId: e.employeeId,
+        jobId: null,
+        teamId: e.teamId,
+        subject: e.subject,
+        sentAt: e.sentAt,
+      })),
+  ].sort((a, b) => b.sentAt.localeCompare(a.sentAt))
+  return {
+    counts: {
+      openJobs: openJobs.length,
+      activeCandidates: active.length,
+      meetingsThisWeek: meetings.length,
+      teams: store.teams.length,
+    },
+    meetings,
+    stuck,
+    missingScores,
+    openJobs: openJobs.map((j) => ({
+      id: j.id,
+      title: j.title,
+      teamName: store.teams.find((t) => t.id === j.teamId)?.name ?? null,
+      stages: Object.fromEntries(
+        PIPELINE_STAGES.map((s) => [
+          s,
+          store.candidates.filter((c) => c.jobId === j.id && c.stage === s).length,
+        ]),
+      ) as Dashboard['openJobs'][number]['stages'],
+    })),
+    failedEmails,
+  }
+}
+
 /** One handler per server route. Must return shapes that pass the shared zod schemas. */
 export const handlers = [
   http.get(`${base}/api/health`, () =>
     HttpResponse.json<Health>({ ok: true, mode: 'demo', version: VERSION }),
   ),
+  http.get(`${base}/api/dashboard`, ({ request }) => {
+    const raw = new URL(request.url).searchParams.get('stuckDays')
+    const stuckDays = raw === null ? 7 : Number(raw)
+    if (!Number.isInteger(stuckDays) || stuckDays < 1 || stuckDays > 365)
+      return HttpResponse.json({ error: 'invalid stuckDays' }, { status: 400 })
+    return HttpResponse.json<Dashboard>(dashboard(stuckDays))
+  }),
   http.get(`${base}/api/jobs`, ({ request }) => {
     const teamId = teamIdParam(request)
     if (Number.isNaN(teamId)) return HttpResponse.json({ error: 'invalid teamId' }, { status: 400 })

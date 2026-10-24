@@ -1,4 +1,5 @@
 import type { Email, EmailTemplate } from '../schemas.ts'
+import { daysFromNow } from './dates.ts'
 
 /** Seeded into email_templates on first run and into the demo store. Plain text, editable. */
 export const emailTemplates: EmailTemplate[] = [
@@ -78,5 +79,18 @@ export const emails: Email[] = [
     status: 'sent',
     sentAt: '2026-09-04T09:30:00.000Z',
     error: null,
+  },
+  // One failed send two days ago, so the dashboard has something to point at.
+  {
+    id: 4,
+    candidateId: 2,
+    templateKey: 'reminder',
+    subject: 'Reminder: your interview for Frontend Developer (React)',
+    body: `Hello Theo,
+
+A short reminder about your interview for the Frontend Developer (React) position at ${COMPANY}.${sign}`,
+    status: 'failed',
+    sentAt: daysFromNow(-2),
+    error: 'Connection refused by smtp.northwind.example:587',
   },
 ]
