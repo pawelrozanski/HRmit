@@ -499,6 +499,7 @@
       "noTools": "This model cannot call tools, so the assistant cannot read your data. Pick a model that supports tools, for example qwen2.5:7b-instruct or llama3.1:8b.",
       "failed": "The assistant did not answer: {{error}}",
       "settings": "Open AI settings"
-    }
+    },
+    "demoHint": "Demo mode: the assistant answers the suggested questions from the fixtures; the full chat with a local model works in the local version."
   }
 }

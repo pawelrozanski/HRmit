@@ -29,6 +29,8 @@ import {
   type AiSummary,
   type AiModels,
   type AiTestResult,
+  chatRequestSchema,
+  type ChatEvent,
   type CvImport,
   type Dashboard,
   type EmployeeEmail,
@@ -50,6 +52,7 @@ import {
   PIPELINE_STAGES,
   VERSION,
 } from '@hrmit/shared'
+import { demoAnswer } from './chat.ts'
 import { save, store } from './store.ts'
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -440,6 +443,31 @@ export const handlers = [
     return HttpResponse.json(store.aiSettings)
   }),
   // The demo has no Ollama: a fixed list after a short pause, empty for other providers.
+  // No model on GitHub Pages: a scenario built from the store, streamed like the server does
+  // (a pseudo tool status, then the text in small pieces), so the panel code is the same.
+  http.post(`${base}/api/ai/chat`, async ({ request }) => {
+    const body = chatRequestSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const { messages, context, lang } = body.data
+    const { tool, text, refs } = demoAnswer(messages.at(-1)!.content, context, lang)
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const send = async (e: ChatEvent, ms: number) => {
+          controller.enqueue(encoder.encode(JSON.stringify(e) + '\n'))
+          await delay(ms)
+        }
+        if (tool) await send({ type: 'tool', name: tool }, 700)
+        for (const piece of text.split(/(?<=s)/)) await send({ type: 'text', text: piece }, 25)
+        await send({ type: 'refs', refs }, 0)
+        await send({ type: 'done' }, 0)
+        controller.close()
+      },
+    })
+    return new HttpResponse(stream, {
+      headers: { 'content-type': 'application/x-ndjson; charset=utf-8' },
+    })
+  }),
   http.get(`${base}/api/ai/models`, async () => {
     await delay(300)
     return HttpResponse.json<AiModels>({

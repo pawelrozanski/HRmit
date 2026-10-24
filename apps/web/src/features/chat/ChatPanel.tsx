@@ -21,7 +21,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet.tsx'
 import { Textarea } from '@/components/ui/textarea.tsx'
-import { APP_ROOT } from '@/config.ts'
+import { APP_ROOT, IS_DEMO } from '@/config.ts'
 import { readBlind } from '../candidates/BlindContext.ts'
 import { useChat, type ChatMessage } from './ChatState.tsx'
 import { segments } from './chatText.ts'
@@ -138,7 +138,11 @@ export function ChatPanel() {
             )}
           </SheetTitle>
           <SheetDescription>
-            {isLocal === false ? t('chat.cloudHint') : t('chat.hint')}
+            {IS_DEMO
+              ? t('chat.demoHint')
+              : isLocal === false
+                ? t('chat.cloudHint')
+                : t('chat.hint')}
           </SheetDescription>
         </SheetHeader>
 

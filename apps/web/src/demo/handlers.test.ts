@@ -6,6 +6,7 @@ import {
   aiTestResultSchema,
   candidateSchema,
   cvImportSchema,
+  chatEventSchema,
   dashboardSchema,
   emailPreviewSchema,
   emailSchema,
@@ -65,6 +66,49 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterAll(() => server.close())
 
 const get = (path: string) => fetch(`http://localhost${path}`).then((r) => r.json())
+
+test('demo POST /api/ai/chat: scenarios stream like the server, unknown questions get the demo note', async () => {
+  const chat = async (content: string, context = { view: 'dashboard' }, lang = 'en') => {
+    const res = await fetch('http://localhost/api/ai/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content }], context, lang }),
+    })
+    expect(res.headers.get('content-type')).toContain('x-ndjson')
+    const events = (await res.text())
+      .trim()
+      .split('\n')
+      .map((l) => chatEventSchema.parse(JSON.parse(l)))
+    const text = events.flatMap((e) => (e.type === 'text' ? [e.text] : [])).join('')
+    const refs = events.find((e) => e.type === 'refs')
+    return {
+      types: [...new Set(events.map((e) => e.type))],
+      text,
+      refs: refs?.type === 'refs' ? refs.refs : undefined,
+    }
+  }
+  const longest = await chat('Who has been waiting the longest?')
+  expect(longest.types).toEqual(['tool', 'text', 'refs', 'done'])
+  expect(longest.text).toContain('Samuel Okonkwo')
+  expect(longest.refs?.candidates['8']).toEqual({ name: 'Samuel Okonkwo', jobId: 2 })
+  // The portfolio scenario: no ranking, facts and the decision named as the recruiter's.
+  const best = await chat('Kto jest najlepszym kandydatem?', { view: 'recruitment', id: 1 }, 'pl')
+  expect(best.text).toMatch(/Nie rankinguję/)
+  expect(best.text).toContain('Amelia Hartwell')
+  expect(best.text).toMatch(/decyzja należy do Ciebie/)
+  const other = await chat('What is the meaning of life?')
+  expect(other.types).toEqual(['text', 'refs', 'done'])
+  expect(other.text).toContain('suggested questions')
+  expect(
+    (
+      await fetch('http://localhost/api/ai/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      })
+    ).status,
+  ).toBe(400)
+})
 
 test('demo GET /api/dashboard: relative fixtures give meetings, stuck rows and a failed email', async () => {
   const d = dashboardSchema.parse(await get('/api/dashboard'))

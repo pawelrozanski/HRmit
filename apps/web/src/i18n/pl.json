@@ -529,6 +529,7 @@
       "noTools": "Ten model nie obsługuje narzędzi, więc asystent nie może czytać Twoich danych. Wybierz model z obsługą narzędzi, np. qwen2.5:7b-instruct lub llama3.1:8b.",
       "failed": "Asystent nie odpowiedział: {{error}}",
       "settings": "Otwórz ustawienia AI"
-    }
+    },
+    "demoHint": "Tryb demo: asystent odpowiada na podpowiedzi z danych demo; pełny czat z lokalnym modelem działa w wersji lokalnej."
   }
 }
