@@ -179,7 +179,10 @@ erDiagram
     text jitsi_url
   }
   email_templates {
-    text key PK "invite | reminder | rejection"
+    text key PK "built-in name or a random id"
+    int built_in
+    text name "null on a built-in: the UI shows the translated default"
+    text description
     text subject
     text body
   }
@@ -230,6 +233,7 @@ Calling `api.api.candidates.$get()` in the UI is type-checked against the server
 | questions   | list by job, update, reorder                                                                                                                                                                                                                                                                                                                                                |
 | evaluations | `GET /candidates/:id/scorecard` (questions joined with evaluations), `PUT` (upsert)                                                                                                                                                                                                                                                                                         |
 | emails      | list by candidate, send from template, preview                                                                                                                                                                                                                                                                                                                              |
+| templates   | list, create, update, delete (custom only), restore (built-in only)                                                                                                                                                                                                                                                                                                         |
 | meetings    | create (generates Jitsi link and sends the `.ics` invite)                                                                                                                                                                                                                                                                                                                   |
 | settings    | get (secrets masked), update                                                                                                                                                                                                                                                                                                                                                |
 
@@ -347,7 +351,7 @@ sequenceDiagram
   S-->>R: 201 {meeting, email}
 ```
 
-- Templates (`invite`, `reminder`, `rejection`) are seeded rows in `email_templates`, editable in the UI. Placeholders are substituted with a small `replace` loop; no templating library.
+- Templates live in `email_templates`. The three built-ins (`invite`, `reminder`, `rejection`) are seeded on every start, can be edited and restored to the shipped text, never deleted; custom templates (0.6.0) get a random key and can be deleted. `name` and `description` are for the recruiter and stay null on a built-in until renamed, so the UI shows the translated default and follows the language switch. Names are unique (case-insensitive check in the route, unique index underneath). `emails.template_key` is plain text with no foreign key: a deleted custom template leaves the history untouched, the UI shows subject and date only. Placeholders are substituted with a small `replace` loop; no templating library.
 - The `.ics` file is a 15-line string built by hand (`BEGIN:VCALENDAR` …). No dependency.
 - Jitsi needs no account and no API: a room exists the moment someone opens the URL. Google Meet is out of MVP (needs OAuth).
 - SMTP credentials live in `settings`, password encrypted. A "Send test email" button validates the config.
