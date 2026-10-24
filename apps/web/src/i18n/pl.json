@@ -33,6 +33,7 @@
     "docs": "Dokumentacja"
   },
   "nav": {
+    "dashboard": "Pulpit",
     "recruitments": "Rekrutacje",
     "employees": "Pracownicy",
     "teams": "Zespoły",
@@ -447,6 +448,45 @@
       "count_few": "{{count}} notatki",
       "count_many": "{{count}} notatek",
       "count_other": "{{count}} notatki"
+    }
+  },
+  "dashboard": {
+    "title": "Pulpit",
+    "counts": {
+      "openJobs": "Otwarte rekrutacje",
+      "activeCandidates": "Aktywni kandydaci",
+      "meetingsThisWeek": "Rozmowy w tym tygodniu",
+      "teams": "Zespoły"
+    },
+    "meetings": {
+      "title": "Rozmowy w najbliższych 7 dniach",
+      "empty": "Brak rozmów w najbliższych siedmiu dniach.",
+      "join": "Otwórz Jitsi"
+    },
+    "stuck": {
+      "title": "Czekają na etapie",
+      "minDays": "co najmniej dni:",
+      "empty": "Nikt nie czeka na etapie {{days}} dni lub dłużej.",
+      "days_one": "{{count}} dzień",
+      "days_few": "{{count}} dni",
+      "days_many": "{{count}} dni",
+      "days_other": "{{count}} dni"
+    },
+    "scores": {
+      "title": "Brakujące oceny",
+      "empty": "Każdy kandydat na etapie rozmowy lub oferty ma pełny scorecard.",
+      "progress": "ocenione {{scored}} z {{total}}"
+    },
+    "jobs": {
+      "title": "Otwarte rekrutacje",
+      "empty": "Brak otwartych rekrutacji."
+    },
+    "failed": {
+      "title": "Nieudane wiadomości (ostatnie 30 dni)",
+      "empty": "Brak nieudanych wiadomości z ostatnich 30 dni.",
+      "candidate": "Kandydat",
+      "employee": "Pracownik",
+      "hint": "Otwórz wiersz, aby ponowić wiadomość z historii."
     }
   }
 }

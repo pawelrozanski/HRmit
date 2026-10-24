@@ -33,6 +33,7 @@
     "docs": "Docs"
   },
   "nav": {
+    "dashboard": "Dashboard",
     "recruitments": "Recruitments",
     "employees": "Employees",
     "teams": "Teams",
@@ -419,6 +420,43 @@
       "failed": "Could not save the change. Try again.",
       "count_one": "{{count}} note",
       "count_other": "{{count}} notes"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "counts": {
+      "openJobs": "Open recruitments",
+      "activeCandidates": "Active candidates",
+      "meetingsThisWeek": "Interviews this week",
+      "teams": "Teams"
+    },
+    "meetings": {
+      "title": "Interviews in the next 7 days",
+      "empty": "No interviews in the next seven days.",
+      "join": "Open Jitsi"
+    },
+    "stuck": {
+      "title": "Waiting in a stage",
+      "minDays": "at least days:",
+      "empty": "Nobody has waited {{days}} days or more in a stage.",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days"
+    },
+    "scores": {
+      "title": "Missing scores",
+      "empty": "Every candidate in interview or offer has a complete scorecard.",
+      "progress": "{{scored}} of {{total}} scored"
+    },
+    "jobs": {
+      "title": "Open recruitments",
+      "empty": "No open recruitments."
+    },
+    "failed": {
+      "title": "Failed emails (last 30 days)",
+      "empty": "No failed emails in the last 30 days.",
+      "candidate": "Candidate",
+      "employee": "Employee",
+      "hint": "Open the row to resend the message from its history."
     }
   }
 }

@@ -1,8 +1,9 @@
-import { Briefcase, Settings, Users, UsersRound } from 'lucide-react'
+import { Briefcase, LayoutDashboard, Settings, Users, UsersRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, NavLink, Route, Routes, useParams } from 'react-router'
 import { Mark, Wordmark } from '../components/Brand.tsx'
 import { APP_ROOT as root } from '../config.ts'
+import { DashboardPage } from '../features/dashboard/DashboardPage.tsx'
 import { CandidatesPage } from '../features/candidates/CandidatesPage.tsx'
 import { EmployeesPage } from '../features/employees/EmployeesPage.tsx'
 import { RecruitmentsPage } from '../features/recruitments/RecruitmentsPage.tsx'
@@ -39,6 +40,10 @@ export function Home() {
           </Link>
         </h1>
         <nav className="flex flex-wrap items-center gap-4 text-sm">
+          <NavLink to={`${root}/dashboard`} className={navLink}>
+            <LayoutDashboard aria-hidden="true" />
+            {t('nav.dashboard')}
+          </NavLink>
           <NavLink to={`${root}/recruitments`} className={navLink}>
             <Briefcase aria-hidden="true" />
             {t('nav.recruitments')}
@@ -59,7 +64,8 @@ export function Home() {
       </header>
       <main id="main" tabIndex={-1} className="outline-none">
         <Routes>
-          <Route index element={<Navigate to={`${root}/recruitments`} replace />} />
+          <Route index element={<Navigate to={`${root}/dashboard`} replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="recruitments" element={<RecruitmentsPage />} />
           <Route path="recruitments/:id" element={<CandidatesPage />} />
           <Route path="jobs/:id" element={<JobRedirect />} />

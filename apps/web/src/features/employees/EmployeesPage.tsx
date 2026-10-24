@@ -1,7 +1,8 @@
 import type { EmployeeWithTeams } from '@hrmit/shared'
 import { NotebookPen, Plus, Search, Users } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
 import { Badge } from '@/components/ui/badge.tsx'
@@ -32,6 +33,14 @@ export function EmployeesPage() {
         }),
     [q, teamId],
   )
+  // ?open=ID (dashboard links) opens that drawer once; the param is then dropped.
+  const [params, setParams] = useSearchParams()
+  const openId = params.get('open')
+  useEffect(() => {
+    if (!openId || !employees.data) return
+    setSelected(employees.data.find((e) => String(e.id) === openId) ?? null)
+    setParams({}, { replace: true })
+  }, [openId, employees.data])
   const filtering = q.trim() !== '' || teamId !== ''
 
   const replace = (e: EmployeeWithTeams) => {

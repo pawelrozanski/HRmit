@@ -1,8 +1,8 @@
 import type { Candidate, PipelineStage } from '@hrmit/shared'
 import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router'
+import { Link, useParams, useSearchParams } from 'react-router'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
 import { Button } from '@/components/ui/button.tsx'
@@ -10,16 +10,17 @@ import { cn } from '@/lib/utils.ts'
 import { Switch } from '@/components/ui/switch.tsx'
 import { InterviewGuide } from '../recruitments/InterviewGuide.tsx'
 import { KanbanBoard } from '../pipeline/KanbanBoard.tsx'
-import { BlindContext } from './BlindContext.ts'
+import { BlindContext, useBlindSetting } from './BlindContext.ts'
 import { CandidateDrawer } from './CandidateDrawer.tsx'
 import { CandidateForm } from './CandidateForm.tsx'
-
-const BLIND_KEY = 'hrmit-blind'
 
 export function CandidatesPage() {
   const { t } = useTranslation()
   const { id = '' } = useParams()
-  const [blind, setBlind] = useState(() => localStorage.getItem(BLIND_KEY) === '1')
+  const [blind, toggleBlind] = useBlindSetting()
+  // ?candidate=ID (dashboard links) opens that drawer once; the param is then dropped.
+  const [params, setParams] = useSearchParams()
+  const openId = params.get('candidate')
   const [selected, setSelected] = useState<Candidate | null>(null)
   const [moveError, setMoveError] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -42,11 +43,11 @@ export function CandidatesPage() {
       }),
     [id],
   )
-
-  const toggleBlind = (on: boolean) => {
-    setBlind(on)
-    localStorage.setItem(BLIND_KEY, on ? '1' : '0')
-  }
+  useEffect(() => {
+    if (!openId || !candidates.data) return
+    setSelected(candidates.data.find((c) => String(c.id) === openId) ?? null)
+    setParams({}, { replace: true })
+  }, [openId, candidates.data])
 
   const move = async (candidate: Candidate, stage: PipelineStage) => {
     const res = await api.api.candidates[':id'].stage.$patch({
