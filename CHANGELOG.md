@@ -4,6 +4,16 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-25
+
+### Added
+
+- Editable prompts in Settings → AI: the instruction text of the four prompts (summarize CV, extract competencies, interview questions, assistant chat) with `{{lang}}` and `{{today}}` placeholders and a "Restore default" per prompt. `GET/PUT /api/settings/prompts`; a text equal to the shipped default is not stored, so later default improvements still reach it. The defaults keep the "describe, never judge" rule; rewriting them is the operator's own decision. The structured outputs still have no score or verdict field (docs/SECURITY.md).
+
+### Changed
+
+- The AI assistant button in the header sits between Dashboard and Recruitments.
+
 ## [0.5.1] - 2026-10-25
 
 ### Added
@@ -128,7 +138,8 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/pawelrozanski/HRmit/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/pawelrozanski/HRmit/compare/v0.5.0...v0.5.1
 [0.3.1]: https://github.com/pawelrozanski/HRmit/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/pawelrozanski/HRmit/compare/v0.2.1...v0.3.0

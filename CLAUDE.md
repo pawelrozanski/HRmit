@@ -6,7 +6,7 @@ Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/adr/](docs/adr/) and [d
 
 ## Product rules (non-negotiable)
 
-1. **AI assists, never judges.** AI summarizes, extracts competencies, proposes interview questions. It never rejects, ranks or scores a candidate. No output schema, prompt or UI element may contain a fit score, ranking or hire/no-hire verdict. The decision is always a human click. (EU AI Act: recruitment is high-risk. GDPR art. 22.)
+1. **AI assists, never judges.** AI summarizes, extracts competencies, proposes interview questions. It never rejects, ranks or scores a candidate. No output schema, shipped prompt or UI element may contain a fit score, ranking or hire/no-hire verdict. The decision is always a human click. Since 0.5.2 the operator can edit the prompt texts in Settings → AI; the defaults keep this rule and whoever rewrites them owns that decision (MIT). The output schemas stay verdict-free regardless. (EU AI Act: recruitment is high-risk. GDPR art. 22.)
 2. **Local by default.** The default AI provider is Ollama on localhost. Cloud providers are BYOK, opt-in, behind a dialog that says exactly what is sent where.
 3. **Anonymize before cloud.** Candidate data is scrubbed locally (`anonymize()` in `packages/shared`) before any external API call: name, contact, address, photo replaced by `Candidate #N` and placeholders. The user can preview the anonymized text.
 4. **Reduce bias.** Blind-screening toggle; structured interviews with the same questions and criteria for every candidate of a job.

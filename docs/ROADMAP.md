@@ -145,6 +145,10 @@ _(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were t
 
 ## After the MVP
 
+### 0.5.2: Editable prompts
+
+_(done 2026-10-25; the instruction texts moved from the server prompt files to `packages/shared/src/aiPrompts.ts` as defaults, the server appends the data after the text, overrides live in `settings` under `ai.prompt.<key>` only when they differ from the default; no migration; the assistant button moved next to Dashboard in the header)_
+
 ### 0.5.1: Custom email templates
 
 _(done 2026-10-25; additive migration 0012 adds `name`, `description` and `built_in` to `email_templates` with a unique index on the name and flags the three seeded keys as built-in, verified against a copy of `data/hrmit.db` where the three templates and the sent emails survived; the text key stays the primary key and `emails.template_key` stays a plain text column without a foreign key, so deleting a custom template never touches the history; built-in names and descriptions are null until renamed and the UI shows the translated default; the editor is a Radix dialog opened from a tile button, which has no trigger, so the tile is remembered and focused in `onCloseAutoFocus`, verified in the Playwright run)_

@@ -117,6 +117,10 @@ The names behind the pseudonyms go to the browser in a separate `refs` event (`{
 
 **Demo.** No model runs; the MSW handler builds the answers from the demo store in the browser. With a cloud provider picked in the demo settings the text uses pseudonyms, like the server would.
 
+## Editable prompts (0.5.2)
+
+The instruction texts of the four prompts can be changed in Settings → AI and are stored as plain settings rows (no secrets, nothing encrypted). The shipped defaults carry the "describe, never judge" rule; an operator who removes it from a text has made that choice themselves. The structured outputs (summary, competencies, questions) are still bound by their zod schemas, which have no score, ranking or verdict field. The chat answer is free text and has no such schema. The prompt texts never contain candidate data: the data is appended by the server at request time and goes through the same anonymization as before.
+
 ## Known limits, in one list
 
 1. Anyone who can read `data/` has everything, including the master key.
