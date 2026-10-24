@@ -317,13 +317,33 @@ export type AiPreview = z.infer<typeof aiPreviewSchema>
 export const aiModelsSchema = z.object({ models: z.array(z.string()) })
 export type AiModels = z.infer<typeof aiModelsSchema>
 
-/** Email templates (docs/ARCHITECTURE.md §6): one editable text per key, placeholders in {{ }}. */
+/**
+ * Email templates (docs/ARCHITECTURE.md §6): placeholders in {{ }}. The three built-in keys are
+ * seeded and cannot be deleted; custom templates get a random key. name and description are null
+ * on a built-in that was never renamed: the UI then shows its translated default.
+ */
 export const EMAIL_TEMPLATE_KEYS = ['invite', 'reminder', 'rejection'] as const
-export const emailTemplateKeySchema = z.enum(EMAIL_TEMPLATE_KEYS)
-export type EmailTemplateKey = z.infer<typeof emailTemplateKeySchema>
+export type BuiltInTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number]
+
+/** Body of POST /api/templates and PUT /api/templates/:key. '' description is stored as null. */
+export const emailTemplateInputSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  description: z
+    .string()
+    .trim()
+    .max(200)
+    .optional()
+    .transform((v) => v || null),
+  subject: z.string().min(1),
+  body: z.string().min(1),
+})
+export type EmailTemplateInput = z.infer<typeof emailTemplateInputSchema>
 
 export const emailTemplateSchema = z.object({
-  key: emailTemplateKeySchema,
+  key: z.string().min(1),
+  builtIn: z.boolean(),
+  name: z.string().nullable(),
+  description: z.string().nullable(),
   subject: z.string().min(1),
   body: z.string().min(1),
 })
@@ -369,7 +389,8 @@ export type SmtpTestResult = z.infer<typeof smtpTestResultSchema>
 export const emailSchema = z.object({
   id: z.number().int(),
   candidateId: z.number().int(),
-  templateKey: emailTemplateKeySchema,
+  /** Key of the template it started from; kept as text so a deleted custom template leaves history intact. */
+  templateKey: z.string().min(1),
   subject: z.string(),
   body: z.string(),
   status: z.enum(['sent', 'failed', 'demo']),

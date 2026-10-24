@@ -1,9 +1,11 @@
 import type { Email, EmailTemplate } from '../schemas.ts'
 import { daysFromNow } from './dates.ts'
 
-/** Seeded into email_templates on first run and into the demo store. Plain text, editable. */
+/** Built-in defaults (name and description come from i18n while null). Seeded on every start. */
+const builtIn = { builtIn: true, name: null, description: null }
 export const emailTemplates: EmailTemplate[] = [
   {
+    ...builtIn,
     key: 'invite',
     subject: 'Interview invitation: {{jobTitle}} at {{companyName}}',
     body: `Hello {{firstName}},
@@ -19,6 +21,7 @@ Kind regards,
 {{companyName}} recruitment team`,
   },
   {
+    ...builtIn,
     key: 'reminder',
     subject: 'Reminder: your interview for {{jobTitle}}',
     body: `Hello {{firstName}},
@@ -32,6 +35,7 @@ See you soon,
 {{companyName}} recruitment team`,
   },
   {
+    ...builtIn,
     key: 'rejection',
     subject: 'Your application for {{jobTitle}}',
     body: `Hello {{firstName}},

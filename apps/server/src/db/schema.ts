@@ -8,7 +8,6 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
 import {
-  EMAIL_TEMPLATE_KEYS,
   PIPELINE_STAGES,
   TEAM_MEMBER_ROLES,
   type AiSummary,
@@ -148,9 +147,16 @@ export const settings = sqliteTable('settings', {
   value: text('value').notNull(),
 })
 
-/** Editable email templates (docs/ARCHITECTURE.md §6), seeded from the shared fixtures. */
+/**
+ * Editable email templates (docs/ARCHITECTURE.md §6). Built-in rows are seeded from the shared
+ * fixtures and never deleted; custom rows (0.6.0) get a random key. name and description stay
+ * null on a built-in until the user renames it, so the UI can show the translated default.
+ */
 export const emailTemplates = sqliteTable('email_templates', {
-  key: text('key', { enum: EMAIL_TEMPLATE_KEYS }).primaryKey(),
+  key: text('key').primaryKey(),
+  builtIn: integer('built_in', { mode: 'boolean' }).notNull().default(false),
+  name: text('name').unique(),
+  description: text('description'),
   subject: text('subject').notNull(),
   body: text('body').notNull(),
 })
@@ -161,7 +167,8 @@ export const emails = sqliteTable('emails', {
   candidateId: integer('candidate_id')
     .notNull()
     .references(() => candidates.id, { onDelete: 'cascade' }),
-  templateKey: text('template_key', { enum: EMAIL_TEMPLATE_KEYS }).notNull(),
+  /** Text, no foreign key: deleting a custom template must not touch the history. */
+  templateKey: text('template_key').notNull(),
   subject: text('subject').notNull(),
   body: text('body').notNull(),
   status: text('status', { enum: ['sent', 'failed', 'demo'] }).notNull(),

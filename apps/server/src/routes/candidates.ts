@@ -8,14 +8,12 @@ import {
   JITSI_PREFIX,
   buildIcs,
   candidateInputSchema,
-  emailTemplateKeySchema,
   evaluationSchema,
   meetingInputSchema,
   moveStageSchema,
   renderTemplate,
   sendEmailInputSchema,
   type EmailPreview,
-  type EmailTemplateKey,
   type MeetingPreview,
   type MeetingResult,
   type Scorecard,
@@ -74,7 +72,7 @@ async function scorecard(candidateId: number, jobId: number): Promise<Scorecard>
 }
 
 /** One template rendered for one candidate (undefined when the candidate is missing). */
-async function rendered(id: string, key: EmailTemplateKey, extra: TemplateVars = {}) {
+async function rendered(id: string, key: string, extra: TemplateVars = {}) {
   const [row] = await db
     .select({
       to: candidates.email,
@@ -229,12 +227,13 @@ export const candidatesRoute = new Hono()
   // Rendered template for the UI to edit before sending.
   .get(
     '/:id/emails/preview',
-    zValidator('query', z.object({ template: emailTemplateKeySchema }), (r, c) =>
+    zValidator('query', z.object({ template: z.string().min(1) }), (r, c) =>
       r.success ? undefined : c.json({ error: 'unknown template' }, 404),
     ),
     async (c) => {
       const key = c.req.valid('query').template
       const r = await rendered(c.req.param('id'), key)
+      // The inner join on the template drops the row for an unknown key as well.
       if (!r) return c.json({ error: 'not found' }, 404)
       return c.json<EmailPreview>({ templateKey: key, subject: r.subject, body: r.body })
     },

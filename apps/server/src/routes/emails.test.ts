@@ -76,19 +76,19 @@ test('POST /api/settings/smtp/test sends to the from address and sanitizes failu
   }
 })
 
-test('templates: seeded, listed, replaced per key', async () => {
+test('templates: seeded, listed, edited per key', async () => {
   const list = emailTemplateSchema.array().parse(await (await app.request('/api/templates')).json())
-  expect(list.map((t) => t.key)).toEqual(['invite', 'rejection', 'reminder'])
-  const res = await json('PUT', '/api/templates', [
-    { key: 'rejection', subject: 'Re: {{jobTitle}}', body: 'Dear {{firstName}} {{lastName}}, no.' },
-  ])
+  expect(list.map((t) => t.key)).toEqual(['invite', 'reminder', 'rejection'])
+  const res = await json('PUT', '/api/templates/rejection', {
+    name: 'Rejection',
+    subject: 'Re: {{jobTitle}}',
+    body: 'Dear {{firstName}} {{lastName}}, no.',
+  })
   expect(res.status).toBe(200)
-  const after = emailTemplateSchema.array().parse(await res.json())
-  expect(after.find((t) => t.key === 'rejection')?.subject).toBe('Re: {{jobTitle}}')
-  expect(after).toHaveLength(3)
+  expect(emailTemplateSchema.parse(await res.json()).subject).toBe('Re: {{jobTitle}}')
   expect(
-    (await json('PUT', '/api/templates', [{ key: 'offer', subject: 'x', body: 'y' }])).status,
-  ).toBe(400)
+    (await json('PUT', '/api/templates/offer', { name: 'x', subject: 'x', body: 'y' })).status,
+  ).toBe(404)
 })
 
 test('preview renders the placeholders; unknown template is 404', async () => {
