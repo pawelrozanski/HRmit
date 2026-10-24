@@ -458,5 +458,47 @@
       "employee": "Employee",
       "hint": "Open the row to resend the message from its history."
     }
+  },
+  "chat": {
+    "title": "AI assistant",
+    "local": "Local model",
+    "cloud": "Cloud, anonymized",
+    "hint": "Ask about your recruitments, candidates, interviews and teams. The assistant reads your data through tools and never scores or ranks anyone.",
+    "cloudHint": "A cloud provider is active: the model sees \"Candidate #N\" and anonymized text; names are filled in here, on your computer.",
+    "empty": "Nothing asked yet. Try one of these:",
+    "chips": {
+      "today": "What interviews do I have today?",
+      "longest": "Who has been waiting the longest?",
+      "teamIt": "How many people are in the IT team?",
+      "best": "Who is the best candidate?",
+      "thisRecruitment": "How is this recruitment going?",
+      "longestHere": "Who waits the longest here?",
+      "summarize": "Summarize this candidate",
+      "averages": "What are this candidate’s interview averages?",
+      "meetings": "When is the interview with this candidate?",
+      "recruitments": "Which recruitments are open?"
+    },
+    "tools": {
+      "listRecruitments": "Listing recruitments…",
+      "getRecruitment": "Checking the recruitment…",
+      "upcomingMeetings": "Checking interviews…",
+      "stuckCandidates": "Checking who is waiting…",
+      "searchCandidates": "Searching candidates…",
+      "getCandidate": "Reading the candidate…",
+      "teamOverview": "Checking teams…"
+    },
+    "thinking": "Thinking…",
+    "inputLabel": "Your question",
+    "placeholder": "Ask a question… (Enter sends, Shift+Enter for a new line)",
+    "send": "Send",
+    "new": "New conversation",
+    "disclaimer": "Answers describe your data. Every decision is yours.",
+    "openCandidate": "Open candidate",
+    "openRecruitment": "Open recruitment",
+    "errors": {
+      "noTools": "This model cannot call tools, so the assistant cannot read your data. Pick a model that supports tools, for example qwen2.5:7b-instruct or llama3.1:8b.",
+      "failed": "The assistant did not answer: {{error}}",
+      "settings": "Open AI settings"
+    }
   }
 }

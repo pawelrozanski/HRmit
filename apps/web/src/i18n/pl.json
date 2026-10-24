@@ -488,5 +488,47 @@
       "employee": "Pracownik",
       "hint": "Otwórz wiersz, aby ponowić wiadomość z historii."
     }
+  },
+  "chat": {
+    "title": "Asystent AI",
+    "local": "Model lokalny",
+    "cloud": "Chmura, zanonimizowane",
+    "hint": "Pytaj o rekrutacje, kandydatów, rozmowy i zespoły. Asystent czyta dane przez narzędzia i nigdy nikogo nie ocenia ani nie rankinguje.",
+    "cloudHint": "Aktywny jest dostawca chmurowy: model widzi „Kandydat #N” i zanonimizowany tekst; imiona są uzupełniane tutaj, na Twoim komputerze.",
+    "empty": "Jeszcze nic nie pytałeś. Wypróbuj:",
+    "chips": {
+      "today": "Jakie rozmowy mam dziś?",
+      "longest": "Kto czeka najdłużej na odpowiedź?",
+      "teamIt": "Ile osób jest w zespole IT?",
+      "best": "Kto jest najlepszym kandydatem?",
+      "thisRecruitment": "Jak idzie ta rekrutacja?",
+      "longestHere": "Kto czeka tu najdłużej?",
+      "summarize": "Streść tego kandydata",
+      "averages": "Jakie ma średnie z rozmowy?",
+      "meetings": "Kiedy jest rozmowa z tym kandydatem?",
+      "recruitments": "Które rekrutacje są otwarte?"
+    },
+    "tools": {
+      "listRecruitments": "Sprawdzam rekrutacje…",
+      "getRecruitment": "Sprawdzam rekrutację…",
+      "upcomingMeetings": "Sprawdzam spotkania…",
+      "stuckCandidates": "Sprawdzam, kto czeka…",
+      "searchCandidates": "Szukam kandydatów…",
+      "getCandidate": "Czytam kandydata…",
+      "teamOverview": "Sprawdzam zespoły…"
+    },
+    "thinking": "Myślę…",
+    "inputLabel": "Twoje pytanie",
+    "placeholder": "Zadaj pytanie… (Enter wysyła, Shift+Enter nowa linia)",
+    "send": "Wyślij",
+    "new": "Nowa rozmowa",
+    "disclaimer": "Odpowiedzi opisują Twoje dane. Każda decyzja należy do Ciebie.",
+    "openCandidate": "Otwórz kandydata",
+    "openRecruitment": "Otwórz rekrutację",
+    "errors": {
+      "noTools": "Ten model nie obsługuje narzędzi, więc asystent nie może czytać Twoich danych. Wybierz model z obsługą narzędzi, np. qwen2.5:7b-instruct lub llama3.1:8b.",
+      "failed": "Asystent nie odpowiedział: {{error}}",
+      "settings": "Otwórz ustawienia AI"
+    }
   }
 }

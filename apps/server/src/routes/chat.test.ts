@@ -57,7 +57,7 @@ function fakeStream(parts: object[]) {
         for (const part of parts) {
           if ('run' in part && typeof part.run === 'string') {
             // Run the real tool, as the SDK would, so refs are collected.
-            await options.tools[part.run]!.execute((part as { input: unknown }).input, {})
+            await options.tools[part.run]!.execute((part as { input?: unknown }).input, {})
             yield { type: 'tool-call', toolName: part.run }
           } else yield part
         }

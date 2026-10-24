@@ -1,4 +1,4 @@
-import { and, eq, gte, lt, ne, sql } from 'drizzle-orm'
+import { and, eq, gte, like, lt, ne, sql } from 'drizzle-orm'
 import {
   PIPELINE_STAGES,
   anonymize,
@@ -76,7 +76,11 @@ const jobColumns = {
   teamName: teams.name,
 }
 
-const listRecruitments: Fn<'listRecruitments'> = async ({ status, teamId }, ctx) => {
+/** Case-insensitive "contains" on a name column (SQLite LIKE is case-insensitive for ASCII). */
+const nameLike = (column: typeof teams.name | typeof jobs.title, text: string) =>
+  like(column, `%${text.trim()}%`)
+
+const listRecruitments: Fn<'listRecruitments'> = async ({ status, team }, ctx) => {
   const rows = await db
     .select({
       ...jobColumns,
@@ -87,7 +91,7 @@ const listRecruitments: Fn<'listRecruitments'> = async ({ status, teamId }, ctx)
     .where(
       and(
         status === undefined ? undefined : eq(jobs.status, status),
-        teamId === undefined ? undefined : eq(jobs.teamId, teamId),
+        team ? nameLike(teams.name, team) : undefined,
       ),
     )
     .orderBy(jobs.id)
@@ -95,23 +99,26 @@ const listRecruitments: Fn<'listRecruitments'> = async ({ status, teamId }, ctx)
   return rows
 }
 
-const getRecruitment: Fn<'getRecruitment'> = async ({ jobId }, ctx) => {
+const getRecruitment: Fn<'getRecruitment'> = async ({ jobId, title }, ctx) => {
+  if (jobId === undefined && !title?.trim()) return null
   const [job] = await db
     .select(jobColumns)
     .from(jobs)
     .leftJoin(teams, eq(teams.id, jobs.teamId))
-    .where(eq(jobs.id, jobId))
+    .where(jobId !== undefined ? eq(jobs.id, jobId) : nameLike(jobs.title, title!))
+    .orderBy(jobs.id)
+    .limit(1)
   if (!job) return null
   ctx.refs.recruitments[job.id] = { title: job.title }
   const counts = await db
     .select({ stage: candidates.stage, n: sql<number>`count(*)` })
     .from(candidates)
-    .where(eq(candidates.jobId, jobId))
+    .where(eq(candidates.jobId, job.id))
     .groupBy(candidates.stage)
   const [q] = await db
     .select({ n: sql<number>`count(*)` })
     .from(interviewQuestions)
-    .where(eq(interviewQuestions.jobId, jobId))
+    .where(eq(interviewQuestions.jobId, job.id))
   return {
     ...job,
     stages: Object.fromEntries(
@@ -239,7 +246,7 @@ const getCandidate: Fn<'getCandidate'> = async ({ candidateId }, ctx) => {
 }
 
 /** Counts only: no employee name, position or duties ever leaves for the model. */
-const teamOverview: Fn<'teamOverview'> = ({ teamId }) =>
+const teamOverview: Fn<'teamOverview'> = ({ team }) =>
   db
     .select({
       id: teams.id,
@@ -248,7 +255,7 @@ const teamOverview: Fn<'teamOverview'> = ({ teamId }) =>
       openJobCount: sql<number>`(select count(*) from jobs where jobs.team_id = teams.id and jobs.status = 'open')`,
     })
     .from(teams)
-    .where(teamId === undefined ? undefined : eq(teams.id, teamId))
+    .where(team ? nameLike(teams.name, team) : undefined)
     .orderBy(teams.name)
 
 /** One plain async function per tool; the chat route wraps them for the AI SDK. */

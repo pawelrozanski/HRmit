@@ -121,7 +121,10 @@ test('missing ids give null, filters apply, search ignores names', async () => {
   const ctx: ToolContext = { local: true, refs: newRefs() }
   expect(await chatToolFns.getCandidate({ candidateId: 9999 }, ctx)).toBeNull()
   expect(await chatToolFns.getRecruitment({ jobId: 9999 }, ctx)).toBeNull()
-  expect((await chatToolFns.listRecruitments({ teamId: 2 }, ctx)).map((j) => j.id)).toEqual([1])
+  expect((await chatToolFns.listRecruitments({ team: 'it' }, ctx)).map((j) => j.id)).toEqual([1])
+  expect((await chatToolFns.getRecruitment({ title: 'frontend' }, ctx))?.id).toBe(1)
+  expect(await chatToolFns.getRecruitment({}, ctx)).toBeNull()
+  expect((await chatToolFns.teamOverview({ team: 'IT' }, ctx)).map((t) => t.name)).toEqual(['IT'])
   expect(
     (await chatToolFns.stuckCandidates({ days: 10, jobId: 2 }, ctx)).map((c) => c.candidateId),
   ).toEqual([8])

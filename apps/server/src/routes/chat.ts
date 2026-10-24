@@ -24,15 +24,16 @@ import { sanitize } from './ai.ts'
 const MAX_STEPS = 5
 
 const DESCRIPTIONS: Record<ChatToolName, string> = {
-  listRecruitments: 'List recruitments (jobs), optionally by status or team.',
-  getRecruitment: 'One recruitment with the candidate count per pipeline stage.',
+  listRecruitments: 'List recruitments (jobs), optionally by status or team name.',
+  getRecruitment:
+    'One recruitment, by id or by part of its title, with the candidate count per pipeline stage.',
   upcomingMeetings: 'Scheduled interviews from now to N days ahead.',
   stuckCandidates: 'Candidates of open recruitments with no stage change for N days or more.',
   searchCandidates:
     'Find candidates by recruitment title, stage name or competency keyword. Not by name.',
   getCandidate:
     'One candidate: stage, recruitment, stored AI summary and competencies, interview averages per competency, counts of meetings and emails.',
-  teamOverview: 'Teams with member and open recruitment counts.',
+  teamOverview: 'Teams with member and open recruitment counts, optionally one team by name.',
 }
 
 /**
@@ -153,6 +154,8 @@ export const chatRoute = new Hono().post('/', zValidator('json', chatRequestSche
     messages: history,
     tools,
     stopWhen: stepCountIs(MAX_STEPS),
+    // Deterministic sampling makes a 7B model far more reliable at emitting well-formed tool calls.
+    temperature: 0,
     onStepFinish: () => void steps++,
   })
 

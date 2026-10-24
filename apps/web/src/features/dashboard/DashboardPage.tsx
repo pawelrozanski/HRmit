@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge.tsx'
 import { Switch } from '@/components/ui/switch.tsx'
 import { APP_ROOT } from '@/config.ts'
 import { BlindContext, useBlind, useBlindSetting } from '../candidates/BlindContext.ts'
+import { useScreen } from '../chat/ChatState.tsx'
 import { candidateName } from '../candidates/candidateName.ts'
 
 const STUCK_KEY = 'hrmit-stuckDays'
@@ -42,6 +43,7 @@ const candidateLink = (jobId: number, candidateId: number) =>
 export function DashboardPage() {
   const { t } = useTranslation()
   const [blind, toggleBlind] = useBlindSetting()
+  useScreen({ view: 'dashboard' })
   const [stuckDays, setStuckDays] = useState(
     () => Number(localStorage.getItem(STUCK_KEY)) || DEFAULT_STUCK_DAYS,
   )

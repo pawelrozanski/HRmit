@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils.ts'
 import { Switch } from '@/components/ui/switch.tsx'
 import { InterviewGuide } from '../recruitments/InterviewGuide.tsx'
 import { KanbanBoard } from '../pipeline/KanbanBoard.tsx'
+import { useScreen } from '../chat/ChatState.tsx'
 import { BlindContext, useBlindSetting } from './BlindContext.ts'
 import { CandidateDrawer } from './CandidateDrawer.tsx'
 import { CandidateForm } from './CandidateForm.tsx'
@@ -25,6 +26,10 @@ export function CandidatesPage() {
   const [moveError, setMoveError] = useState(false)
   const [creating, setCreating] = useState(false)
   const [view, setView] = useState<'pipeline' | 'guide'>('pipeline')
+  // "This candidate" in the chat is the open drawer, else "this recruitment" is this page.
+  useScreen(
+    selected ? { view: 'candidate', id: selected.id } : { view: 'recruitment', id: Number(id) },
+  )
 
   // ponytail: no GET /jobs/:id yet; the list is three rows. Add the route when jobs grow.
   const job = useApi(

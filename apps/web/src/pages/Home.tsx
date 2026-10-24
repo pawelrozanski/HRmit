@@ -1,9 +1,18 @@
-import { Briefcase, LayoutDashboard, Settings, Users, UsersRound } from 'lucide-react'
+import {
+  Briefcase,
+  LayoutDashboard,
+  MessageSquare,
+  Settings,
+  Users,
+  UsersRound,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, NavLink, Route, Routes, useParams } from 'react-router'
 import { Mark, Wordmark } from '../components/Brand.tsx'
 import { APP_ROOT as root } from '../config.ts'
 import { DashboardPage } from '../features/dashboard/DashboardPage.tsx'
+import { ChatPanel } from '../features/chat/ChatPanel.tsx'
+import { ChatProvider, useChat } from '../features/chat/ChatState.tsx'
 import { CandidatesPage } from '../features/candidates/CandidatesPage.tsx'
 import { EmployeesPage } from '../features/employees/EmployeesPage.tsx'
 import { RecruitmentsPage } from '../features/recruitments/RecruitmentsPage.tsx'
@@ -26,8 +35,29 @@ function JobRedirect() {
   return <Navigate to={`${root}/recruitments/${id}`} replace />
 }
 
+/** Opens the assistant panel; lives in the header so it is one click away on every page. */
+function ChatButton() {
+  const { t } = useTranslation()
+  const { open, setOpen } = useChat()
+  return (
+    <button type="button" onClick={() => setOpen(true)} aria-expanded={open} className={navLink}>
+      <MessageSquare aria-hidden="true" />
+      {t('chat.title')}
+    </button>
+  )
+}
+
 /** The app shell: header plus the feature routes, relative to wherever it is mounted. */
 export function Home() {
+  return (
+    <ChatProvider>
+      <Shell />
+      <ChatPanel />
+    </ChatProvider>
+  )
+}
+
+function Shell() {
   const { t } = useTranslation()
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -60,6 +90,7 @@ export function Home() {
             <Settings aria-hidden="true" />
             {t('nav.settings')}
           </NavLink>
+          <ChatButton />
         </nav>
       </header>
       <main id="main" tabIndex={-1} className="outline-none">

@@ -15,3 +15,6 @@ export function useBlindSetting() {
   }
   return [blind, toggle] as const
 }
+
+/** The stored toggle, for code outside the pages that render it (the chat panel). */
+export const readBlind = () => localStorage.getItem(BLIND_KEY) === '1'

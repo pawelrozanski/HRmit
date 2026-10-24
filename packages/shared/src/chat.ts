@@ -23,9 +23,13 @@ const candidateRow = z.object({
 export const chatToolInputs = {
   listRecruitments: z.object({
     status: jobStatusSchema.optional().describe('open or closed; omit for all'),
-    teamId: id.optional(),
+    team: z.string().optional().describe('team name to filter by; omit for all teams'),
   }),
-  getRecruitment: z.object({ jobId: id }),
+  // Small models pass what they know: a title from the question, an id from an earlier result.
+  getRecruitment: z.object({
+    jobId: id.optional().describe('id from a previous tool result or the screen context'),
+    title: z.string().optional().describe('part of the recruitment title, when no id is known'),
+  }),
   upcomingMeetings: z.object({
     days: id.min(1).max(30).default(7).describe('how many days ahead, default 7'),
   }),
@@ -38,7 +42,9 @@ export const chatToolInputs = {
     jobId: id.optional(),
   }),
   getCandidate: z.object({ candidateId: id }),
-  teamOverview: z.object({ teamId: id.optional() }),
+  teamOverview: z.object({
+    team: z.string().optional().describe('team name to filter by; omit for all teams'),
+  }),
 }
 
 export const chatToolOutputs = {
