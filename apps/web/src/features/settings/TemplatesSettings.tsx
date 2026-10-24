@@ -40,13 +40,18 @@ export function useTemplateLabel() {
 export function TemplatesSettings() {
   const { t } = useTranslation()
   const label = useTemplateLabel()
-  // The dialog stays mounted while it closes, so Radix can hand focus back to the tile; each
-  // open gets a fresh form through a counter in its key.
-  const [editing, setEditing] = useState<{ n: number; target: EmailTemplate | null } | null>(null)
+  // The dialog stays mounted while it closes and gets a fresh form per open through the counter
+  // in its key. The tile that opened it is remembered so focus can go back there (there is no
+  // DialogTrigger for Radix to return to).
+  const [editing, setEditing] = useState<{
+    n: number
+    target: EmailTemplate | null
+    opener: HTMLElement | null
+  } | null>(null)
   const [open, setOpen] = useState(false)
   const list = useApi(() => api.api.templates.$get().then((r) => r.json()), [])
-  const edit = (target: EmailTemplate | null) => {
-    setEditing((e) => ({ n: (e?.n ?? 0) + 1, target }))
+  const edit = (target: EmailTemplate | null, opener: HTMLElement) => {
+    setEditing((e) => ({ n: (e?.n ?? 0) + 1, target, opener }))
     setOpen(true)
   }
 
@@ -65,7 +70,7 @@ export function TemplatesSettings() {
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {list.data.map((x) => (
           <li key={x.key} className="grid">
-            <button type="button" onClick={() => edit(x)} className={tile}>
+            <button type="button" onClick={(e) => edit(x, e.currentTarget)} className={tile}>
               <span className="font-semibold text-primary">{label.name(x)}</span>
               <span className="text-sm text-muted-foreground">{label.description(x)}</span>
             </button>
@@ -74,7 +79,7 @@ export function TemplatesSettings() {
         <li className="grid">
           <button
             type="button"
-            onClick={() => edit(null)}
+            onClick={(e) => edit(null, e.currentTarget)}
             className={`${tile} place-content-center border-dashed text-muted-foreground`}
           >
             <span className="flex items-center gap-2">
@@ -87,6 +92,7 @@ export function TemplatesSettings() {
         <TemplateDialog
           key={editing.n}
           template={editing.target}
+          opener={editing.opener}
           open={open}
           onClose={() => setOpen(false)}
           onChange={(next) => {
@@ -101,6 +107,8 @@ export function TemplatesSettings() {
 
 type DialogProps = {
   template: EmailTemplate | null
+  /** Gets focus back when the dialog closes, if it is still on the page. */
+  opener: HTMLElement | null
   open: boolean
   onClose: () => void
   /** The server answers with one row; the dialog folds it into the list. */
@@ -108,7 +116,7 @@ type DialogProps = {
 }
 
 /** One form for new, custom and built-in templates; only the footer differs by kind. */
-function TemplateDialog({ template, open, onClose, onChange }: DialogProps) {
+function TemplateDialog({ template, opener, open, onClose, onChange }: DialogProps) {
   const { t } = useTranslation()
   const label = useTemplateLabel()
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -152,7 +160,13 @@ function TemplateDialog({ template, open, onClose, onChange }: DialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent
+        className="sm:max-w-2xl"
+        onCloseAutoFocus={(e) => {
+          e.preventDefault()
+          if (opener?.isConnected) opener.focus()
+        }}
+      >
         <form onSubmit={submit} className="grid gap-4">
           <DialogHeader>
             <DialogTitle>

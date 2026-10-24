@@ -162,7 +162,7 @@ test('email templates: tiles, dialog, custom template in the send dialog', async
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('heading', { name: 'Edit: Interview invitation' })).toBeVisible()
   await expect(dialog.getByLabel('Subject')).toHaveValue(/Interview invitation/)
-  await expect(dialog.getByText('{{jitsiUrl}}')).toBeVisible()
+  await expect(dialog.getByText('{{jitsiUrl}}', { exact: true })).toBeVisible()
   await expect(dialog.getByRole('button', { name: 'Delete' })).toHaveCount(0)
   await expectNoSeriousA11y(page)
   await page.keyboard.press('Escape')
