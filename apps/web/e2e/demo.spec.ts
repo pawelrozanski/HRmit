@@ -16,12 +16,19 @@ test('landing renders and leads to the demo', async ({ page }) => {
   await expect(page.getByText('Your recruitment data stays home.')).toBeVisible()
   await page.getByRole('link', { name: 'Try the demo' }).click()
   await expect(page.getByRole('status')).toContainText('Demo mode')
+  // The dashboard is the first screen (0.5.0): tiles from the fixtures, every row a link.
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Interviews in the next 7 days' })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Frontend Developer/ }).first()).toBeVisible()
+  await page.getByRole('link', { name: 'Recruitments', exact: true }).click()
+  // The h2 renders once the list has loaded ("Open recruitments" on the dashboard is not it).
+  await expect(page.getByRole('heading', { name: 'Recruitments', exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: /Frontend Developer/ })).toBeVisible()
   await expectNoSeriousA11y(page)
 })
 
 test('kanban, drawer, reset and language', async ({ page }) => {
-  await page.goto('./demo')
+  await page.goto('./demo/recruitments')
   await page.getByRole('link', { name: /Frontend Developer/ }).click()
   await expect(page.getByRole('heading', { name: 'Frontend Developer (React)' })).toBeVisible()
   for (const stage of ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected'])
@@ -62,6 +69,8 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await page.keyboard.press('Tab') // "Reset demo"
   await page.keyboard.press('Tab') // "HRmit"
   await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'Dashboard' })).toBeFocused()
+  await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Recruitments' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Employees' })).toBeFocused()
@@ -69,6 +78,8 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await expect(page.getByRole('link', { name: 'Teams' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Settings' })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('button', { name: 'AI assistant' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.getByRole('tab', { name: 'General' })).toBeFocused()
 
