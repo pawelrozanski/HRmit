@@ -4,11 +4,18 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-25
+
 ### Added
 
 - Dashboard (`/dashboard`), the first screen after opening the panel: headline counts (open recruitments, active candidates, interviews this week, teams), interviews in the next 7 days with a Jitsi link, candidates waiting N days or more in a stage (N editable on the tile, default 7), candidates in interview or offer with an incomplete scorecard, open recruitments with a labelled funnel bar, and failed emails of the last 30 days. Every row opens the candidate or employee drawer. `GET /api/dashboard?stuckDays=N`, plain queries, no AI, no contact fields in the response. The demo computes it from its store; fixture dates are now relative to today.
 - AI assistant chat: a side panel opened from the header on every page. Questions go to `POST /api/ai/chat`, which lets the model call seven read-only tools (recruitments, one recruitment with its funnel, upcoming interviews, candidates waiting in a stage, candidate search by title, stage or competency, one candidate with the stored AI text and the human interview averages per competency, teams as counts) and streams the answer. Suggested questions per screen, a status line while a tool runs, names and recruitment titles in the answer as links, "New conversation", Enter sends and Shift+Enter breaks a line. The assistant never ranks or recommends; asked who is best it lists facts and says the decision is the recruiter's. With a cloud provider the model sees `Candidate #N` and anonymized text, including in the recruiter's own messages; names are filled in by the browser from a separate `refs` event. Conversations are not stored. Ollama models without tool support get a clear error with a link to AI settings. In the demo the suggested questions are answered from the demo store through the same stream. ADR 0007.
 - `anonymize()` has an `inflected` option that also matches Polish declensions of the candidate's name; the chat uses it for the recruiter's own words.
+
+### Fixed
+
+- A kanban card can no longer be dragged off the board: the drag is kept inside the pipeline area.
+- Long subjects in the dashboard's failed-emails tile are cut with an ellipsis instead of pushing the date onto the next line.
 
 ## [0.4.0] - 2026-10-22
 

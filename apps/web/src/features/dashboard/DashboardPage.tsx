@@ -379,9 +379,12 @@ function FailedEmails({ rows }: { rows: Dashboard['failedEmails'] }) {
                 : `${APP_ROOT}/employees?open=${f.targetId}`
             }
           >
-            <Badge variant="destructive">{t(`dashboard.failed.${f.kind}`)}</Badge>
-            <span className="min-w-0 truncate font-medium">{f.subject}</span>
-            <time dateTime={f.sentAt} className="ml-auto text-muted-foreground">
+            {/* One line: the subject gives way (ellipsis) before the badge or the date wrap. */}
+            <span className="flex min-w-0 flex-1 items-center gap-2">
+              <Badge variant="destructive">{t(`dashboard.failed.${f.kind}`)}</Badge>
+              <span className="min-w-0 truncate font-medium">{f.subject}</span>
+            </span>
+            <time dateTime={f.sentAt} className="shrink-0 text-muted-foreground">
               {date(f.sentAt)}
             </time>
           </Row>

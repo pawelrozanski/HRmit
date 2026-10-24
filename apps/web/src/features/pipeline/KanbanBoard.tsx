@@ -6,6 +6,7 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type Modifier,
 } from '@dnd-kit/core'
 import { PIPELINE_STAGES, type Candidate, type PipelineStage } from '@hrmit/shared'
 import { useTranslation } from 'react-i18next'
@@ -17,6 +18,25 @@ type Props = {
   candidates: Candidate[]
   onOpen: (c: Candidate) => void
   onMove: (c: Candidate, stage: PipelineStage) => void
+}
+
+/**
+ * Keep the dragged card inside the board (its scrollable ancestor): without this a card can be
+ * dragged anywhere on the page. Same arithmetic as @dnd-kit/modifiers restrictToParentElement,
+ * inlined rather than adding a package for eight lines.
+ */
+const keepOnBoard: Modifier = ({ transform, draggingNodeRect, scrollableAncestorRects }) => {
+  const bounds = scrollableAncestorRects[0]
+  if (!draggingNodeRect || !bounds) return transform
+  const next = { ...transform }
+  if (draggingNodeRect.top + transform.y <= bounds.top) next.y = bounds.top - draggingNodeRect.top
+  else if (draggingNodeRect.bottom + transform.y >= bounds.bottom)
+    next.y = bounds.bottom - draggingNodeRect.bottom
+  if (draggingNodeRect.left + transform.x <= bounds.left)
+    next.x = bounds.left - draggingNodeRect.left
+  else if (draggingNodeRect.right + transform.x >= bounds.right)
+    next.x = bounds.right - draggingNodeRect.right
+  return next
 }
 
 /** Five columns, one per stage. Drag a card to move it; the drawer has a keyboard fallback. */
@@ -31,7 +51,7 @@ export function KanbanBoard({ candidates, onOpen, onMove }: Props) {
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} modifiers={[keepOnBoard]} onDragEnd={handleDragEnd}>
       <div className="grid auto-cols-[minmax(11rem,1fr)] grid-flow-col gap-3 overflow-x-auto pb-2">
         {PIPELINE_STAGES.map((stage) => (
           <Column
