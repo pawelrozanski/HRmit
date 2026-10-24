@@ -145,6 +145,10 @@ _(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were t
 
 ## After the MVP
 
+### 0.5.1: Custom email templates
+
+_(done 2026-10-25; additive migration 0012 adds `name`, `description` and `built_in` to `email_templates` with a unique index on the name and flags the three seeded keys as built-in, verified against a copy of `data/hrmit.db` where the three templates and the sent emails survived; the text key stays the primary key and `emails.template_key` stays a plain text column without a foreign key, so deleting a custom template never touches the history; built-in names and descriptions are null until renamed and the UI shows the translated default; the editor is a Radix dialog opened from a tile button, which has no trigger, so the tile is remembered and focused in `onCloseAutoFocus`, verified in the Playwright run)_
+
 ### 0.5.0: Dashboard and chat assistant
 
 _(done 2026-10-25; the dashboard is one `GET /api/dashboard?stuckDays=N` with six plain queries and no AI, the threshold lives on the tile in `localStorage`, deep links open the candidate drawer with `?candidate=` and the employee drawer with `?open=`, and the blind-screening toggle became a shared hook; fixture dates are relative to today so the demo stays alive; the chat is `POST /api/ai/chat` streaming NDJSON over seven read-only tools with `stepCountIs(5)` and `temperature: 0`; the lookup tools accept names because `qwen2.5:7b-instruct` sent `teamId: "IT"` and invented job ids, the prompt tells it never to ask permission and never to invent an id after it did both, and an example "Candidate #14" was removed from the prompt after the model copied it into answers; the security review found that the recruiter's own words with a declined name ("Amelię") slipped through the exact anonymizer, so `anonymize()` got an `inflected` option used for chat messages; conversations are not stored; the demo answers the suggested questions from its store through the same stream; ADR 0007 amends the "no open chat" point of ADR 0004)_

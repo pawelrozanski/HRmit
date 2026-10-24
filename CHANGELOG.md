@@ -4,6 +4,8 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-25
+
 ### Added
 
 - Custom email templates: Settings → Email templates is a grid of tiles (name and description), the "New template" tile opens the editor, and the same dialog edits a tile's name, description, subject and body with the available placeholders listed. Custom templates can be deleted after a confirm; the built-in three can be edited and put back with "Restore default". Every template, custom ones included, can be picked in the candidate's send dialog. `GET/POST /api/templates`, `PUT/DELETE /api/templates/:key`, `POST /api/templates/:key/restore`; names are unique (409). Migration 0012 (additive): `name`, `description` and `built_in` on `email_templates`; `emails.template_key` keeps the key as text, so deleting a template never touches the history. Demo stores saved earlier get the new fields on load.
@@ -126,7 +128,8 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/pawelrozanski/HRmit/compare/v0.5.0...v0.5.1
 [0.3.1]: https://github.com/pawelrozanski/HRmit/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/pawelrozanski/HRmit/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/pawelrozanski/HRmit/compare/v0.2.0...v0.2.1

@@ -145,7 +145,7 @@ export const settings = sqliteTable('settings', {
 
 /**
  * Editable email templates (docs/ARCHITECTURE.md §6). Built-in rows are seeded from the shared
- * fixtures and never deleted; custom rows (0.6.0) get a random key. name and description stay
+ * fixtures and never deleted; custom rows (0.5.1) get a random key. name and description stay
  * null on a built-in until the user renames it, so the UI can show the translated default.
  */
 export const emailTemplates = sqliteTable('email_templates', {
