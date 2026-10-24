@@ -38,7 +38,8 @@ const DESCRIPTIONS: Record<ChatToolName, string> = {
 
 /**
  * With a cloud provider the recruiter's own words are scrubbed too: a typed name becomes the
- * same "Candidate #N" the tools use, so the model can still look the person up by id.
+ * same "Candidate #N" the tools use, so the model can still look the person up by id. Inflected
+ * forms ("Amelię", "Hartwella") are matched too: this is prose, not a CV.
  * ponytail: anonymize() once per candidate per message; fine for hundreds of candidates.
  */
 async function scrub(text: string) {
@@ -51,7 +52,7 @@ async function scrub(text: string) {
       phone: candidates.phone,
     })
     .from(candidates)
-  return people.reduce((t, p) => anonymize(t, p).text, text)
+  return people.reduce((t, p) => anonymize(t, p, { inflected: true }).text, text)
 }
 
 /**

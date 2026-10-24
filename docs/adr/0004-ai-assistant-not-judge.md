@@ -1,7 +1,7 @@
 # 0004. AI assists, never decides
 
 Date: 2026-10-19
-Status: accepted
+Status: accepted (the "no open chat" point is amended by [0007](0007-chat-assistant-read-only-tools.md); the rest stands)
 
 ## Context
 

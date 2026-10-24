@@ -221,11 +221,12 @@ Calling `api.api.candidates.$get()` in the UI is type-checked against the server
 
 | Resource    | Endpoints (MVP)                                                                                                                                                                                                                                                                                                                                                             |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| dashboard   | `GET /dashboard?stuckDays=N`: headline counts, interviews in the next 7 days, candidates waiting N days or more in a stage (default 7), missing scorecards, open jobs with a per-stage funnel, failed sends of the last 30 days. Plain queries, no AI, no contact fields in the response.                                                                                   |
 | jobs        | list (filter by team), create, update, close; `teamId` must name an existing team                                                                                                                                                                                                                                                                                           |
 | employees   | list (`?q=` on name or position, `?teamId=`, with teams and `noteCount`), create, get, update, delete (hard, memberships, notes and messages cascade); notes: `GET/POST /employees/:id/notes`, `DELETE /employees/:id/notes/:noteId`; messages: `GET/POST /employees/:id/emails` (newest first; 409 without SMTP)                                                           |
 | teams       | list (with member and open job counts), create (409 on a duplicate name), get (members with role, jobs), update, delete (jobs keep, `teamId` null), add members, set role, remove member; messages: `GET /teams/:id/emails` (rows with the recipient's name), `POST /teams/:id/emails` (`employeeIds` must be members, else 400; one mail each; answers `{ sent, failed }`) |
 | candidates  | list (filter by job and stage), create, update, delete, move stage, upload CV, download CV                                                                                                                                                                                                                                                                                  |
-| ai          | `POST /ai/summarize/:candidateId`, `POST /ai/competencies/:candidateId`, `POST /ai/questions/:jobId`, `GET /ai/preview/:candidateId` (anonymized text), `POST /ai/test` (connection check)                                                                                                                                                                                  |
+| ai          | `POST /ai/summarize/:candidateId`, `POST /ai/competencies/:candidateId`, `POST /ai/questions/:jobId`, `GET /ai/preview/:candidateId` (anonymized text), `POST /ai/test` (connection check), `POST /ai/chat` (streamed NDJSON answer over read-only tools, §5.3)                                                                                                             |
 | questions   | list by job, update, reorder                                                                                                                                                                                                                                                                                                                                                |
 | evaluations | `GET /candidates/:id/scorecard` (questions joined with evaluations), `PUT` (upsert)                                                                                                                                                                                                                                                                                         |
 | emails      | list by candidate, send from template, preview                                                                                                                                                                                                                                                                                                                              |
@@ -253,9 +254,13 @@ if (import.meta.env.VITE_DEMO === 'true') {
 - **Emails** in demo are recorded with `status: 'demo'` and shown in an "Outbox" view instead of being sent.
 - A fixed banner reads: _Demo mode. All candidates are fictional._
 - Routing: `/` is the landing page, `/demo/*` is the app. In the local build the app lives at `/*` and the landing page is not rendered. Vite `base` is `/HRmit/` for GitHub Pages.
-- App routes (relative to the mount point): `/` redirects to `/recruitments`, `/recruitments/:id` pipeline and interview guide (`/jobs/:id` redirects there), `/employees`, `/teams` and `/teams/:id`, `/settings` a layout with a vertical tab list and nested routes `general` (language, theme, about), `ai`, `email`, `templates`; `/settings` redirects to `/settings/general` and the old `/templates` to `/settings/templates`.
+- App routes (relative to the mount point): `/` redirects to `/dashboard`, `/dashboard` the attention board (§4.3), `/recruitments/:id` pipeline and interview guide (`/jobs/:id` redirects there), `/employees`, `/teams` and `/teams/:id`, `/settings` a layout with a vertical tab list and nested routes `general` (language, theme, about), `ai`, `email`, `templates`; `/settings` redirects to `/settings/general` and the old `/templates` to `/settings/templates`.
 
 Why this counts as the same frontend and not a mock-up: the handlers are a second implementation of the API contract, validated by the same zod schemas. If a demo handler returns a wrong shape, the shared schema test fails.
+
+### 4.3 Dashboard
+
+The first screen after opening the panel. One request, `GET /api/dashboard?stuckDays=N`, six plain queries over SQLite, no AI: the numbers are always exactly what the tables say and the screen works without any model configured. Tiles: interviews in the next seven days (with the Jitsi link), candidates waiting N days or more in a stage of an open job (the threshold is editable on the tile and kept in `localStorage`), candidates in interview or offer whose scorecard is incomplete, open recruitments with a funnel bar (segment width follows the count, the number sits on the segment and a legend names the stages, so nothing depends on colour alone), failed sends of the last 30 days, and the headline counts. Every row links to the candidate drawer (`/recruitments/:jobId?candidate=:id`) or the employee drawer (`/employees?open=:id`). Blind screening uses the same toggle and storage key as the recruitment page. The demo computes the same shape from its store, and the fixture dates are relative to today so the demo does not go stale. ponytail: one endpoint; a tile gets its own only if it ever becomes slow.
 
 ## 5. AI providers and anonymization
 
@@ -292,6 +297,38 @@ Pure, deterministic, unit-tested function in `packages/shared/src/anonymize.ts`:
 Limitations are stated in the UI: this is a heuristic, not named-entity recognition. Names that appear only in the CV body (references, former managers) can slip through. A local NER model is a possible later upgrade.
 
 Local providers (Ollama) skip anonymization: the data does not leave the machine, and the full text gives better summaries.
+
+### 5.3 Chat assistant: tool calling (ADR 0007)
+
+The assistant panel answers natural-language questions about the recruiter's own data. The model is never handed the database. It gets a list of seven read-only tools and decides which to call; the server runs them and returns only their results.
+
+```mermaid
+sequenceDiagram
+  participant UI as Chat panel (browser)
+  participant S as Server (/api/ai/chat)
+  participant T as Tools (SELECT only)
+  participant M as Model (Ollama or cloud)
+  UI->>S: question + history + { view, id } + lang
+  S->>S: cloud? scrub the recruiter's words with anonymize()
+  S->>M: system prompt + history + 7 tool schemas
+  M-->>S: tool call: stuckCandidates({ days: 7 })
+  S->>T: run the tool (local: names; cloud: "Candidate #N", anonymized text)
+  T-->>S: rows + refs { id -> name, jobId }
+  S->>M: tool result
+  M-->>S: text, streamed
+  S-->>UI: NDJSON: tool, text…, refs, done
+  UI->>UI: swap "Candidate #N" for the name (not under blind screening), link names and titles
+```
+
+- **Tools** live in `apps/server/src/ai/tools.ts` as plain async functions; their input and output zod schemas are in `packages/shared/src/chat.ts`. `listRecruitments`, `getRecruitment` and `teamOverview` accept a name as well as an id, because small models pass what the recruiter typed ("IT", "Frontend") and invent ids otherwise. The schemas are covered by the no-verdict test (no `score`/`rank`/… key) and a read-only test (row counts unchanged after running every tool).
+- **Loop and limits:** `streamText` with `stopWhen: stepCountIs(5)` and `temperature: 0`. Each step is one model call; a tool call and its result count as a step. The system prompt (`apps/server/src/ai/prompts/chat.ts`, English with a language instruction, like the other prompts) states the rules: answer only from tool results, never rank or recommend, read only, never ask permission to use a tool, never invent an id, refer to people by the label a tool returned.
+- **Context:** the UI sends what is open (`dashboard`, `recruitment`, `candidate` with its id); the prompt maps "this candidate" to that id and the data comes from a tool.
+- **Stream:** one NDJSON line per event (`chatEventSchema`): `tool` (name, shown as a short status), `text` (delta), `refs` (names and link targets for the UI only), `error`, `done`. The AI SDK's own UI stream protocol was not used: it would add the `ai` package to the web app for five event types.
+- **Tool support detection:** for Ollama the server asks `POST /api/show` for the model's `capabilities` before the first call and answers `422 { error: 'no_tools' }` when `tools` is missing (the panel links to AI settings and names models that work); for other providers a "does not support tools" error mid-stream becomes the same error event.
+- **History:** kept in the browser for the session (a provider above the router), never stored. "New conversation" clears it.
+- **Demo:** `POST /api/ai/chat` is answered by `apps/web/src/demo/chat.ts`, which maps the suggested questions (and a few keywords) to scenarios computed from the demo store and streams them in the same format, with a pseudo tool status and the text in pieces. Off-script questions get a note that the full chat works locally.
+
+**How `qwen2.5:7b-instruct` behaves** (Ollama 0.9, RTX 2080 Ti, checked 2026-10-25): it calls tools reliably for single questions in English and answers cleanly. In Polish it calls the right tool but the prose after the result is often clumsy and mixed with English, and over several turns it sometimes answers from memory instead of calling a tool. Three things made it workable: accepting names in the lookup tools (it sent `teamId: "IT"`, which Ollama rejected silently and returned an empty answer), telling it never to ask permission (it asked "shall I call stuckCandidates?" instead of calling it) and removing an example id from the prompt (it copied "Candidate #14" into answers). A 14B model or English questions avoid the rest. Latency is 5 to 15 seconds per answer.
 
 ## 6. Email and meetings
 

@@ -145,6 +145,15 @@ _(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were t
 
 ## After the MVP
 
+### 0.5.0: Dashboard and chat assistant
+
+_(done 2026-10-25; the dashboard is one `GET /api/dashboard?stuckDays=N` with six plain queries and no AI, the threshold lives on the tile in `localStorage`, deep links open the candidate drawer with `?candidate=` and the employee drawer with `?open=`, and the blind-screening toggle became a shared hook; fixture dates are relative to today so the demo stays alive; the chat is `POST /api/ai/chat` streaming NDJSON over seven read-only tools with `stepCountIs(5)` and `temperature: 0`; the lookup tools accept names because `qwen2.5:7b-instruct` sent `teamId: "IT"` and invented job ids, the prompt tells it never to ask permission and never to invent an id after it did both, and an example "Candidate #14" was removed from the prompt after the model copied it into answers; the security review found that the recruiter's own words with a declined name ("Amelię") slipped through the exact anonymizer, so `anonymize()` got an `inflected` option used for chat messages; conversations are not stored; the demo answers the suggested questions from its store through the same stream; ADR 0007 amends the "no open chat" point of ADR 0004)_
+
+- Schema and route: `GET /api/dashboard` (counts, interviews in 7 days, stuck candidates, missing scores, open jobs with funnel, failed emails). UI: `/dashboard` as the first screen.
+- Chat: tool schemas in `packages/shared/src/chat.ts`, tools in `apps/server/src/ai/tools.ts`, prompt in `apps/server/src/ai/prompts/chat.ts`, route `apps/server/src/routes/chat.ts`, panel in `apps/web/src/features/chat/`.
+- **Done when:** the dashboard renders from SQLite and from the demo store with matching rules; "Who is the best candidate?" gets facts and "the decision is yours" from the local model and from the demo; a cloud payload contains `Candidate #N` and no name or email.
+- **Security:** see the chat section of `docs/SECURITY.md`.
+
 ### 0.3.1: Notes on employees
 
 _(done 2026-10-22; additive migration 0009 adds `employee_notes` with `ON DELETE CASCADE`, verified against a rolled-back copy of `data/hrmit.db` where the twelve employees and their memberships survived and the six fixture notes were seeded exactly once; the note count rides on the employees list as a correlated subquery, so the list stays one request)_

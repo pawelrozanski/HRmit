@@ -18,6 +18,7 @@
 
 ## What it does
 
+- **Dashboard** as the first screen: interviews in the next seven days, candidates waiting too long in a stage, missing scorecards, open recruitments with a funnel, failed emails. Plain queries, no AI, every row opens the right drawer.
 - **Recruitments and candidates** with a kanban pipeline: applied → screening → interview → offer / rejected. Drag cards, or use the stage select for keyboard use.
 - **CV upload** (PDF, DOCX, validated by magic bytes) with text extraction, stored on your disk.
 - **Import from CV**: a new candidate's name, email and phone prefilled from the uploaded CV by the local model (or a regex fallback), for you to check.
@@ -25,6 +26,7 @@
 - **Employee notes**: plain-text notes on an employee (availability, agreements, preferences) with an optional title, added and read in a dialog, newest first, deleted with the employee.
 - **Messages to employees and teams**: a plain-text email to one employee from the drawer, or to picked members of a team (select all, leads only) from the team page, one mail per recipient through your SMTP settings; a history with sent/failed status next to the notes and on the team page.
 - **AI assistant** that summarizes a CV, extracts competencies and proposes structured interview questions per job. It describes; it never scores, ranks or rejects.
+- **Chat assistant** on every page: ask "what do I have tomorrow?", "how is the Frontend recruitment going?", "who has been waiting the longest?". The model answers through read-only tools over your data (tool calling), never from a dump of the database, and never ranks: asked who is best, it lists the facts and says the decision is yours. With a cloud provider it sees `Candidate #N`; the names are filled in by your browser.
 - **Structured interviews**: one editable question list per job, grouped by competency, the same for every candidate.
 - **Scorecards** with identical criteria, averages per competency, never a single ranking number. Works in **blind-screening** mode, which hides names and contact details.
 - **Email templates** (invitation, reminder, rejection) sent as plain text over your own SMTP, with a per-candidate history.
@@ -34,7 +36,7 @@
 
 ## Screenshots
 
-Fictional candidates from the built-in fixtures, local build, light mode.
+Fictional candidates from the built-in fixtures, light mode. The first four are from the local build, the dashboard and the chat from the demo build.
 
 | Jobs                                    | Pipeline                                        |
 | --------------------------------------- | ----------------------------------------------- |
@@ -43,6 +45,10 @@ Fictional candidates from the built-in fixtures, local build, light mode.
 | Candidate drawer with an AI summary from a local model | Settings                                   |
 | ------------------------------------------------------ | ------------------------------------------ |
 | ![Candidate drawer](docs/screenshots/candidate.png)    | ![Settings](docs/screenshots/settings.png) |
+
+| Dashboard                                    | Chat assistant refusing to rank              |
+| -------------------------------------------- | -------------------------------------------- |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Chat assistant](docs/screenshots/chat.png) |
 
 ## Why local?
 

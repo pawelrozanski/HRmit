@@ -129,6 +129,7 @@ test('cloud provider: names typed by the recruiter are scrubbed from the history
   const { messages, system } = streamText.mock.calls[0]![0]
   expect(messages[0].content).toBe('Summarize Candidate #1, [email]')
   expect(messages[2].content).toBe("And Candidate #1's phone [phone]?")
+  expect(messages[2].content).toBe("And Candidate #1's phone [phone]?")
   expect(messages[1].content).toBe('Candidate #1 is in interview.')
   expect(system).toContain('candidateId 1')
   expect(system).toContain('Answer in Polish')

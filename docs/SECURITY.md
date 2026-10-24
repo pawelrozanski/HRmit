@@ -71,10 +71,56 @@ Final review across stages 0 to 11, done on 2026-10-19. Each stage had its own s
 
 License check (`pnpm -r licenses list --prod`): 140 production packages. MIT 117, Apache-2.0 10, BSD-2-Clause 4, ISC 2, BSD-3-Clause 1, 0BSD 1, plus five with other but compatible terms: `nodemailer` (MIT-0), `pako` (MIT AND Zlib), `jszip` (MIT OR GPL-3.0-or-later, used under MIT), `json-schema` (AFL-2.1 OR BSD-3-Clause, used under BSD), `duck` ("BSD"). Nothing copyleft-only. All compatible with the project's MIT license ([ADR 0006](adr/0006-license-mit.md)).
 
+## Chat assistant (0.5.0, ADR 0007)
+
+Reviewed on 2026-10-25 against the four questions below.
+
+**What reaches the model.** The system prompt, the conversation as the recruiter typed it (after scrubbing with a cloud provider), the seven tool descriptions with their JSON schemas, and the results of the tools the model called. Never the database, never a CV file, never notes, never an employee. With a local provider the tool results carry full candidate names and the stored AI text as is, like the summarize action does. With a cloud provider the same request looks like this (captured from the fixtures, Polish question, candidate 1 open):
+
+```json
+{
+  "system": "You are the assistant inside HRmit … The recruiter has candidate #1 open …",
+  "messages": [{ "role": "user", "content": "Streść mi Candidate #1 ([email]), czy ma ocenę?" }]
+}
+```
+
+and the `getCandidate` result the model gets back:
+
+```json
+{
+  "candidateId": 1,
+  "candidate": "Candidate #1",
+  "jobId": 1,
+  "jobTitle": "Frontend Developer (React)",
+  "stage": "interview",
+  "daysInStage": 3,
+  "jobStatus": "open",
+  "summary": "Candidate #1 has four years of React experience; contact [email].",
+  "competencies": ["Accessibility"],
+  "interviewAverages": [
+    { "competency": "Accessibility", "average": 4.5, "answered": 2, "total": 2 }
+  ],
+  "meetingCount": 0,
+  "emailCount": 0
+}
+```
+
+The names behind the pseudonyms go to the browser in a separate `refs` event (`{"1": {"name": "Amelia Hartwell", "jobId": 1}}`) that is never part of a model message. The recruiter's own words are scrubbed with `anonymize()` for every candidate in the database, in the mode that also catches Polish declensions ("Amelię", "Hartwella"; found during this review, the exact mode used for CVs missed them), plus the regex passes for emails and phones. The scrub runs on every request over the whole history, so a name typed three questions ago does not come back. Limits are the same as for CVs: a name that is not a candidate's (a referee, a colleague) is not recognised; the panel states that a cloud provider is active.
+
+**Logs.** One line per answer: provider, model, step count, tool names and milliseconds. A failure logs the sanitized error. No question, no answer, no tool result (`chat.test.ts` asserts the log line contains neither the question nor a name).
+
+**Employees.** The only tool that touches them is `teamOverview`, which returns team names with member and open-recruitment counts. No employee name, position, duties, note or message can be selected by any tool (`tools.test.ts` asserts none of the fixture employees' names or positions appear in the output). The rule from 0.3.0 stands: employees never reach an AI prompt.
+
+**No write path.** The tools are `SELECT` statements; a test runs all seven in both modes and compares every table's row count before and after. The chat route imports nothing that writes. The model can only propose a link; moving a candidate, sending a mail or scheduling an interview remains a click in the existing UI.
+
+**Prompt injection.** Free text from a CV or a note can reach the model only inside a tool result, and only the stored AI summary and competency names at that (never the CV body, never notes). A hostile string can at worst make the model call another read-only tool or write a strange answer. The step limit (5) bounds the loop.
+
+**Demo.** No model runs; the MSW handler builds the answers from the demo store in the browser. With a cloud provider picked in the demo settings the text uses pseudonyms, like the server would.
+
 ## Known limits, in one list
 
 1. Anyone who can read `data/` has everything, including the master key.
-2. Anonymization is pattern-based and will miss names that are only in free text.
+2. Anonymization is pattern-based and will miss names that are only in free text. In the chat the recruiter's own words are scrubbed of candidate names (declensions included), but not of other people's names.
 3. No audit log and no stage history: a change cannot be traced to a time or a person (single user).
 4. No rate limit and no CSRF token: the loopback binding and the Origin/Host check are the whole defence.
 5. Docker files were written and partly replayed locally but not run with Docker, which is not installed on the development machine.

@@ -103,3 +103,22 @@ test('without a candidate only the pattern passes run (job descriptions)', () =>
   expect(r.text).toBe('Contact [email] or [phone]. Warsaw team.')
   expect(r.text).not.toContain('Candidate #')
 })
+
+test("inflected: Polish declension of the name is caught in the recruiter's own words", () => {
+  const amelia = {
+    id: 1,
+    firstName: 'Amelia',
+    lastName: 'Hartwell',
+    email: 'a@example.com',
+    phone: '',
+  }
+  const text = 'Streść mi Amelię Hartwell i porównaj z Hartwellem; Amelia czeka.'
+  expect(anonymize(text, amelia, { inflected: true }).text).toBe(
+    'Streść mi Candidate #1 i porównaj z Candidate #1; Candidate #1 czeka.',
+  )
+  // Exact mode (CV text) leaves the declined forms alone, as before.
+  expect(anonymize(text, amelia).text).toContain('Amelię')
+  // Short names stay exact even when inflected, so "Ola" does not eat "Olaf".
+  const ola = { ...amelia, firstName: 'Ola', lastName: 'Nowak' }
+  expect(anonymize('Ola and Olaf', ola, { inflected: true }).text).toBe('Candidate #1 and Olaf')
+})

@@ -87,8 +87,29 @@ const phonePattern = (phone: string) => {
   return digits.length < 6 ? null : `\\+?${digits.split('').join('[\\s.()-]*')}`
 }
 
+export type AnonymizeOptions = {
+  /**
+   * Also match inflected forms of the name ("Amelię", "Hartwella"): the stem without its last
+   * letter plus up to three letters, for names of four letters or more. Meant for the recruiter's
+   * own words in the chat, where Polish declension is the norm; CV text keeps exact matching.
+   */
+  inflected?: boolean
+}
+
+const namePattern = (name: string, inflected: boolean) => {
+  const folded = fold(name.trim())
+  if (!folded) return ''
+  return inflected && folded.length >= 4
+    ? `${escape(folded.slice(0, -1))}\\p{L}{0,3}`
+    : escape(folded)
+}
+
 /** Without a candidate (job text) only the pattern passes run: there are no fields to match. */
-export function anonymize(text: string, candidate?: AnonymizeCandidate): AnonymizeResult {
+export function anonymize(
+  text: string,
+  candidate?: AnonymizeCandidate,
+  options: AnonymizeOptions = {},
+): AnonymizeResult {
   const counts: Partial<Record<ReplacementKind, number>> = {}
   const add = (kind: ReplacementKind, count: number) => {
     if (count) counts[kind] = (counts[kind] ?? 0) + count
@@ -99,8 +120,8 @@ export function anonymize(text: string, candidate?: AnonymizeCandidate): Anonymi
   // full name and each part on its own.
   if (candidate) {
     const label = `Candidate #${candidate.id}`
-    const first = escape(fold(candidate.firstName.trim()))
-    const last = escape(fold(candidate.lastName.trim()))
+    const first = namePattern(candidate.firstName, options.inflected ?? false)
+    const last = namePattern(candidate.lastName, options.inflected ?? false)
     r = replaceFolded(text, escape(fold(candidate.email.trim())), '[email]')
     add('email', r.count)
     const phone = phonePattern(candidate.phone)
