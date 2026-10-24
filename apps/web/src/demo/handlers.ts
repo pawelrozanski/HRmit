@@ -8,8 +8,7 @@ import {
   aiSettingsSchema,
   anonymize,
   candidateInputSchema,
-  emailTemplateKeySchema,
-  emailTemplateSchema,
+  emailTemplateInputSchema,
   evaluationSchema,
   fixtures,
   interviewQuestionInputSchema,
@@ -36,8 +35,8 @@ import {
   type EmployeeEmail,
   type TeamSendResult,
   type Email,
+  type EmailTemplate,
   type EmailPreview,
-  type EmailTemplateKey,
   type Health,
   type InterviewQuestionInput,
   type Meeting,
@@ -95,8 +94,16 @@ ${c.email} | ${c.phone}
 
 ${fixtures.cvText}`
 
+const nameConflict = () => HttpResponse.json({ error: 'name taken' }, { status: 409 })
+const templateNameTaken = (name: string, key = '') =>
+  store.templates.some((t) => t.key !== key && t.name?.toLowerCase() === name.toLowerCase())
+const listTemplates = () =>
+  [...store.templates].sort(
+    (a, b) => Number(b.builtIn) - Number(a.builtIn) || (a.name ?? '').localeCompare(b.name ?? ''),
+  )
+
 /** Same substitution as the server: one template rendered for one candidate. */
-function rendered(candidateId: number, key: EmailTemplateKey, extra: TemplateVars = {}) {
+function rendered(candidateId: number, key: string, extra: TemplateVars = {}) {
   const candidate = store.candidates.find((c) => c.id === candidateId)
   const job = store.jobs.find((j) => j.id === candidate?.jobId)
   const template = store.templates.find((t) => t.key === key)
@@ -567,31 +574,52 @@ export const handlers = [
     await delay(600)
     return HttpResponse.json<SmtpTestResult>({ ok: true })
   }),
-  http.get(`${base}/api/templates`, () => HttpResponse.json(store.templates)),
-  http.put(`${base}/api/templates`, async ({ request }) => {
-    const body = emailTemplateSchema
-      .array()
-      .min(1)
-      .safeParse(await request.json())
+  // Templates (docs §6): built-ins first, custom ones by name, same rules as the server route.
+  http.get(`${base}/api/templates`, () => HttpResponse.json(listTemplates())),
+  http.post(`${base}/api/templates`, async ({ request }) => {
+    const body = emailTemplateInputSchema.safeParse(await request.json())
     if (!body.success) return invalid()
-    for (const t of body.data) {
-      const row = store.templates.find((x) => x.key === t.key)
-      if (row) Object.assign(row, t)
-      else store.templates.push(t)
-    }
+    if (templateNameTaken(body.data.name)) return nameConflict()
+    const row: EmailTemplate = { key: crypto.randomUUID(), builtIn: false, ...body.data }
+    store.templates.push(row)
     save()
-    return HttpResponse.json(store.templates)
+    return HttpResponse.json(row, { status: 201 })
+  }),
+  http.put(`${base}/api/templates/:key`, async ({ params, request }) => {
+    const body = emailTemplateInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const row = store.templates.find((t) => t.key === params.key)
+    if (!row) return notFound()
+    if (templateNameTaken(body.data.name, row.key)) return nameConflict()
+    Object.assign(row, body.data)
+    save()
+    return HttpResponse.json(row)
+  }),
+  http.delete(`${base}/api/templates/:key`, ({ params }) => {
+    const row = store.templates.find((t) => t.key === params.key)
+    if (!row) return notFound()
+    if (row.builtIn) return HttpResponse.json({ error: 'built-in template' }, { status: 400 })
+    store.templates = store.templates.filter((t) => t !== row)
+    save()
+    return new HttpResponse(null, { status: 204 })
+  }),
+  http.post(`${base}/api/templates/:key/restore`, ({ params }) => {
+    const fixture = fixtures.emailTemplates.find((t) => t.key === params.key)
+    const row = store.templates.find((t) => t.key === params.key)
+    if (!fixture || !row) return notFound()
+    Object.assign(row, fixture)
+    save()
+    return HttpResponse.json(row)
   }),
   http.get(`${base}/api/candidates/:id/emails`, ({ params }) => {
     if (!store.candidates.some((c) => c.id === Number(params.id))) return notFound()
     return HttpResponse.json(store.emails.filter((e) => e.candidateId === Number(params.id)))
   }),
   http.get(`${base}/api/candidates/:id/emails/preview`, ({ params, request }) => {
-    const key = emailTemplateKeySchema.safeParse(new URL(request.url).searchParams.get('template'))
-    if (!key.success) return HttpResponse.json({ error: 'unknown template' }, { status: 404 })
-    const r = rendered(Number(params.id), key.data)
+    const key = new URL(request.url).searchParams.get('template') ?? ''
+    const r = rendered(Number(params.id), key)
     if (!r) return notFound()
-    return HttpResponse.json<EmailPreview>({ templateKey: key.data, ...r })
+    return HttpResponse.json<EmailPreview>({ templateKey: key, ...r })
   }),
   // Nothing is sent: the row lands in the candidate's history as the Outbox (docs §4.2).
   http.post(`${base}/api/candidates/:id/emails`, async ({ params, request }) => {

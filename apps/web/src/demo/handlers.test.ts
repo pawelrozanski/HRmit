@@ -385,21 +385,53 @@ test('demo email: SMTP view without the password, templates editable, preview, o
   expect(emailTemplateSchema.array().parse(await get('/api/templates'))).toEqual(
     fixtures.emailTemplates,
   )
-  const edited = emailTemplateSchema.array().parse(
+  const edited = emailTemplateSchema.parse(
     await (
-      await send('PUT', '/api/templates', [
-        {
-          key: 'rejection',
-          subject: 'Re: {{jobTitle}}',
-          body: 'Bye {{firstName}} from {{companyName}}',
-        },
-      ])
+      await send('PUT', '/api/templates/rejection', {
+        name: 'Rejection',
+        subject: 'Re: {{jobTitle}}',
+        body: 'Bye {{firstName}} from {{companyName}}',
+      })
     ).json(),
   )
-  expect(edited).toHaveLength(3)
+  expect(edited).toMatchObject({ key: 'rejection', builtIn: true, name: 'Rejection' })
   expect(persisted().templates?.find((t) => t.key === 'rejection')?.subject).toBe(
     'Re: {{jobTitle}}',
   )
+  // Custom template: created, unique name (case-insensitive), listed after the built-ins, deletable.
+  const custom = { name: 'Offer', subject: 'Offer: {{jobTitle}}', body: 'Hi {{firstName}}' }
+  const created = await send('POST', '/api/templates', custom)
+  expect(created.status).toBe(201)
+  const row = emailTemplateSchema.parse(await created.json())
+  expect(row).toMatchObject({ ...custom, builtIn: false, description: null })
+  expect((await send('POST', '/api/templates', { ...custom, name: 'offer' })).status).toBe(409)
+  expect(
+    emailTemplateSchema
+      .array()
+      .parse(await get('/api/templates'))
+      .at(-1)?.key,
+  ).toBe(row.key)
+  expect(
+    emailPreviewSchema.parse(await get(`/api/candidates/5/emails/preview?template=${row.key}`))
+      .body,
+  ).toBe('Hi Ingrid')
+  expect((await fetch(`http://localhost/api/templates/invite`, { method: 'DELETE' })).status).toBe(
+    400,
+  )
+  expect(
+    (await fetch(`http://localhost/api/templates/${row.key}`, { method: 'DELETE' })).status,
+  ).toBe(204)
+  expect(persisted().templates?.some((t) => t.key === row.key)).toBe(false)
+  // Restore puts the shipped text and the null name back.
+  const restored = emailTemplateSchema.parse(
+    await (await send('POST', '/api/templates/rejection/restore', {})).json(),
+  )
+  expect(restored).toEqual(fixtures.emailTemplates[2])
+  await send('PUT', '/api/templates/rejection', {
+    name: 'Rejection',
+    subject: 'Re: {{jobTitle}}',
+    body: 'Bye {{firstName}} from {{companyName}}',
+  })
 
   const preview = emailPreviewSchema.parse(
     await get('/api/candidates/5/emails/preview?template=rejection'),

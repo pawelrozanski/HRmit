@@ -77,6 +77,13 @@ function load(): Store {
           ? { ...saved.aiSettings, provider: normalizeProviderId(saved.aiSettings.provider) }
           : AI_SETTINGS_DEFAULTS,
         jobs: (saved.jobs ?? []).map((j) => ({ ...j, teamId: j.teamId ?? null })),
+        // Templates saved before 0.6.0 have no builtIn flag, name or description.
+        templates: (saved.templates ?? fixtures.emailTemplates).map((t) => ({
+          ...t,
+          builtIn: t.builtIn ?? true,
+          name: t.name ?? null,
+          description: t.description ?? null,
+        })),
         // Notes saved before 0.3.2 have no title.
         employeeNotes: (saved.employeeNotes ?? fixtures.employeeNotes).map((n) => ({
           ...n,
