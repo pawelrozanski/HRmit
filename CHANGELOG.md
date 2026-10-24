@@ -16,6 +16,7 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 - A kanban card can no longer be dragged off the board: the drag is kept inside the pipeline area.
 - Long subjects in the dashboard's failed-emails tile are cut with an ellipsis instead of pushing the date onto the next line.
+- The "at least days" field on the dashboard can be cleared and typed into, not only stepped with the arrows.
 
 ## [0.4.0] - 2026-10-22
 

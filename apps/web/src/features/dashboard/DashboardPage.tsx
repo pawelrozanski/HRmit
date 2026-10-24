@@ -155,7 +155,11 @@ function Tile({
   children: ReactNode
 }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="rounded-lg border bg-card p-4">
+    <section
+      id={id}
+      aria-labelledby={`${id}-title`} // min-w-0: a grid item defaults to min-width auto, so a long nowrap line would widen the column.
+      className="min-w-0 rounded-lg border bg-card p-4"
+    >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 id={`${id}-title`} className="flex items-center gap-2 font-medium">
           <I className="size-4 text-primary" aria-hidden="true" />
@@ -171,7 +175,7 @@ function Tile({
 /** One row of a list: the whole row is the link, with an optional action on the right. */
 function Row({ to, children, action }: { to: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <li className="flex items-center gap-2">
+    <li className="flex min-w-0 items-center gap-2">
       <Link
         to={to}
         className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 rounded px-1 py-1 text-sm hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
@@ -245,6 +249,8 @@ function Stuck({
   onDays: (n: number) => void
 }) {
   const { t } = useTranslation()
+  // Typed text lives here, so the field can be emptied and retyped; only a valid number is applied.
+  const [text, setText] = useState(String(days))
   return (
     <Tile
       id="stuck"
@@ -257,8 +263,12 @@ function Stuck({
             type="number"
             min={1}
             max={365}
-            value={days}
-            onChange={(e) => onDays(e.target.valueAsNumber)}
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value)
+              onDays(e.target.valueAsNumber)
+            }}
+            onBlur={() => setText(String(days))}
             className="w-14 rounded-md border bg-background px-1.5 py-0.5 text-sm text-foreground"
           />
         </label>

@@ -8,6 +8,7 @@ import {
   cvImportSchema,
   chatEventSchema,
   dashboardSchema,
+  type ChatContext,
   emailPreviewSchema,
   emailSchema,
   emailTemplateSchema,
@@ -68,7 +69,11 @@ afterAll(() => server.close())
 const get = (path: string) => fetch(`http://localhost${path}`).then((r) => r.json())
 
 test('demo POST /api/ai/chat: scenarios stream like the server, unknown questions get the demo note', async () => {
-  const chat = async (content: string, context = { view: 'dashboard' }, lang = 'en') => {
+  const chat = async (
+    content: string,
+    context: ChatContext = { view: 'dashboard' },
+    lang = 'en',
+  ) => {
     const res = await fetch('http://localhost/api/ai/chat', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
