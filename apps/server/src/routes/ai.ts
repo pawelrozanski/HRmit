@@ -24,6 +24,7 @@ import { competenciesPrompt } from '../ai/prompts/competencies.ts'
 import { contactPrompt } from '../ai/prompts/contact.ts'
 import { questionsPrompt } from '../ai/prompts/questions.ts'
 import { summarizePrompt } from '../ai/prompts/summarize.ts'
+import { chatRoute } from './chat.ts'
 import { listQuestions, replaceQuestions } from './jobs.ts'
 import { createModel } from '../ai/provider.ts'
 import { db } from '../db/index.ts'
@@ -33,7 +34,7 @@ import { extractCvText, validateCv } from '../security/upload.ts'
 import { getAiSettings } from '../settings.ts'
 
 /** Error text safe for the UI and the log: no key, no stack, no credentials inside URLs. */
-function sanitize(err: unknown, apiKey: string | null): string {
+export function sanitize(err: unknown, apiKey: string | null): string {
   let msg = (err instanceof Error ? err.message : String(err)).split('\n')[0] ?? ''
   if (apiKey) msg = msg.replaceAll(apiKey, '[redacted]')
   msg = msg.replace(/(https?:\/\/)[^/\s@]+@/g, '$1[redacted]@')
@@ -156,6 +157,8 @@ export const aiRoute = new Hono()
   })
   .route('/summarize', action('summary', cvSummarySchema, summarizePrompt))
   .route('/competencies', action('competencies', competenciesSchema, competenciesPrompt))
+  // The chat assistant (ADR 0007): read-only tools, streamed NDJSON answer.
+  .route('/chat', chatRoute)
   // Interview guide for a job. The prompt sees the job title and description only, never a
   // candidate (ADR 0004). Applied straight away when the job has no questions yet, otherwise
   // returned as a proposal the UI can accept or discard.

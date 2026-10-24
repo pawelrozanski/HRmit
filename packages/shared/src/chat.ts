@@ -102,3 +102,35 @@ export type ChatRefs = z.infer<typeof chatRefsSchema>
 
 /** The pseudonym a cloud model sees; the same label blind screening shows. */
 export const candidateLabel = (candidateId: number) => `Candidate #${candidateId}`
+
+/** What is open in the UI when the question is asked; "this candidate" means `id`. */
+export const chatContextSchema = z.object({
+  view: z.enum(['dashboard', 'recruitment', 'candidate', 'other']),
+  id: z.number().int().optional(),
+})
+export type ChatContext = z.infer<typeof chatContextSchema>
+
+/** Body of POST /api/ai/chat. The history lives in the browser; nothing is stored. */
+export const chatRequestSchema = z.object({
+  messages: z
+    .object({ role: z.enum(['user', 'assistant']), content: z.string().min(1).max(4000) })
+    .array()
+    .min(1)
+    .max(40),
+  context: chatContextSchema.default({ view: 'other' }),
+  lang: z.enum(['en', 'pl']),
+})
+export type ChatRequest = z.input<typeof chatRequestSchema>
+
+/**
+ * One line of the NDJSON answer stream: which tool runs, text as it arrives, the refs for the
+ * UI, an error, and done. Error 'no_tools' means the model cannot call tools.
+ */
+export const chatEventSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('tool'), name: z.enum(CHAT_TOOL_NAMES as [string, ...string[]]) }),
+  z.object({ type: z.literal('text'), text: z.string() }),
+  z.object({ type: z.literal('refs'), refs: chatRefsSchema }),
+  z.object({ type: z.literal('error'), error: z.string() }),
+  z.object({ type: z.literal('done') }),
+])
+export type ChatEvent = z.infer<typeof chatEventSchema>
