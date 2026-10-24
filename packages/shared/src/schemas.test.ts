@@ -21,6 +21,7 @@ import {
   teamMemberLinkSchema,
   teamRowSchema,
 } from './schemas.ts'
+import { chatToolInputs, chatToolOutputs } from './chat.ts'
 import * as fixtures from './fixtures/index.ts'
 
 test('health schema accepts both modes', () => {
@@ -75,6 +76,9 @@ test('AI output schemas have no score, rank or verdict field anywhere', () => {
     aiSummarySchema,
     questionsGenerationSchema,
     questionsProposalSchema,
+    // Chat tools (ADR 0007): what the model is handed has no verdict field either.
+    ...Object.values(chatToolInputs),
+    ...Object.values(chatToolOutputs),
   ]) {
     const found = keys(z.toJSONSchema(schema))
     expect(found.length).toBeGreaterThan(0)
