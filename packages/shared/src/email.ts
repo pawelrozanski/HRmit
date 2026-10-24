@@ -1,6 +1,16 @@
 /** Placeholders a template may use. Unknown ones are left untouched so a typo stays visible. */
 export type TemplateVars = Partial<
-  Record<'firstName' | 'lastName' | 'jobTitle' | 'companyName' | 'jitsiUrl' | 'startsAt', string>
+  Record<
+    | 'firstName'
+    | 'lastName'
+    | 'jobTitle'
+    | 'companyName'
+    | 'jitsiUrl'
+    | 'startsAt'
+    | 'lang'
+    | 'today',
+    string
+  >
 >
 
 /**

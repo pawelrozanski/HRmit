@@ -7,6 +7,7 @@ import {
 } from '@hrmit/shared'
 import { CheckIcon } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { PromptsSettings } from './PromptsSettings.tsx'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { cn } from 'cn'
@@ -31,7 +32,12 @@ export function AiSettings() {
   const loaded = useApi(() => api.api.settings.ai.$get().then((r) => r.json()), [])
   if (loaded.error) return <p className="text-destructive">{t('common.error')}</p>
   if (!loaded.data) return <p className="text-muted-foreground">{t('common.loading')}</p>
-  return <SettingsForm initial={loaded.data} />
+  return (
+    <div className="grid gap-10">
+      <SettingsForm initial={loaded.data} />
+      <PromptsSettings />
+    </div>
+  )
 }
 
 type Form = { provider: string; baseUrl: string; model: string }

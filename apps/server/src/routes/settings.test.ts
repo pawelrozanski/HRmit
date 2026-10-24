@@ -61,3 +61,32 @@ test('a blob encrypted under another master.key reads as no key, not a 500', asy
   expect(warn).toHaveBeenCalled()
   warn.mockRestore()
 })
+
+test('prompts: defaults, an edit is stored, the default text is not', async () => {
+  const { AI_PROMPT_DEFAULTS, aiPromptsSchema } = await import('@hrmit/shared')
+  const { summarizePrompt } = await import('../ai/prompts/summarize.ts')
+  const get = async () =>
+    aiPromptsSchema.parse(await (await app.request('/api/settings/prompts')).json())
+  expect(await get()).toEqual(AI_PROMPT_DEFAULTS)
+  const custom = { ...AI_PROMPT_DEFAULTS, summarize: 'Summarize in {{lang}}, two lines.' }
+  const res = await app.request('/api/settings/prompts', {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(custom),
+  })
+  expect(res.status).toBe(200)
+  expect(await get()).toEqual(custom)
+  const rows = await db.select().from(settings)
+  expect(rows.map((r) => r.key).filter((k) => k.startsWith('ai.prompt.'))).toEqual([
+    'ai.prompt.summarize',
+  ])
+  expect(summarizePrompt({ title: 'T', description: 'D' }, 'CV', 'pl', custom.summarize)).toBe(
+    'Summarize in Polish, two lines.\n\nJob title: T\nJob description: D\n\nCV:\nCV',
+  )
+  const empty = await app.request('/api/settings/prompts', {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ ...custom, chat: '' }),
+  })
+  expect(empty.status).toBe(400)
+})

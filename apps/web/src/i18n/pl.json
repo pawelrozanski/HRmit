@@ -198,6 +198,16 @@
       "confirm": "Rozumiem, włącz"
     }
   },
+  "prompts": {
+    "title": "Prompty",
+    "intro": "Instrukcja, którą model dostaje przed danymi (ogłoszenie, CV, Twoje pytanie). Domyślne teksty trzymają zasadę HRmit: opisuj, nigdy nie oceniaj, nie rankinguj, nie punktuj. Jeśli je zmienisz, to, co robi model, jest Twoją decyzją i Twoją odpowiedzialnością. Ustrukturyzowane odpowiedzi nadal nie mają pola na ocenę ani werdykt.",
+    "keys": {
+      "summarize": "Streszczenie CV",
+      "competencies": "Wyciąganie kompetencji",
+      "questions": "Pytania na rozmowę",
+      "chat": "Czat asystenta AI"
+    }
+  },
   "ai": {
     "title": "Asystent AI",
     "badge": "Sugestia AI",

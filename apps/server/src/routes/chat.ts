@@ -17,7 +17,7 @@ import { chatToolFns, newRefs, type ToolContext } from '../ai/tools.ts'
 import { db } from '../db/index.ts'
 import { candidates } from '../db/schema.ts'
 import { log } from '../log.ts'
-import { getAiSettings } from '../settings.ts'
+import { getAiPrompts, getAiSettings } from '../settings.ts'
 import { sanitize } from './ai.ts'
 
 /** At most five model turns (tool rounds plus the final answer) per question. */
@@ -151,7 +151,7 @@ export const chatRoute = new Hono().post('/', zValidator('json', chatRequestSche
   let steps = 0
   const result = streamText({
     model: createModel(settings),
-    system: chatPrompt(lang, context),
+    system: chatPrompt(lang, context, (await getAiPrompts()).chat),
     messages: history,
     tools,
     stopWhen: stepCountIs(MAX_STEPS),

@@ -1,6 +1,9 @@
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import {
+  AI_PROMPT_DEFAULTS,
+  AI_PROMPT_KEYS,
+  aiPromptsSchema,
   aiSettingsSchema,
   smtpSettingsSchema,
   type AiSettingsView,
@@ -8,7 +11,7 @@ import {
   type SmtpTestResult,
 } from '@hrmit/shared'
 import { sendMail, SmtpNotConfigured } from '../mail/send.ts'
-import { getAiSettings, getSmtpSettings, setSetting } from '../settings.ts'
+import { getAiPrompts, getAiSettings, getSmtpSettings, setSetting } from '../settings.ts'
 
 /** The only shapes that leave the server: each secret is reduced to a boolean. */
 async function view(): Promise<AiSettingsView> {
@@ -28,6 +31,14 @@ export const settingsRoute = new Hono()
     for (const [k, v] of Object.entries(fields)) await setSetting(`ai.${k}`, v)
     if (apiKey === null || apiKey) await setSetting('ai.apiKey', apiKey)
     return c.json(await view())
+  })
+  .get('/prompts', async (c) => c.json(await getAiPrompts()))
+  // A text equal to the shipped default is not stored, so a later default change reaches it.
+  .put('/prompts', zValidator('json', aiPromptsSchema), async (c) => {
+    const body = c.req.valid('json')
+    for (const k of AI_PROMPT_KEYS)
+      await setSetting(`ai.prompt.${k}`, body[k] === AI_PROMPT_DEFAULTS[k] ? null : body[k])
+    return c.json(await getAiPrompts())
   })
   .get('/smtp', async (c) => c.json(await smtpView()))
   // Same rules for pass as for the AI key. Non-string fields are stored as their string form.

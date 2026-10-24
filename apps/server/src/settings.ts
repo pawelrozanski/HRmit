@@ -1,8 +1,11 @@
 import { eq } from 'drizzle-orm'
 import {
+  AI_PROMPT_DEFAULTS,
+  AI_PROMPT_KEYS,
   AI_SETTINGS_DEFAULTS,
   SMTP_SETTINGS_DEFAULTS,
   normalizeProviderId,
+  type AiPrompts,
   type AiSettings,
   type SmtpSettings,
 } from '@hrmit/shared'
@@ -53,6 +56,14 @@ export async function getAiSettings(): Promise<AiSettings & { apiKey: string | n
     model: model ?? AI_SETTINGS_DEFAULTS.model,
     apiKey: apiKey ?? null,
   }
+}
+
+/** The prompt texts: the operator's edit under ai.prompt.<key>, else the shipped default. */
+export async function getAiPrompts(): Promise<AiPrompts> {
+  const rows = await Promise.all(AI_PROMPT_KEYS.map((k) => getSetting(`ai.prompt.${k}`)))
+  return Object.fromEntries(
+    AI_PROMPT_KEYS.map((k, i) => [k, rows[i] ?? AI_PROMPT_DEFAULTS[k]]),
+  ) as AiPrompts
 }
 
 /** SMTP settings with the decrypted password, for the mail transport. Defaults fill missing rows. */

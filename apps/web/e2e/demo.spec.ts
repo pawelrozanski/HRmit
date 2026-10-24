@@ -120,6 +120,32 @@ test('AI settings: provider chooser, cloud consent, local switch, axe on the dia
   await expect(tile).toContainText('Ollama')
   await expect(page.getByLabel('API key')).toHaveCount(0)
 
+  // The assistant button sits between Dashboard and Recruitments (0.5.2).
+  const nav = page.getByRole('navigation').first()
+  await expect(nav.getByRole('link').or(nav.getByRole('button'))).toHaveText([
+    'Dashboard',
+    'AI assistant',
+    'Recruitments',
+    'Employees',
+    'Teams',
+    'Settings',
+  ])
+
+  // Prompts: edit, save, restore the default (0.5.2).
+  const summarize = page.getByLabel('Summarize CV')
+  await expect(summarize).toHaveValue(/Describe, do not decide/)
+  const restore = page.getByRole('button', { name: 'Restore default' }).first()
+  await expect(restore).toBeDisabled()
+  await summarize.fill('Two lines in {{lang}}.')
+  await page.getByRole('button', { name: 'Save' }).last().click()
+  await expect(page.getByText('Saved.')).toBeVisible()
+  await page.reload()
+  await expect(page.getByLabel('Summarize CV')).toHaveValue('Two lines in {{lang}}.')
+  await page.getByRole('button', { name: 'Restore default' }).first().click()
+  await expect(page.getByLabel('Summarize CV')).toHaveValue(/Describe, do not decide/)
+  await page.getByRole('button', { name: 'Save' }).last().click()
+  await expect(page.getByText('Saved.')).toBeVisible()
+
   // A cloud provider asks for consent first; cancelling keeps Ollama.
   await tile.click()
   const chooser = page.getByRole('dialog', { name: 'Choose a provider' })

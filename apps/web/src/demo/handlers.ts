@@ -5,6 +5,7 @@ import {
   aiActionBodySchema,
   employeeInputSchema,
   employeeNoteInputSchema,
+  aiPromptsSchema,
   aiSettingsSchema,
   anonymize,
   candidateInputSchema,
@@ -448,6 +449,14 @@ export const handlers = [
     store.aiSettings = { ...fields, hasApiKey }
     save()
     return HttpResponse.json(store.aiSettings)
+  }),
+  http.get(`${base}/api/settings/prompts`, () => HttpResponse.json(store.prompts)),
+  http.put(`${base}/api/settings/prompts`, async ({ request }) => {
+    const body = aiPromptsSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    store.prompts = body.data
+    save()
+    return HttpResponse.json(store.prompts)
   }),
   // The demo has no Ollama: a fixed list after a short pause, empty for other providers.
   // No model on GitHub Pages: a scenario built from the store, streamed like the server does

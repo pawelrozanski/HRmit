@@ -227,6 +227,13 @@ test('demo AI settings: persisted without the key, test always succeeds', async 
   expect(aiSettingsViewSchema.parse(await saved.json())).toEqual({ ...body, hasApiKey: true })
   expect(storage.get(DEMO_STORAGE_KEY)).not.toContain('sk-ant-demo')
   expect(persisted().aiSettings).toEqual({ ...body, hasApiKey: true })
+  // Prompt texts round-trip through the store.
+  const { AI_PROMPT_DEFAULTS, aiPromptsSchema } = await import('@hrmit/shared')
+  expect(aiPromptsSchema.parse(await get('/api/settings/prompts'))).toEqual(AI_PROMPT_DEFAULTS)
+  const prompts = { ...AI_PROMPT_DEFAULTS, chat: 'Answer in {{lang}}. Today is {{today}}.' }
+  expect((await send('PUT', '/api/settings/prompts', prompts)).status).toBe(200)
+  expect(aiPromptsSchema.parse(await get('/api/settings/prompts'))).toEqual(prompts)
+  expect((await send('PUT', '/api/settings/prompts', { ...prompts, chat: '' })).status).toBe(400)
 
   const kept = await send('PUT', '/api/settings/ai', { ...body, apiKey: '' })
   expect(aiSettingsViewSchema.parse(await kept.json()).hasApiKey).toBe(true)

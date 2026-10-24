@@ -31,7 +31,7 @@ import { db } from '../db/index.ts'
 import { candidateColumns, candidates, jobs } from '../db/schema.ts'
 import { log } from '../log.ts'
 import { extractCvText, validateCv } from '../security/upload.ts'
-import { getAiSettings } from '../settings.ts'
+import { getAiPrompts, getAiSettings } from '../settings.ts'
 
 /** Error text safe for the UI and the log: no key, no stack, no credentials inside URLs. */
 export function sanitize(err: unknown, apiKey: string | null): string {
@@ -75,6 +75,7 @@ const action = <K extends keyof AiSummary, S extends z.ZodType<object>>(
   key: K,
   schema: S,
   prompt: typeof summarizePrompt,
+  promptKey: 'summarize' | 'competencies',
 ) =>
   new Hono().post('/:candidateId', zValidator('json', aiActionBodySchema), async (c) => {
     const where = byId(c.req.param('candidateId'))
@@ -83,12 +84,14 @@ const action = <K extends keyof AiSummary, S extends z.ZodType<object>>(
     if (!row.cvText) return c.json({ error: 'no cv text' }, 422)
 
     const settings = await getAiSettings()
+    const text = (await getAiPrompts())[promptKey]
     const local = isLocalProvider(settings)
     const lang = c.req.valid('json').lang
     const safe = prompt(
       { title: row.title, description: anonymize(row.description, row).text },
       anonymize(row.cvText, row).text,
       lang,
+      text,
     )
     if (LOG_PROMPTS)
       log.info('ai prompt', { action: key, provider: settings.provider, prompt: safe })
@@ -97,7 +100,7 @@ const action = <K extends keyof AiSummary, S extends z.ZodType<object>>(
       ;({ object } = await generateObject({
         model: createModel(settings),
         schema,
-        prompt: local ? prompt(row, row.cvText, lang) : safe,
+        prompt: local ? prompt(row, row.cvText, lang, text) : safe,
       }))
     } catch (err) {
       const error = sanitize(err, settings.apiKey)
@@ -155,8 +158,11 @@ export const aiRoute = new Hono()
       return c.json({ error: sanitize(err, null) }, 502)
     }
   })
-  .route('/summarize', action('summary', cvSummarySchema, summarizePrompt))
-  .route('/competencies', action('competencies', competenciesSchema, competenciesPrompt))
+  .route('/summarize', action('summary', cvSummarySchema, summarizePrompt, 'summarize'))
+  .route(
+    '/competencies',
+    action('competencies', competenciesSchema, competenciesPrompt, 'competencies'),
+  )
   // The chat assistant (ADR 0007): read-only tools, streamed NDJSON answer.
   .route('/chat', chatRoute)
   // Interview guide for a job. The prompt sees the job title and description only, never a
@@ -167,8 +173,13 @@ export const aiRoute = new Hono()
     const [job] = await db.select().from(jobs).where(eq(jobs.id, jobId))
     if (!job) return c.json({ error: 'not found' }, 404)
     const settings = await getAiSettings()
+    const text = (await getAiPrompts()).questions
     const lang = c.req.valid('json').lang
-    const safe = questionsPrompt({ ...job, description: anonymize(job.description).text }, lang)
+    const safe = questionsPrompt(
+      { ...job, description: anonymize(job.description).text },
+      lang,
+      text,
+    )
     if (LOG_PROMPTS)
       log.info('ai prompt', { action: 'questions', provider: settings.provider, prompt: safe })
     let object: z.infer<typeof questionsGenerationSchema>
@@ -176,7 +187,7 @@ export const aiRoute = new Hono()
       ;({ object } = await generateObject({
         model: createModel(settings),
         schema: questionsGenerationSchema,
-        prompt: isLocalProvider(settings) ? questionsPrompt(job, lang) : safe,
+        prompt: isLocalProvider(settings) ? questionsPrompt(job, lang, text) : safe,
       }))
     } catch (err) {
       const error = sanitize(err, settings.apiKey)

@@ -1,8 +1,10 @@
 import {
+  AI_PROMPT_DEFAULTS,
   AI_SETTINGS_DEFAULTS,
   normalizeProviderId,
   SMTP_SETTINGS_DEFAULTS,
   fixtures,
+  type AiPrompts,
   type AiSettingsView,
   type Candidate,
   type Email,
@@ -27,6 +29,8 @@ type Store = {
   questions: InterviewQuestion[]
   evaluations: (Evaluation & { candidateId: number })[]
   aiSettings: AiSettingsView
+  /** Prompt texts (0.5.2): kept so the editor round-trips; the demo answers are canned anyway. */
+  prompts: AiPrompts
   smtpSettings: SmtpSettingsView
   templates: EmailTemplate[]
   emails: Email[]
@@ -63,6 +67,7 @@ function load(): Store {
       return {
         questions: structuredClone(fixtures.questionRows),
         evaluations: seedEvaluations(),
+        prompts: AI_PROMPT_DEFAULTS,
         smtpSettings: DEMO_SMTP,
         emails: structuredClone(fixtures.emails),
         meetings: structuredClone(fixtures.meetings),
@@ -99,6 +104,7 @@ function load(): Store {
     questions: structuredClone(fixtures.questionRows),
     evaluations: seedEvaluations(),
     aiSettings: AI_SETTINGS_DEFAULTS,
+    prompts: AI_PROMPT_DEFAULTS,
     smtpSettings: DEMO_SMTP,
     templates: structuredClone(fixtures.emailTemplates),
     emails: structuredClone(fixtures.emails),

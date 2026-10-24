@@ -196,6 +196,16 @@
       "confirm": "I understand, enable"
     }
   },
+  "prompts": {
+    "title": "Prompts",
+    "intro": "The instruction the model gets before the data (job, CV, your question). The shipped texts keep the HRmit rule: describe, never judge, rank or score. If you change them, what the model does is your call and your responsibility. The structured outputs still have no score or verdict field.",
+    "keys": {
+      "summarize": "Summarize CV",
+      "competencies": "Extract competencies",
+      "questions": "Interview questions",
+      "chat": "AI assistant chat"
+    }
+  },
   "ai": {
     "title": "AI assistant",
     "badge": "AI suggestion",
