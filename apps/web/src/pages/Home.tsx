@@ -74,6 +74,7 @@ function Shell() {
             <LayoutDashboard aria-hidden="true" />
             {t('nav.dashboard')}
           </NavLink>
+          <ChatButton />
           <NavLink to={`${root}/recruitments`} className={navLink}>
             <Briefcase aria-hidden="true" />
             {t('nav.recruitments')}
@@ -90,7 +91,6 @@ function Shell() {
             <Settings aria-hidden="true" />
             {t('nav.settings')}
           </NavLink>
-          <ChatButton />
         </nav>
       </header>
       <main id="main" tabIndex={-1} className="outline-none">
