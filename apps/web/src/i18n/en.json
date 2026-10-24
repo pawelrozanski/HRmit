@@ -283,14 +283,29 @@
   },
   "templates": {
     "title": "Email templates",
-    "intro": "Plain text, one per purpose. Placeholders are filled in when you open the send dialog; you can still edit the text before sending.",
+    "intro": "One tile per template: a short name, a note on when to use it, the text behind it. Placeholders are filled in when you open the send dialog; you can still edit the text before sending.",
     "keys": {
       "invite": "Interview invitation",
       "reminder": "Interview reminder",
       "rejection": "Rejection"
     },
+    "descriptions": {
+      "invite": "Invitation to an online interview with the date and the meeting link.",
+      "reminder": "A short nudge the day before the interview.",
+      "rejection": "A polite no after the decision has been made."
+    },
+    "new": "New template",
+    "edit": "Edit: {{name}}",
+    "name": "Name",
+    "description": "Description",
     "subject": "Subject",
-    "body": "Body"
+    "body": "Body",
+    "hint": "Plain text. Name and description are for you; subject and body go to the candidate.",
+    "placeholders": "Available placeholders:",
+    "nameTaken": "A template with this name already exists.",
+    "deleteConfirm": "Delete the template “{{name}}”? Emails already sent keep their text.",
+    "restoreConfirm": "Restore the shipped text of this template? Your edits to its name, description, subject and body are lost.",
+    "restore": "Restore default"
   },
   "email": {
     "title": "Emails",

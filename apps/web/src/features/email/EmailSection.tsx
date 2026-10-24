@@ -1,10 +1,4 @@
-import {
-  EMAIL_TEMPLATE_KEYS,
-  type Candidate,
-  type Email,
-  type EmailTemplateKey,
-  type SendEmailInput,
-} from '@hrmit/shared'
+import { type Candidate, type Email, type SendEmailInput } from '@hrmit/shared'
 import { Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -25,6 +19,7 @@ import { Label } from '@/components/ui/label.tsx'
 import { Textarea } from '@/components/ui/textarea.tsx'
 import { IS_DEMO } from '@/config.ts'
 import { useBlind } from '../candidates/BlindContext.ts'
+import { useTemplateLabel } from '../settings/TemplatesSettings.tsx'
 
 const BADGE: Record<Email['status'], 'default' | 'destructive' | 'secondary'> = {
   sent: 'default',
@@ -95,7 +90,10 @@ type DialogProps = { candidate: Candidate; onClose: () => void; onSent: (e: Emai
 /** Template pick, then the rendered text is editable: what is sent is exactly what is shown. */
 function SendEmailDialog({ candidate, onClose, onSent }: DialogProps) {
   const { t } = useTranslation()
-  const [templateKey, setTemplateKey] = useState<EmailTemplateKey>('invite')
+  const label = useTemplateLabel()
+  const [templateKey, setTemplateKey] = useState('invite')
+  // Built-in and custom templates alike; the list is short, so it is fetched when the dialog opens.
+  const templates = useApi(() => api.api.templates.$get().then((r) => r.json()), [])
   const [draft, setDraft] = useState<SendEmailInput | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
@@ -137,12 +135,12 @@ function SendEmailDialog({ candidate, onClose, onSent }: DialogProps) {
             <select
               id="email-template"
               value={templateKey}
-              onChange={(e) => setTemplateKey(e.target.value as EmailTemplateKey)}
+              onChange={(e) => setTemplateKey(e.target.value)}
               className="h-8 rounded-lg border bg-background px-2 text-sm"
             >
-              {EMAIL_TEMPLATE_KEYS.map((k) => (
-                <option key={k} value={k}>
-                  {t(`templates.keys.${k}`)}
+              {(templates.data ?? []).map((x) => (
+                <option key={x.key} value={x.key}>
+                  {label.name(x)}
                 </option>
               ))}
             </select>

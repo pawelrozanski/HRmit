@@ -148,10 +148,69 @@ test('AI settings: provider chooser, cloud consent, local switch, axe on the dia
   await expectNoSeriousA11y(page)
 })
 
-test('/templates redirects into settings', async ({ page }) => {
+test('email templates: tiles, dialog, custom template in the send dialog', async ({ page }) => {
   await page.goto('./demo/templates')
   await expect(page).toHaveURL(/\/settings\/templates$/)
   await expect(page.getByRole('heading', { name: 'Email templates' })).toBeVisible()
+  const invite = page.getByRole('button', { name: /Interview invitation/ })
+  await expect(invite).toContainText('Invitation to an online interview')
+  await expectNoSeriousA11y(page)
+
+  // Escape closes the editor and hands focus back to the tile that opened it.
+  await invite.focus()
+  await page.keyboard.press('Enter')
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Edit: Interview invitation' })).toBeVisible()
+  await expect(dialog.getByLabel('Subject')).toHaveValue(/Interview invitation/)
+  await expect(dialog.getByText('{{jitsiUrl}}')).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Delete' })).toHaveCount(0)
+  await expectNoSeriousA11y(page)
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(invite).toBeFocused()
+
+  // A built-in can be renamed and restored; the confirm is a native dialog.
+  page.on('dialog', (d) => d.accept())
+  await invite.click()
+  await dialog.getByLabel('Name').fill('Invite v2')
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(dialog).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Invite v2/ })).toBeVisible()
+  await page.getByRole('button', { name: /Invite v2/ }).click()
+  await dialog.getByRole('button', { name: 'Restore default' }).click()
+  await expect(dialog).toHaveCount(0)
+  await expect(invite).toBeVisible()
+
+  // A custom template: required fields, then a tile after the built-ins.
+  await page.getByRole('button', { name: 'New template' }).click()
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(dialog.getByText('This field is required.').first()).toBeVisible()
+  await dialog.getByLabel('Name').fill('Offer')
+  await dialog.getByLabel('Description').fill('Goes with the offer letter')
+  await dialog.getByLabel('Subject').fill('Offer: {{jobTitle}}')
+  await dialog.getByLabel('Body').fill('Hello {{firstName}}, your offer is attached.')
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(dialog).toHaveCount(0)
+  const offer = page.getByRole('button', { name: /^Offer/ })
+  await expect(offer).toContainText('Goes with the offer letter')
+
+  // The send dialog lists it and renders its placeholders.
+  await page.goto('./demo/recruitments/1')
+  await page.getByRole('button', { name: 'Priya Lennox' }).click()
+  const drawer = page.getByRole('dialog')
+  await drawer.getByRole('button', { name: 'Send email' }).click()
+  const send = page.getByRole('dialog', { name: /Send email to/ })
+  await send.getByRole('combobox', { name: 'Template' }).selectOption({ label: 'Offer' })
+  await expect(send.getByLabel('Subject')).toHaveValue('Offer: Frontend Developer (React)')
+  await expect(send.getByLabel('Body')).toHaveValue(/Hello Priya/)
+  await send.getByRole('button', { name: 'Cancel' }).click()
+
+  // Deleting it asks first and removes the tile.
+  await page.goto('./demo/settings/templates')
+  await offer.click()
+  await dialog.getByRole('button', { name: 'Delete' }).click()
+  await expect(dialog).toHaveCount(0)
+  await expect(offer).toHaveCount(0)
 })
 
 test('/jobs/:id redirects to the recruitment', async ({ page }) => {

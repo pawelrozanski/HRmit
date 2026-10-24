@@ -299,14 +299,29 @@
   },
   "templates": {
     "title": "Szablony e-maili",
-    "intro": "Zwykły tekst, jeden na każdy cel. Znaczniki są wypełniane przy otwarciu okna wysyłki; tekst można jeszcze poprawić przed wysłaniem.",
+    "intro": "Jeden kafelek na szablon: krótka nazwa, opis, do czego służy, i tekst w środku. Znaczniki są wypełniane przy otwarciu okna wysyłki; tekst można jeszcze poprawić przed wysłaniem.",
     "keys": {
       "invite": "Zaproszenie na rozmowę",
       "reminder": "Przypomnienie o rozmowie",
       "rejection": "Odmowa"
     },
+    "descriptions": {
+      "invite": "Zaproszenie na rozmowę online z terminem i linkiem do spotkania.",
+      "reminder": "Krótkie przypomnienie dzień przed rozmową.",
+      "rejection": "Uprzejma odmowa po podjęciu decyzji."
+    },
+    "new": "Nowy szablon",
+    "edit": "Edycja: {{name}}",
+    "name": "Nazwa",
+    "description": "Opis",
     "subject": "Temat",
-    "body": "Treść"
+    "body": "Treść",
+    "hint": "Zwykły tekst. Nazwa i opis są dla Ciebie; temat i treść trafiają do kandydata.",
+    "placeholders": "Dostępne znaczniki:",
+    "nameTaken": "Szablon o tej nazwie już istnieje.",
+    "deleteConfirm": "Usunąć szablon „{{name}}”? Wysłane już e-maile zachowują swój tekst.",
+    "restoreConfirm": "Przywrócić domyślny tekst tego szablonu? Twoje zmiany nazwy, opisu, tematu i treści przepadną.",
+    "restore": "Przywróć domyślny"
   },
   "email": {
     "title": "E-maile",

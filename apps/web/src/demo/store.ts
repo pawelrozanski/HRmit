@@ -64,7 +64,6 @@ function load(): Store {
         questions: structuredClone(fixtures.questionRows),
         evaluations: seedEvaluations(),
         smtpSettings: DEMO_SMTP,
-        templates: structuredClone(fixtures.emailTemplates),
         emails: structuredClone(fixtures.emails),
         meetings: structuredClone(fixtures.meetings),
         employees: structuredClone(fixtures.employees),
