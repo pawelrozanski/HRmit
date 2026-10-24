@@ -487,3 +487,64 @@ export const cvImportSchema = z.object({
   source: z.enum(['ai', 'heuristic']),
 })
 export type CvImport = z.infer<typeof cvImportSchema>
+
+/**
+ * GET /api/dashboard?stuckDays=N: what needs the recruiter's attention, computed from plain
+ * queries (no AI). Names are included for the UI, which hides them under blind screening;
+ * no email, phone, notes or CV text ever travels here.
+ */
+const dashboardPerson = z.object({
+  candidateId: z.number().int(),
+  firstName: z.string(),
+  lastName: z.string(),
+  jobId: z.number().int(),
+  jobTitle: z.string(),
+})
+
+export const dashboardSchema = z.object({
+  counts: z.object({
+    openJobs: z.number().int(),
+    /** Candidates of open jobs who are not rejected. */
+    activeCandidates: z.number().int(),
+    meetingsThisWeek: z.number().int(),
+    teams: z.number().int(),
+  }),
+  /** From now to seven days ahead, soonest first. */
+  meetings: dashboardPerson
+    .extend({
+      id: z.number().int(),
+      startsAt: z.string(),
+      durationMin: z.number().int(),
+      jitsiUrl: z.string(),
+    })
+    .array(),
+  /** In the same stage of an open job for at least `stuckDays`; rejected excluded. Longest first. */
+  stuck: dashboardPerson.extend({ stage: pipelineStageSchema, days: z.number().int() }).array(),
+  /** Interview or offer stage, job has questions, not every question scored. */
+  missingScores: dashboardPerson
+    .extend({ scored: z.number().int(), total: z.number().int() })
+    .array(),
+  /** Open jobs with their team and the candidate count per stage (the mini funnel). */
+  openJobs: z
+    .object({
+      id: z.number().int(),
+      title: z.string(),
+      teamName: z.string().nullable(),
+      stages: z.record(pipelineStageSchema, z.number().int()),
+    })
+    .array(),
+  /** Failed sends of the last 30 days, newest first. targetId is the candidate or employee. */
+  failedEmails: z
+    .object({
+      kind: z.enum(['candidate', 'employee']),
+      id: z.number().int(),
+      targetId: z.number().int(),
+      /** Candidate's job, or the team an employee message was sent from (null otherwise). */
+      jobId: z.number().int().nullable(),
+      teamId: z.number().int().nullable(),
+      subject: z.string(),
+      sentAt: z.string(),
+    })
+    .array(),
+})
+export type Dashboard = z.infer<typeof dashboardSchema>
