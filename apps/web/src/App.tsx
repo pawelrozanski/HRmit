@@ -20,12 +20,19 @@ export function App() {
       >
         {t('nav.skip')}
       </a>
-      {IS_DEMO && <DemoBanner />}
       <Routes>
         {IS_DEMO ? (
           <>
             <Route path="/" element={<Landing />} />
-            <Route path="/demo/*" element={<Home />} />
+            <Route
+              path="/demo/*"
+              element={
+                <>
+                  <DemoBanner />
+                  <Home />
+                </>
+              }
+            />
           </>
         ) : (
           <Route path="/*" element={<Home />} />

@@ -1,79 +1,144 @@
-import { useTranslation } from 'react-i18next'
+import { useLayoutEffect } from 'react'
 import { Link } from 'react-router'
+import dashboard from '../../../../docs/screenshots/dashboard.png'
 import { Mark, Wordmark } from '../components/Brand.tsx'
-import { LanguageSwitch } from '../components/LanguageSwitch.tsx'
+import { applyTheme, readTheme } from '../theme.ts'
 import { Button } from '@/components/ui/button.tsx'
 
+// English only and always light: this is the public face of the project, not the app UI.
 const REPO = 'https://github.com/pawelrozanski/HRmit'
-const DOCS = `${REPO}/tree/main/docs`
-const FEATURES = ['local', 'assist', 'fair'] as const
+const RELEASES = `${REPO}/releases/latest`
+
+const FEATURES = [
+  {
+    title: 'Local by default',
+    text: 'A SQLite file and an uploads folder on your disk. The default AI model runs on your machine through Ollama. Backup is copying a folder.',
+  },
+  {
+    title: 'AI assists, never judges',
+    text: 'Summaries, competencies and structured interview questions. No scores, no rankings, no verdicts. The hire is always a human click.',
+  },
+  {
+    title: 'Built for fairer hiring',
+    text: 'Blind screening hides names and contact details. Every candidate for a job gets the same questions and the same criteria.',
+  },
+  {
+    title: 'Anonymized before the cloud',
+    text: 'Cloud models are opt-in with your own key. CVs are scrubbed locally first, and you can preview exactly what leaves the machine.',
+  },
+]
+
 const RUN_LOCALLY = `git clone ${REPO}.git
 cd HRmit
 pnpm install
-pnpm dev
-# open http://localhost:5173`
+pnpm dev   # http://localhost:5173`
 
 export function Landing() {
-  const { t } = useTranslation()
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme = 'light'
+    return () => applyTheme(readTheme())
+  }, [])
+
   return (
-    <main
-      id="main"
-      tabIndex={-1}
-      className="mx-auto flex max-w-3xl flex-col items-center gap-8 p-8 text-center outline-none sm:p-12"
-    >
-      <div className="self-end">
-        <LanguageSwitch />
-      </div>
-      {/* Lockup from the brand sheet: mark on the left, wordmark and tagline on the right. */}
-      <div className="flex w-full flex-col items-center gap-6 rounded-3xl bg-card p-8 sm:flex-row sm:justify-center sm:gap-10 sm:text-left">
-        <Mark className="h-40 w-auto" />
-        <div>
-          <h1 className="text-6xl leading-none">
-            <Wordmark />
-          </h1>
-          <p className="mt-3 text-xl text-muted-foreground">{t('tagline')}</p>
-        </div>
-      </div>
-      <p className="max-w-xl text-muted-foreground">{t('landing.lead')}</p>
-      <div className="flex gap-4">
-        <Button asChild size="lg">
-          <Link to="/demo">{t('landing.tryDemo')}</Link>
-        </Button>
-        <Button asChild size="lg" variant="outline">
-          <a href={REPO}>GitHub</a>
-        </Button>
-      </div>
-      <ul className="mt-4 grid gap-4 text-left sm:grid-cols-3">
-        {FEATURES.map((key) => (
-          <li key={key} className="rounded-lg border bg-card p-4">
-            <h2 className="font-semibold text-primary">{t(`landing.features.${key}.title`)}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t(`landing.features.${key}.text`)}
+    <main id="main" tabIndex={-1} className="min-h-screen bg-cream text-ink outline-none">
+      <div className="max-w-[1320px] px-8 lg:px-16 xl:px-24">
+        <header className="flex items-center justify-between py-6">
+          <div className="flex items-center gap-3">
+            <Mark className="h-9 w-auto" />
+            <Wordmark className="text-2xl" />
+          </div>
+          <nav className="flex items-center gap-6 text-sm">
+            <a href={REPO} className="hover:text-brand-dark hover:underline">
+              GitHub
+            </a>
+            <a href={`${REPO}/tree/main/docs`} className="hover:text-brand-dark hover:underline">
+              Docs
+            </a>
+            <a
+              href={`${REPO}/blob/main/CHANGELOG.md`}
+              className="hover:text-brand-dark hover:underline"
+            >
+              Changelog
+            </a>
+          </nav>
+        </header>
+
+        <section className="grid items-center gap-12 py-16 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:py-24">
+          <div>
+            <p className="text-sm font-semibold tracking-wide text-brand-dark uppercase">
+              Open-source applicant tracking
             </p>
-          </li>
-        ))}
-      </ul>
-      <section className="max-w-xl">
-        <h2 className="font-semibold text-primary">{t('landing.demo.title')}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t('landing.demo.text')}</p>
-      </section>
-      <section className="w-full max-w-xl text-left">
-        <h2 className="text-center font-semibold text-primary">{t('landing.run.title')}</h2>
-        <p className="mt-1 text-center text-sm text-muted-foreground">{t('landing.run.text')}</p>
-        <pre className="mt-3 overflow-x-auto rounded-lg bg-ink p-4 text-sm text-white dark:border">
-          <code>{RUN_LOCALLY}</code>
-        </pre>
-      </section>
-      <p className="text-xs text-muted-foreground">
-        {t('landing.openSource')}{' '}
-        <a href={REPO} className="text-primary underline">
-          GitHub
-        </a>
-        {' · '}
-        <a href={DOCS} className="text-primary underline">
-          {t('landing.docs')}
-        </a>
-      </p>
+            <h1 className="mt-4 text-5xl leading-tight font-black tracking-tight xl:text-6xl">
+              Your recruitment data stays home.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg text-ink/75">
+              <Wordmark /> is an applicant tracking system that runs on your own computer.
+              Candidates, CVs and notes live in a local database. An AI assistant summarizes CVs and
+              proposes interview questions, but every decision stays with you.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="h-11 px-5 text-base">
+                <Link to="/demo">Try the demo</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="h-11 bg-white px-5 text-base">
+                <a href={RELEASES}>Releases</a>
+              </Button>
+            </div>
+            <p className="mt-4 text-sm text-ink/65">
+              The demo runs entirely in your browser on fictional data. Releases include a Windows
+              installer.
+            </p>
+          </div>
+          <img
+            src={dashboard}
+            alt="HRmit dashboard with upcoming interviews, open recruitments and their funnels"
+            className="w-full rounded-xl border border-ink/10 bg-white shadow-xl shadow-brand-dark/10"
+          />
+        </section>
+
+        <section aria-labelledby="why" className="border-t border-ink/10 py-16">
+          <h2 id="why" className="text-2xl font-bold">
+            Why HRmit
+          </h2>
+          <ul className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            {FEATURES.map((f) => (
+              <li key={f.title} className="rounded-xl border border-ink/10 bg-white p-6">
+                <h3 className="font-semibold text-brand-dark">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink/75">{f.text}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section
+          aria-labelledby="run"
+          className="grid gap-10 border-t border-ink/10 py-16 lg:grid-cols-2"
+        >
+          <div>
+            <h2 id="run" className="text-2xl font-bold">
+              Run it yourself
+            </h2>
+            <p className="mt-4 max-w-lg text-ink/75">
+              On Windows, download the installer from the latest release: it bundles Node and opens
+              HRmit in your browser. Anywhere else, run it from source with Node 24 and pnpm. AI
+              features need Ollama (free, local); the README covers cloud providers and Docker.
+            </p>
+            <a
+              href={`${REPO}#readme`}
+              className="mt-4 inline-block text-sm font-medium text-brand-dark underline"
+            >
+              Read the README
+            </a>
+          </div>
+          <pre className="self-start overflow-x-auto rounded-xl bg-ink p-6 text-sm leading-relaxed text-white">
+            <code>{RUN_LOCALLY}</code>
+          </pre>
+        </section>
+
+        <footer className="border-t border-ink/10 py-8 text-sm text-ink/65">
+          Open source, MIT licensed. All demo data is fictional.
+        </footer>
+      </div>
     </main>
   )
 }
