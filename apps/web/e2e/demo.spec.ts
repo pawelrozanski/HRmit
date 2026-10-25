@@ -17,7 +17,7 @@ test('landing renders and leads to the demo', async ({ page }) => {
   ).toBeVisible()
   await expect(page.getByRole('link', { name: 'Releases' })).toBeVisible()
   await expectNoSeriousA11y(page)
-  await page.getByRole('link', { name: 'Try the demo' }).click()
+  await page.getByRole('link', { name: 'Try the demo' }).first().click()
   await expect(page.getByRole('status')).toContainText('Demo mode')
   // The dashboard is the first screen (0.5.0): tiles from the fixtures, every row a link.
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()

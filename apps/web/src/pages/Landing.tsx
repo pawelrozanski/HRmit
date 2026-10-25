@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button.tsx'
 
 // English only and always light: this is the public face of the project, not the app UI.
 const REPO = 'https://github.com/pawelrozanski/HRmit'
-const RELEASES = `${REPO}/releases/latest`
+const RELEASES = `${REPO}/releases`
 
 const FEATURES = [
   {
@@ -41,8 +41,8 @@ export function Landing() {
 
   return (
     <main id="main" tabIndex={-1} className="min-h-screen bg-cream text-ink outline-none">
-      <div className="max-w-[1320px] px-8 lg:px-16 xl:px-24">
-        <header className="flex items-center justify-between py-6">
+      <header className="border-b border-ink/10 bg-white/60">
+        <div className="flex items-center justify-between px-8 py-4 lg:px-16 xl:px-24">
           <div className="flex items-center gap-3">
             <Mark className="h-9 w-auto" />
             <Wordmark className="text-2xl" />
@@ -60,10 +60,14 @@ export function Landing() {
             >
               Changelog
             </a>
+            <Button asChild>
+              <Link to="/demo">Try the demo</Link>
+            </Button>
           </nav>
-        </header>
-
-        <section className="grid items-center gap-12 py-16 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:py-24">
+        </div>
+      </header>
+      <div className="max-w-[1600px] px-8 lg:px-16 xl:px-24">
+        <section className="grid items-center gap-12 py-16 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] xl:gap-20 lg:py-24">
           <div>
             <p className="text-sm font-semibold tracking-wide text-brand-dark uppercase">
               Open-source applicant tracking
@@ -85,8 +89,8 @@ export function Landing() {
               </Button>
             </div>
             <p className="mt-4 text-sm text-ink/65">
-              The demo runs entirely in your browser on fictional data. Releases include a Windows
-              installer.
+              The demo runs entirely in your browser on fictional data. Every release has notes and
+              a Windows installer.
             </p>
           </div>
           <img
@@ -119,9 +123,9 @@ export function Landing() {
               Run it yourself
             </h2>
             <p className="mt-4 max-w-lg text-ink/75">
-              On Windows, download the installer from the latest release: it bundles Node and opens
-              HRmit in your browser. Anywhere else, run it from source with Node 24 and pnpm. AI
-              features need Ollama (free, local); the README covers cloud providers and Docker.
+              On Windows, download the installer from a release: it bundles Node and opens HRmit in
+              your browser. Anywhere else, run it from source with Node 24 and pnpm. AI features
+              need Ollama (free, local); the README covers cloud providers and Docker.
             </p>
             <a
               href={`${REPO}#readme`}
