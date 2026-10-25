@@ -71,6 +71,8 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Dashboard' })).toBeFocused()
   await page.keyboard.press('Tab')
+  await expect(page.getByRole('button', { name: 'AI assistant' })).toBeFocused()
+  await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Recruitments' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Employees' })).toBeFocused()
@@ -78,8 +80,6 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await expect(page.getByRole('link', { name: 'Teams' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Settings' })).toBeFocused()
-  await page.keyboard.press('Tab')
-  await expect(page.getByRole('button', { name: 'AI assistant' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(page.getByRole('tab', { name: 'General' })).toBeFocused()
 
@@ -93,7 +93,16 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   )
   await expect(page.getByRole('heading', { name: 'AI settings' })).toBeVisible()
   await page.keyboard.press('End')
-  await expect(page).toHaveURL(/\/settings\/templates$/)
+  await expect(page).toHaveURL(/\/settings\/backup$/)
+  await expect(page.getByRole('heading', { name: 'Backup' })).toBeVisible()
+  // The demo backup is a JSON download of the store.
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Download backup' }).click(),
+  ])
+  expect(download.suggestedFilename()).toMatch(/^hrmit-demo-backup-.*\.json$/)
+  await expect(page.getByText(/^Saved hrmit-demo-backup/)).toBeVisible()
+  await page.getByRole('tab', { name: 'Backup' }).focus()
   await page.keyboard.press('ArrowDown')
   await expect(page).toHaveURL(/\/settings\/general$/)
 
