@@ -4,6 +4,15 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+### Added
+
+- Recovery: Settings → Backup & Recovery takes the downloaded `.tar.gz` back (`POST /api/backup/restore`). The archive is checked first (format, file names, SQLite integrity, core tables); then the database is swapped on the open handle, migrated and seeded again, the uploads folder replaced, and the page reloads. A damaged file is refused and nothing changes. The demo takes its JSON file back the same way.
+
+### Changed
+
+- The prompt editor moved from AI settings to its own tab, Settings → AI prompts.
+- The Backup tab is called Backup & Recovery.
+
 ## [0.5.3] - 2026-10-25
 
 ### Added

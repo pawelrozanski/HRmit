@@ -145,6 +145,10 @@ _(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were t
 
 ## After the MVP
 
+### 0.5.4: Recovery and the prompts tab
+
+_(done 2026-10-25; `POST /api/backup/restore` validates the archive, then `replaceDatabase()` closes the `node:sqlite` handle, swaps the file with its WAL and SHM, reopens it and runs migrations and seeds again, so a backup from an older version comes up to date; the server test runs on a temp data folder instead of `:memory:` because the swap needs a file; the prompt editor got its own settings tab)_
+
 ### 0.5.3: Backup download
 
 _(done 2026-10-25; `GET /api/backup` streams nothing yet: the archive is built in memory from a `VACUUM INTO` snapshot and the uploads, fine for a local ATS and marked `ponytail:` for streaming if a data folder ever passes a few hundred MB; restore stays a manual copy into `data/`, an upload-and-restore route is the natural next step)_

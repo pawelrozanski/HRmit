@@ -94,7 +94,7 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await expect(page.getByRole('heading', { name: 'AI settings' })).toBeVisible()
   await page.keyboard.press('End')
   await expect(page).toHaveURL(/\/settings\/backup$/)
-  await expect(page.getByRole('heading', { name: 'Backup' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Backup & Recovery' })).toBeVisible()
   // The demo backup is a JSON download of the store.
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -102,7 +102,7 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   ])
   expect(download.suggestedFilename()).toMatch(/^hrmit-demo-backup-.*\.json$/)
   await expect(page.getByText(/^Saved hrmit-demo-backup/)).toBeVisible()
-  await page.getByRole('tab', { name: 'Backup' }).focus()
+  await page.getByRole('tab', { name: 'Backup & Recovery' }).focus()
   await page.keyboard.press('ArrowDown')
   await expect(page).toHaveURL(/\/settings\/general$/)
 
@@ -140,21 +140,6 @@ test('AI settings: provider chooser, cloud consent, local switch, axe on the dia
     'Settings',
   ])
 
-  // Prompts: edit, save, restore the default (0.5.2).
-  const summarize = page.getByLabel('Summarize CV')
-  await expect(summarize).toHaveValue(/Describe, do not decide/)
-  const restore = page.getByRole('button', { name: 'Restore default' }).first()
-  await expect(restore).toBeDisabled()
-  await summarize.fill('Two lines in {{lang}}.')
-  await page.getByRole('button', { name: 'Save' }).last().click()
-  await expect(page.getByText('Saved.')).toBeVisible()
-  await page.reload()
-  await expect(page.getByLabel('Summarize CV')).toHaveValue('Two lines in {{lang}}.')
-  await page.getByRole('button', { name: 'Restore default' }).first().click()
-  await expect(page.getByLabel('Summarize CV')).toHaveValue(/Describe, do not decide/)
-  await page.getByRole('button', { name: 'Save' }).last().click()
-  await expect(page.getByText('Saved.')).toBeVisible()
-
   // A cloud provider asks for consent first; cancelling keeps Ollama.
   await tile.click()
   const chooser = page.getByRole('dialog', { name: 'Choose a provider' })
@@ -181,6 +166,23 @@ test('AI settings: provider chooser, cloud consent, local switch, axe on the dia
   await expect(page.getByLabel('Base URL')).toHaveValue('http://localhost:1234/v1')
   await expect(page.getByLabel('API key')).toHaveCount(0)
   await expectNoSeriousA11y(page)
+
+  // Prompts: their own tab since 0.5.4; edit, save, restore the default.
+  await page.goto('./demo/settings/prompts')
+  await expect(page.getByRole('heading', { name: 'Prompts' })).toBeVisible()
+  const summarize = page.getByLabel('Summarize CV')
+  await expect(summarize).toHaveValue(/Describe, do not decide/)
+  const restore = page.getByRole('button', { name: 'Restore default' }).first()
+  await expect(restore).toBeDisabled()
+  await summarize.fill('Two lines in {{lang}}.')
+  await page.getByRole('button', { name: 'Save' }).last().click()
+  await expect(page.getByText('Saved.')).toBeVisible()
+  await page.reload()
+  await expect(page.getByLabel('Summarize CV')).toHaveValue('Two lines in {{lang}}.')
+  await page.getByRole('button', { name: 'Restore default' }).first().click()
+  await expect(page.getByLabel('Summarize CV')).toHaveValue(/Describe, do not decide/)
+  await page.getByRole('button', { name: 'Save' }).last().click()
+  await expect(page.getByText('Saved.')).toBeVisible()
 })
 
 test('email templates: tiles, dialog, custom template in the send dialog', async ({ page }) => {
@@ -382,4 +384,30 @@ test('messages: to an employee from the drawer, to picked team members from the 
   const send = page.getByRole('listitem').filter({ hasText: 'Interview training' })
   await expect(send).toContainText('4 recipients')
   await expect(send).toContainText('Outbox (demo) 4')
+})
+
+test('recovery: the downloaded backup goes back in and the app reloads', async ({ page }) => {
+  await page.goto('./demo/settings/backup')
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Download backup' }).click(),
+  ])
+  const file = await download.path()
+  // Change something after the backup, then restore it.
+  await page.goto('./demo/recruitments/1')
+  await page.getByRole('button', { name: 'Priya Lennox' }).click()
+  page.once('dialog', (d) => d.accept())
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+  await expect(page.getByRole('button', { name: 'Priya Lennox' })).toHaveCount(0)
+
+  await page.goto('./demo/settings/backup')
+  await expect(page.getByRole('button', { name: 'Restore from file' })).toBeDisabled()
+  await page.getByLabel('Backup file').setInputFiles(file)
+  page.once('dialog', (d) => d.accept())
+  await Promise.all([
+    page.waitForEvent('load'),
+    page.getByRole('button', { name: 'Restore from file' }).click(),
+  ])
+  await page.goto('./demo/recruitments/1')
+  await expect(page.getByRole('button', { name: 'Priya Lennox' })).toBeVisible()
 })
