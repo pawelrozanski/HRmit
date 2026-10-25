@@ -585,7 +585,19 @@
       "failed": "Asystent nie odpowiedział: {{error}}",
       "settings": "Otwórz ustawienia AI"
     },
-    "demoHint": "Tryb demo: asystent odpowiada na podpowiedzi z danych demo; pełny czat z lokalnym modelem działa w wersji lokalnej."
+    "demoHint": "Tryb demo: asystent odpowiada na podpowiedzi z danych demo; pełny czat z lokalnym modelem działa w wersji lokalnej.",
+    "openEmployee": "Otwórz pracownika",
+    "proposal": {
+      "label": "Notatka zaproponowana przez asystenta",
+      "candidate": "Notatka: {{name}}",
+      "employee": "Notatka: {{name}}",
+      "reminder": "Szkic asystenta. Przeczytaj go: ma opisywać fakty, nigdy ocenę osoby. Zapis to Twoja decyzja.",
+      "save": "Zapisz notatkę",
+      "discard": "Odrzuć",
+      "saved": "Zapisano jako notatkę ze znacznikiem szkicu asystenta.",
+      "open": "Otwórz",
+      "dismissed": "Szkic odrzucony."
+    }
   },
   "update": {
     "check": "Sprawdź aktualizacje",

@@ -502,12 +502,16 @@ const searchEmployees: Fn<'searchEmployees'> = async ({ employeeId, query, team 
  */
 const proposeNote: Fn<'proposeNote'> = async ({ target, id, title, body }, ctx) => {
   if (target === 'employee' && !ctx.employees) return { proposed: false, message: DISABLED.message }
-  const exists =
-    target === 'candidate'
-      ? (await candidateById(id)) !== undefined
-      : (await db.select({ id: employees.id }).from(employees).where(eq(employees.id, id))).length >
-        0
-  if (!exists) return { proposed: false, message: `No ${target} with id ${id}.` }
+  // The ref lets the card show the name and link to the drawer, even if no other tool ran.
+  if (target === 'candidate') {
+    const r = await candidateById(id)
+    if (!r) return { proposed: false, message: `No candidate with id ${id}.` }
+    label(r, ctx)
+  } else {
+    const [e] = await db.select().from(employees).where(eq(employees.id, id))
+    if (!e) return { proposed: false, message: `No employee with id ${id}.` }
+    employeeLabelOf(e, ctx)
+  }
   ctx.proposals.push({ target, id, title: title?.trim() || null, body })
   return {
     proposed: true,

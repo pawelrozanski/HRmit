@@ -557,7 +557,19 @@
       "failed": "The assistant did not answer: {{error}}",
       "settings": "Open AI settings"
     },
-    "demoHint": "Demo mode: the assistant answers the suggested questions from the fixtures; the full chat with a local model works in the local version."
+    "demoHint": "Demo mode: the assistant answers the suggested questions from the fixtures; the full chat with a local model works in the local version.",
+    "openEmployee": "Open employee",
+    "proposal": {
+      "label": "Note proposed by the assistant",
+      "candidate": "Note for {{name}}",
+      "employee": "Note for {{name}}",
+      "reminder": "A draft by the assistant. Read it first: it must describe facts, never a verdict about a person. Saving is your decision.",
+      "save": "Save note",
+      "discard": "Discard",
+      "saved": "Saved as a note, marked as drafted by the assistant.",
+      "open": "Open it",
+      "dismissed": "Draft discarded."
+    }
   },
   "update": {
     "check": "Check for updates",

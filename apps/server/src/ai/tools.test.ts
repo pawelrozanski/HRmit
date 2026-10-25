@@ -245,6 +245,7 @@ test('proposeNote stores nothing: the draft lands in the context, an unknown id 
   expect(ctx.proposals).toEqual([
     { target: 'candidate', id: 2, title: null, body: 'Asked about remote work.' },
   ])
+  expect(ctx.refs.candidates[2]?.name).toBe('Theo Blackwood')
   expect(
     await chatToolFns.proposeNote({ target: 'candidate', id: 9999, body: 'x' }, ctx),
   ).toMatchObject({

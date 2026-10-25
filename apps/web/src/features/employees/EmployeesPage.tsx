@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { selectClass } from '../recruitments/RecruitmentForm.tsx'
+import { useScreen } from '../chat/ChatState.tsx'
 import { EmployeeDrawer, fullName } from './EmployeeDrawer.tsx'
 import { EmployeeForm } from './EmployeeForm.tsx'
 
@@ -19,6 +20,8 @@ export function EmployeesPage() {
   const [teamId, setTeamId] = useState('')
   const [selected, setSelected] = useState<EmployeeWithTeams | null>(null)
   const [creating, setCreating] = useState(false)
+  // "This employee" in the chat is the open drawer (ADR 0009).
+  useScreen(selected ? { view: 'employee', id: selected.id } : { view: 'other' })
   const teams = useApi(() => api.api.teams.$get().then((r) => r.json()), [])
   // The server filters; refetched on every change (the list is small, no debounce needed).
   const employees = useApi(

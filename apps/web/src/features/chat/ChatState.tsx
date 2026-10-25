@@ -1,10 +1,25 @@
-import type { ChatContext, ChatRefs } from '@hrmit/shared'
+import type {
+  CandidateNote,
+  ChatContext,
+  ChatProposal,
+  ChatRefs,
+  EmployeeNote,
+} from '@hrmit/shared'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+
+/** A drafted note and what the recruiter did with it (ADR 0009). */
+export type Proposal = {
+  draft: ChatProposal
+  saved?: CandidateNote | EmployeeNote
+  dismissed?: boolean
+}
 
 export type ChatMessage = {
   role: 'user' | 'assistant'
   /** Raw text as the model wrote it (pseudonyms included); names are substituted at render. */
   content: string
+  /** Note drafts the model proposed in this turn; nothing is stored until Save is clicked. */
+  proposals?: Proposal[]
 }
 
 type State = {

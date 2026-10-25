@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest'
-import { segments } from './chatText.ts'
+import { resolveNames, segments } from './chatText.ts'
 
 const refs = {
   candidates: { 1: { name: 'Amelia Hartwell', jobId: 1 }, 8: { name: 'Samuel Okonkwo', jobId: 2 } },
-  employees: {},
+  employees: { 4: { name: 'Marta Kowalczyk' } },
   recruitments: { 1: { title: 'Frontend Developer (React)' } },
 }
 
@@ -23,6 +23,21 @@ test('blind screening keeps the pseudonym and never links a written name', () =>
   const out = segments('Kandydat #1 (Amelia Hartwell) waits.', refs, true)
   expect(out[0]).toEqual({ kind: 'candidate', id: 1, jobId: 1, label: 'Kandydat #1' })
   expect(out[1]).toEqual({ kind: 'text', text: ' (Amelia Hartwell) waits.' })
+})
+
+test('employees: pseudonym and written name are linked, blind screening does not hide them', () => {
+  const out = segments('Pracownikiem #4 jest Marta Kowalczyk; Employee #9 is unknown.', refs, true)
+  expect(out[0]).toEqual({ kind: 'employee', id: 4, label: 'Marta Kowalczyk' })
+  expect(out[2]).toEqual({ kind: 'employee', id: 4, label: 'Marta Kowalczyk' })
+  expect(out.at(-1)).toEqual({ kind: 'text', text: '; Employee #9 is unknown.' })
+})
+
+test('resolveNames swaps every pseudonym for the name, for a note saved on this machine', () => {
+  expect(
+    resolveNames('Candidate #1 met Employee #4 about recruitment #1. Candidate #99 stays.', refs),
+  ).toBe(
+    'Amelia Hartwell met Marta Kowalczyk about Frontend Developer (React). Candidate #99 stays.',
+  )
 })
 
 test('names and titles written by a local model are linked; unknown ids stay text', () => {

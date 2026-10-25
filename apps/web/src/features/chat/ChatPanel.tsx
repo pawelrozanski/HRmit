@@ -23,8 +23,9 @@ import {
 import { Textarea } from '@/components/ui/textarea.tsx'
 import { APP_ROOT, IS_DEMO } from '@/config.ts'
 import { readBlind } from '../candidates/BlindContext.ts'
-import { useChat, type ChatMessage } from './ChatState.tsx'
+import { useChat, type ChatMessage, type Proposal } from './ChatState.tsx'
 import { segments } from './chatText.ts'
+import { ProposalCard } from './ProposalCard.tsx'
 
 /** Suggested questions per screen, as i18n keys under chat.chips. */
 const CHIPS: Record<ChatContext['view'], string[]> = {
@@ -99,13 +100,24 @@ export function ChatPanel() {
         else if (e.type === 'text') {
           setTool(null)
           append(e.text)
+        } else if (e.type === 'proposal') {
+          setTool(null)
+          chat.setMessages((m) => {
+            const last = m.at(-1)!
+            return [
+              ...m.slice(0, -1),
+              { ...last, proposals: [...(last.proposals ?? []), { draft: e.proposal }] },
+            ]
+          })
         } else if (e.type === 'refs') chat.addRefs(e.refs)
         else if (e.type === 'error') throw new Error(e.error)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
       // An empty assistant bubble would be confusing: drop it, keep the question.
-      chat.setMessages((m) => (m.at(-1)?.content === '' ? m.slice(0, -1) : m))
+      chat.setMessages((m) =>
+        m.at(-1)?.content === '' && !m.at(-1)?.proposals?.length ? m.slice(0, -1) : m,
+      )
     } finally {
       setTool(null)
       setBusy(false)
@@ -182,7 +194,28 @@ export function ChatPanel() {
                   {m.role === 'user' ? (
                     m.content
                   ) : (
-                    <Answer text={m.content} onNavigate={() => chat.setOpen(false)} />
+                    <>
+                      <Answer text={m.content} onNavigate={() => chat.setOpen(false)} />
+                      {m.proposals?.map((p, j) => (
+                        <ProposalCard
+                          key={j}
+                          proposal={p}
+                          onNavigate={() => chat.setOpen(false)}
+                          onChange={(next: Proposal) =>
+                            chat.setMessages((all) =>
+                              all.map((msg, k) =>
+                                k === i
+                                  ? {
+                                      ...msg,
+                                      proposals: msg.proposals!.map((q, l) => (l === j ? next : q)),
+                                    }
+                                  : msg,
+                              ),
+                            )
+                          }
+                        />
+                      ))}
+                    </>
                   )}
                 </li>
               ))}
@@ -279,12 +312,20 @@ function Answer({ text, onNavigate }: { text: string; onNavigate: () => void }) 
             key={i}
             type="button"
             className={linkClass}
-            title={t(s.kind === 'candidate' ? 'chat.openCandidate' : 'chat.openRecruitment')}
+            title={t(
+              s.kind === 'candidate'
+                ? 'chat.openCandidate'
+                : s.kind === 'employee'
+                  ? 'chat.openEmployee'
+                  : 'chat.openRecruitment',
+            )}
             onClick={() =>
               go(
                 s.kind === 'candidate'
                   ? `${APP_ROOT}/recruitments/${s.jobId}?candidate=${s.id}`
-                  : `${APP_ROOT}/recruitments/${s.id}`,
+                  : s.kind === 'employee'
+                    ? `${APP_ROOT}/employees?open=${s.id}`
+                    : `${APP_ROOT}/recruitments/${s.id}`,
               )
             }
           >
