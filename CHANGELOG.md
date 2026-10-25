@@ -4,6 +4,8 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-10-26
+
 ### Added
 
 - Pipeline stages have a colour each, always next to their name: Applied green, Screening blue, Interview violet, Offer amber, Rejected red. On the dashboard (waiting list and the funnel of each recruitment), on the board column headers and next to the name on the candidate page.
