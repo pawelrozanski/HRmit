@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils.ts'
 export const SETTINGS_TABS = ['general', 'ai', 'prompts', 'email', 'templates', 'backup'] as const
 type Tab = (typeof SETTINGS_TABS)[number]
 
-/** One tab list per group (0.5.4); General stands alone. Arrow keys still walk all of them. */
+/** One labelled tab list per group (0.5.4). Arrow keys still walk all of them. */
 const GROUPS: { key: 'general' | 'ai' | 'mail' | 'files'; tabs: Tab[] }[] = [
   { key: 'general', tabs: ['general'] },
   { key: 'ai', tabs: ['ai', 'prompts'] },
@@ -60,19 +60,19 @@ export function SettingsLayout() {
       >
         {GROUPS.map((group) => (
           <div key={group.key} className="flex shrink-0 gap-1 md:flex-col">
-            {group.key !== 'general' && (
-              <span
-                id={`settings-group-${group.key}`}
-                className="px-3 py-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase md:border-t md:pt-3"
-              >
-                {t(`settings.groups.${group.key}`)}
-              </span>
-            )}
+            <span
+              id={`settings-group-${group.key}`}
+              className={cn(
+                'px-3 py-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase',
+                group.key !== 'general' && 'md:border-t md:pt-3',
+              )}
+            >
+              {t(`settings.groups.${group.key}`)}
+            </span>
             <div
               role="tablist"
               aria-orientation="vertical"
-              aria-labelledby={group.key === 'general' ? undefined : `settings-group-${group.key}`}
-              aria-label={group.key === 'general' ? t('settings.tabs.general') : undefined}
+              aria-labelledby={`settings-group-${group.key}`}
               className="flex gap-1 md:flex-col"
             >
               {group.tabs.map((tab) => {

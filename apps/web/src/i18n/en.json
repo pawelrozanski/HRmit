@@ -140,6 +140,7 @@
       "backup": "Backup & Recovery"
     },
     "groups": {
+      "general": "General",
       "ai": "AI",
       "mail": "Mail",
       "files": "Files"

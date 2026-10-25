@@ -142,6 +142,7 @@
       "backup": "Kopia i przywracanie"
     },
     "groups": {
+      "general": "Ogólne",
       "ai": "AI",
       "mail": "Poczta",
       "files": "Pliki"
