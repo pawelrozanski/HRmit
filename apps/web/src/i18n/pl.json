@@ -84,8 +84,6 @@
     "stage": "Etap",
     "stageChanged": "Na tym etapie od",
     "applied": "Zgłoszenie z dnia",
-    "notes": "Notatki",
-    "noNotes": "Brak notatek.",
     "moveTo": "Przenieś na etap",
     "moveFailed": "Nie udało się przenieść kandydata. Spróbuj ponownie.",
     "new": "Nowy kandydat",
@@ -496,22 +494,7 @@
     "noTeams": "Nie należy do żadnego zespołu.",
     "teams": "Zespoły",
     "deleteConfirm": "Usunąć {{name}}? To usuwa pracownika i jego członkostwa w zespołach. Nie da się tego cofnąć.",
-    "deleteFailed": "Nie udało się usunąć pracownika. Spróbuj ponownie.",
-    "notes": {
-      "title": "Notatki",
-      "titleLabel": "Tytuł (opcjonalnie)",
-      "bodyLabel": "Treść",
-      "untitled": "Notatka bez tytułu",
-      "hint": "Zwykły tekst. Ctrl+Enter zapisuje notatkę.",
-      "add": "Dodaj notatkę",
-      "empty": "Brak notatek.",
-      "deleteConfirm": "Usunąć tę notatkę? Nie da się tego cofnąć.",
-      "failed": "Nie udało się zapisać zmiany. Spróbuj ponownie.",
-      "count_one": "{{count}} notatka",
-      "count_few": "{{count}} notatki",
-      "count_many": "{{count}} notatek",
-      "count_other": "{{count}} notatki"
-    }
+    "deleteFailed": "Nie udało się usunąć pracownika. Spróbuj ponownie."
   },
   "dashboard": {
     "title": "Pulpit",
@@ -625,5 +608,21 @@
     },
     "download": "Pobierz {{version}}",
     "installer": "Pobierz nowy instalator i uruchom go. Zatrzyma HRmit, zainstaluje nową wersję na tej i uruchomi ją ponownie; Twoje dane w folderze HRmit na Twoim koncie zostają. Dla pewności najpierw pobierz kopię w zakładce Kopia i przywracanie."
+  },
+  "notes": {
+    "title": "Notatki",
+    "titleLabel": "Tytuł (opcjonalnie)",
+    "bodyLabel": "Treść",
+    "untitled": "Notatka bez tytułu",
+    "hint": "Zwykły tekst. Ctrl+Enter zapisuje notatkę.",
+    "add": "Dodaj notatkę",
+    "empty": "Brak notatek.",
+    "deleteConfirm": "Usunąć tę notatkę? Nie da się tego cofnąć.",
+    "failed": "Nie udało się zapisać zmiany. Spróbuj ponownie.",
+    "count_one": "{{count}} notatka",
+    "count_few": "{{count}} notatki",
+    "count_many": "{{count}} notatek",
+    "count_other": "{{count}} notatki",
+    "assistant": "Szkic asystenta AI, zatwierdzony przez Ciebie"
   }
 }

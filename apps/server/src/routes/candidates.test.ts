@@ -1,10 +1,10 @@
 import { readdirSync } from 'node:fs'
 import { expect, test } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { candidateSchema, fixtures, scorecardSchema } from '@hrmit/shared'
+import { candidateNoteSchema, candidateSchema, fixtures, scorecardSchema } from '@hrmit/shared'
 import { app } from '../app.ts'
 import { db, uploadsDir } from '../db/index.ts'
-import { evaluations } from '../db/schema.ts'
+import { candidateNotes, evaluations } from '../db/schema.ts'
 import { tinyDocx, tinyPdf, zip } from '../test/cv-files.ts'
 
 const json = (method: string, path: string, body: unknown) =>
@@ -23,6 +23,41 @@ const upload = (id: number, name: string, bytes: Uint8Array<ArrayBuffer>) => {
 const files = () => readdirSync(uploadsDir)
 
 // --- routes ---------------------------------------------------------------------------------
+
+test('candidate notes: seeded from the fixtures, add with a source, delete, cascade', async () => {
+  const notes = async (id: number) =>
+    candidateNoteSchema
+      .array()
+      .parse(await (await app.request(`/api/candidates/${id}/notes`)).json())
+  expect((await notes(2)).map((n) => n.body)).toEqual([fixtures.candidateNotes[1]!.body])
+  expect((await app.request('/api/candidates/9999/notes')).status).toBe(404)
+  expect((await json('POST', '/api/candidates/6/notes', { body: '' })).status).toBe(400)
+  expect(
+    (await json('POST', '/api/candidates/6/notes', { body: 'x', source: 'model' })).status,
+  ).toBe(400)
+  const posted = await json('POST', '/api/candidates/6/notes', {
+    title: ' Call ',
+    body: 'Prefers afternoons.',
+    source: 'assistant',
+  })
+  expect(posted.status).toBe(201)
+  const note = candidateNoteSchema.parse(await posted.json())
+  expect(note).toMatchObject({ candidateId: 6, title: 'Call', source: 'assistant' })
+  const human = candidateNoteSchema.parse(
+    await (await json('POST', '/api/candidates/6/notes', { body: 'Second' })).json(),
+  )
+  expect(human.source).toBe('human')
+  expect((await notes(6)).map((n) => n.id)).toEqual([human.id, note.id])
+  const del = (cid: number, nid: number) =>
+    app.request(`/api/candidates/${cid}/notes/${nid}`, { method: 'DELETE' })
+  expect((await del(1, note.id)).status).toBe(404)
+  expect((await del(6, note.id)).status).toBe(204)
+  expect((await del(6, note.id)).status).toBe(404)
+  await app.request('/api/candidates/6', { method: 'DELETE' })
+  expect(await db.select().from(candidateNotes).where(eq(candidateNotes.candidateId, 6))).toEqual(
+    [],
+  )
+})
 
 test('PATCH /api/candidates/:id/stage moves the candidate and stamps the change', async () => {
   const before = Date.now()

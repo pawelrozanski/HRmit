@@ -82,8 +82,6 @@
     "stage": "Stage",
     "stageChanged": "In this stage since",
     "applied": "Applied on",
-    "notes": "Notes",
-    "noNotes": "No notes yet.",
     "moveTo": "Move to stage",
     "moveFailed": "Could not move the candidate. Try again.",
     "new": "New candidate",
@@ -470,20 +468,7 @@
     "noTeams": "Not in any team.",
     "teams": "Teams",
     "deleteConfirm": "Delete {{name}}? This removes the employee and their team memberships. It cannot be undone.",
-    "deleteFailed": "Could not delete the employee. Try again.",
-    "notes": {
-      "title": "Notes",
-      "titleLabel": "Title (optional)",
-      "bodyLabel": "Note",
-      "untitled": "Untitled note",
-      "hint": "Plain text. Ctrl+Enter saves the note.",
-      "add": "Add note",
-      "empty": "No notes yet.",
-      "deleteConfirm": "Delete this note? It cannot be undone.",
-      "failed": "Could not save the change. Try again.",
-      "count_one": "{{count}} note",
-      "count_other": "{{count}} notes"
-    }
+    "deleteFailed": "Could not delete the employee. Try again."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -595,5 +580,19 @@
     },
     "download": "Download {{version}}",
     "installer": "Download the new installer and run it. It stops HRmit, installs the new version over this one and starts it again; your data in the HRmit folder of your user account stays. For extra safety, download a backup under Backup & Recovery first."
+  },
+  "notes": {
+    "title": "Notes",
+    "titleLabel": "Title (optional)",
+    "bodyLabel": "Note",
+    "untitled": "Untitled note",
+    "hint": "Plain text. Ctrl+Enter saves the note.",
+    "add": "Add note",
+    "empty": "No notes yet.",
+    "deleteConfirm": "Delete this note? It cannot be undone.",
+    "failed": "Could not save the change. Try again.",
+    "count_one": "{{count}} note",
+    "count_other": "{{count}} notes",
+    "assistant": "Drafted by the AI assistant, approved by you"
   }
 }

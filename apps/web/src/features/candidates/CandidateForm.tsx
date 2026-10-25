@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
-import { Textarea } from '@/components/ui/textarea.tsx'
 import { fieldErrors } from '@/lib/form.ts'
 
 type Props = {
@@ -137,10 +136,6 @@ export function CandidateForm({ jobId, candidate, open, onClose, onSaved }: Prop
                 {errors[name] && <p className="text-xs text-destructive">{errors[name]}</p>}
               </div>
             ))}
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="notes">{t('candidates.notes')}</Label>
-            <Textarea id="notes" name="notes" rows={4} defaultValue={candidate?.notes} />
           </div>
           {failed && (
             <p role="alert" className="text-sm text-destructive">

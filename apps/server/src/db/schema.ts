@@ -7,7 +7,7 @@ import {
   unique,
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
-import { PIPELINE_STAGES, TEAM_MEMBER_ROLES, type AiSummary } from '@hrmit/shared'
+import { NOTE_SOURCES, PIPELINE_STAGES, TEAM_MEMBER_ROLES, type AiSummary } from '@hrmit/shared'
 
 // docs/ARCHITECTURE.md §3.
 
@@ -39,7 +39,10 @@ export const employees = sqliteTable('employees', {
   createdAt: text('created_at').notNull(),
 })
 
-/** Free-text notes on an employee (plain text). Personal data: gone with the employee. */
+/**
+ * Free-text notes on an employee (plain text). Personal data: gone with the employee.
+ * `source` says who drafted it (0.6.0, ADR 0009): a person, or the assistant with a person's click.
+ */
 export const employeeNotes = sqliteTable('employee_notes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   employeeId: integer('employee_id')
@@ -48,6 +51,7 @@ export const employeeNotes = sqliteTable('employee_notes', {
   /** Optional heading; null when the user left it blank (never a placeholder). */
   title: text('title'),
   body: text('body').notNull(),
+  source: text('source', { enum: NOTE_SOURCES }).notNull().default('human'),
   createdAt: text('created_at').notNull(),
 })
 
@@ -90,6 +94,7 @@ export const candidates = sqliteTable('candidates', {
   phone: text('phone').notNull().default(''),
   stage: text('stage', { enum: PIPELINE_STAGES }).notNull().default('applied'),
   stageChangedAt: text('stage_changed_at').notNull(),
+  /** ponytail: legacy since 0.6.0, always '' for new rows; the notes live in candidate_notes. */
   notes: text('notes').notNull().default(''),
   cvFilename: text('cv_filename'),
   /** Random UUID name under <data dir>/uploads/. Never leaves the server (see candidateColumns). */
@@ -97,6 +102,21 @@ export const candidates = sqliteTable('candidates', {
   cvText: text('cv_text'),
   /** Last output of each AI action (docs/ARCHITECTURE.md §3), parsed by drizzle's json mode. */
   aiSummaryJson: text('ai_summary_json', { mode: 'json' }).$type<AiSummary>(),
+  createdAt: text('created_at').notNull(),
+})
+
+/**
+ * Dated notes on a candidate (0.6.0), same shape as employee notes. Migration 0013 moved the old
+ * free-text `candidates.notes` field here; that column stays, empty, for API compatibility.
+ */
+export const candidateNotes = sqliteTable('candidate_notes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  candidateId: integer('candidate_id')
+    .notNull()
+    .references(() => candidates.id, { onDelete: 'cascade' }),
+  title: text('title'),
+  body: text('body').notNull(),
+  source: text('source', { enum: NOTE_SOURCES }).notNull().default('human'),
   createdAt: text('created_at').notNull(),
 })
 

@@ -4,7 +4,7 @@ import { Hono } from 'hono'
 import { validator } from 'hono/validator'
 import {
   employeeInputSchema,
-  employeeNoteInputSchema,
+  noteInputSchema,
   renderTemplate,
   sendEmployeeEmailInputSchema,
   type Employee,
@@ -170,13 +170,19 @@ export const employeesRoute = new Hono()
       .orderBy(desc(employeeNotes.createdAt), desc(employeeNotes.id))
     return c.json(rows)
   })
-  .post('/:id/notes', zValidator('json', employeeNoteInputSchema), async (c) => {
+  .post('/:id/notes', zValidator('json', noteInputSchema), async (c) => {
     const id = Number(c.req.param('id'))
     if (!(await exists(id))) return c.json({ error: 'not found' }, 404)
-    const { title, body } = c.req.valid('json')
+    const { title, body, source } = c.req.valid('json')
     const [row] = await db
       .insert(employeeNotes)
-      .values({ employeeId: id, title: title || null, body, createdAt: new Date().toISOString() })
+      .values({
+        employeeId: id,
+        title: title || null,
+        body,
+        source,
+        createdAt: new Date().toISOString(),
+      })
       .returning()
     return c.json(row!, 201)
   })

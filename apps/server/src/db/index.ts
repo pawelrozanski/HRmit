@@ -77,6 +77,7 @@ async function prepare() {
   if ((await countOf(schema.jobs)) === 0) {
     await db.insert(schema.jobs).values(fixtures.jobs)
     await db.insert(schema.candidates).values(fixtures.candidates)
+    await db.insert(schema.candidateNotes).values(fixtures.candidateNotes)
     await db.insert(schema.interviewQuestions).values(fixtures.questionRows)
     await db
       .insert(schema.evaluations)

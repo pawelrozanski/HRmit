@@ -4,6 +4,7 @@ import {
   aiPreviewSchema,
   aiSettingsViewSchema,
   aiTestResultSchema,
+  candidateNoteSchema,
   candidateSchema,
   cvImportSchema,
   chatEventSchema,
@@ -643,6 +644,38 @@ test('demo employee notes: newest first, add, delete, 404s, gone with the employ
   await send('POST', '/api/employees/1/notes', { body: 'gone' })
   await fetch('http://localhost/api/employees/1', { method: 'DELETE' })
   expect(persisted().employeeNotes?.some((n) => n.employeeId === 1)).toBe(false)
+})
+
+test('demo candidate notes: seeded from the old field, add with source, delete, gone with the candidate', async () => {
+  const notes = async (id: number) =>
+    candidateNoteSchema.array().parse(await get(`/api/candidates/${id}/notes`))
+  expect((await notes(1)).map((n) => n.body)).toEqual([
+    'Portfolio shows a strong eye for accessible forms.',
+  ])
+  expect(await notes(3)).toEqual([])
+  expect((await fetch('http://localhost/api/candidates/9999/notes')).status).toBe(404)
+  expect((await send('POST', '/api/candidates/3/notes', { body: ' ' })).status).toBe(400)
+  const posted = await send('POST', '/api/candidates/3/notes', {
+    title: 'Interview',
+    body: 'Asked about remote work.',
+    source: 'assistant',
+  })
+  expect(posted.status).toBe(201)
+  const note = candidateNoteSchema.parse(await posted.json())
+  expect(note).toMatchObject({ candidateId: 3, title: 'Interview', source: 'assistant' })
+  expect((await notes(3)).map((n) => n.id)).toEqual([note.id])
+  expect(persisted().candidateNotes?.some((n) => n.id === note.id)).toBe(true)
+  expect(
+    (await fetch(`http://localhost/api/candidates/1/notes/${note.id}`, { method: 'DELETE' }))
+      .status,
+  ).toBe(404)
+  expect(
+    (await fetch(`http://localhost/api/candidates/3/notes/${note.id}`, { method: 'DELETE' }))
+      .status,
+  ).toBe(204)
+  await send('POST', '/api/candidates/3/notes', { body: 'gone' })
+  await fetch('http://localhost/api/candidates/3', { method: 'DELETE' })
+  expect(persisted().candidateNotes?.some((n) => n.candidateId === 3)).toBe(false)
 })
 
 test('demo employee and team messages: outbox rows, placeholders, non-member 400, gone with the employee', async () => {

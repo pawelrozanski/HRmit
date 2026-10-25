@@ -125,6 +125,11 @@ export const employeeWithTeamsSchema = employeeSchema.extend({
 })
 export type EmployeeWithTeams = z.infer<typeof employeeWithTeamsSchema>
 
+/** Who drafted a note: a person, or the AI assistant with a person's approval click (ADR 0009). */
+export const NOTE_SOURCES = ['human', 'assistant'] as const
+export const noteSourceSchema = z.enum(NOTE_SOURCES)
+export type NoteSource = z.infer<typeof noteSourceSchema>
+
 /** A free-text note on an employee (plain text, never HTML). Deleted with the employee. */
 export const employeeNoteSchema = z.object({
   id: z.number().int(),
@@ -132,16 +137,24 @@ export const employeeNoteSchema = z.object({
   /** Null when blank; the UI shows an "Untitled note" placeholder then. */
   title: z.string().nullable(),
   body: z.string(),
+  source: noteSourceSchema,
   createdAt: z.string(),
 })
 export type EmployeeNote = z.infer<typeof employeeNoteSchema>
 
-/** Body of POST /api/employees/:id/notes. A blank title is stored as null. */
-export const employeeNoteInputSchema = z.object({
+/** A dated note on a candidate (0.6.0): same shape, deleted with the candidate. */
+export const candidateNoteSchema = employeeNoteSchema
+  .omit({ employeeId: true })
+  .extend({ candidateId: z.number().int() })
+export type CandidateNote = z.infer<typeof candidateNoteSchema>
+
+/** Body of POST .../notes. A blank title is stored as null; source defaults to a human author. */
+export const noteInputSchema = z.object({
   title: z.string().trim().max(120).optional(),
   body: z.string().trim().min(1).max(5000),
+  source: noteSourceSchema.default('human'),
 })
-export type EmployeeNoteInput = z.input<typeof employeeNoteInputSchema>
+export type NoteInput = z.input<typeof noteInputSchema>
 
 /** A team as stored. Names are unique case-insensitively. */
 export const teamRowSchema = z.object({

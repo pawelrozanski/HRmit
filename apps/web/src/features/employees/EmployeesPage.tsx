@@ -131,7 +131,7 @@ export function EmployeesPage() {
                 {e.noteCount > 0 && (
                   <span
                     className="flex items-center gap-1 text-xs text-muted-foreground"
-                    aria-label={t('employees.notes.count', { count: e.noteCount })}
+                    aria-label={t('notes.count', { count: e.noteCount })}
                   >
                     <NotebookPen className="size-3.5" aria-hidden="true" />
                     {e.noteCount}

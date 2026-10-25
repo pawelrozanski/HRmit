@@ -11,6 +11,7 @@ import {
   evaluationSchema,
   meetingInputSchema,
   moveStageSchema,
+  noteInputSchema,
   renderTemplate,
   sendEmailInputSchema,
   type EmailPreview,
@@ -22,6 +23,7 @@ import {
 import { db, uploadsDir } from '../db/index.ts'
 import {
   candidateColumns,
+  candidateNotes,
   candidates,
   emails,
   emailTemplates,
@@ -137,6 +139,45 @@ export const candidatesRoute = new Hono()
     if (!row) return c.json({ error: 'not found' }, 404)
     await unlinkCv(row.cvPath)
     return c.body(null, 204)
+  })
+  // Dated notes (0.6.0), same contract as the employee notes; cascade with the candidate.
+  .get('/:id/notes', async (c) => {
+    const id = Number(c.req.param('id'))
+    if ((await jobOf(c.req.param('id'))) === undefined) return c.json({ error: 'not found' }, 404)
+    const rows = await db
+      .select()
+      .from(candidateNotes)
+      .where(eq(candidateNotes.candidateId, id))
+      .orderBy(desc(candidateNotes.createdAt), desc(candidateNotes.id))
+    return c.json(rows)
+  })
+  .post('/:id/notes', zValidator('json', noteInputSchema), async (c) => {
+    const id = Number(c.req.param('id'))
+    if ((await jobOf(c.req.param('id'))) === undefined) return c.json({ error: 'not found' }, 404)
+    const { title, body, source } = c.req.valid('json')
+    const [row] = await db
+      .insert(candidateNotes)
+      .values({
+        candidateId: id,
+        title: title || null,
+        body,
+        source,
+        createdAt: new Date().toISOString(),
+      })
+      .returning()
+    return c.json(row!, 201)
+  })
+  .delete('/:id/notes/:noteId', async (c) => {
+    const rows = await db
+      .delete(candidateNotes)
+      .where(
+        and(
+          eq(candidateNotes.id, Number(c.req.param('noteId'))),
+          eq(candidateNotes.candidateId, Number(c.req.param('id'))),
+        ),
+      )
+      .returning({ id: candidateNotes.id })
+    return rows.length ? c.body(null, 204) : c.json({ error: 'not found' }, 404)
   })
   .patch('/:id/stage', zValidator('json', moveStageSchema), async (c) => {
     const { stage } = c.req.valid('json')

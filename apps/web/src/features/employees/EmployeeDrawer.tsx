@@ -16,7 +16,7 @@ import {
 import { APP_ROOT } from '@/config.ts'
 import { EmployeeForm } from './EmployeeForm.tsx'
 import { EmployeeMessages } from './EmployeeMessages.tsx'
-import { EmployeeNotes } from './EmployeeNotes.tsx'
+import { NotesSection } from '../notes/NotesSection.tsx'
 
 type Props = {
   employee: EmployeeWithTeams | null
@@ -94,11 +94,14 @@ export function EmployeeDrawer({ employee, onClose, onChange, onDelete }: Props)
                 </dd>
               </div>
             </dl>
-            <EmployeeNotes
-              key={employee.id}
-              employeeId={employee.id}
-              onCount={(noteCount) => onChange({ ...employee, noteCount })}
-            />
+            <div className="px-4">
+              <NotesSection
+                key={employee.id}
+                target="employee"
+                id={employee.id}
+                onCount={(noteCount) => onChange({ ...employee, noteCount })}
+              />
+            </div>
             <EmployeeMessages key={`m${employee.id}`} employee={employee} />
             <div className="flex flex-wrap gap-2 px-4">
               <Button variant="outline" onClick={() => setEditing(true)}>

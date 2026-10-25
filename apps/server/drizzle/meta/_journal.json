@@ -92,6 +92,13 @@
       "when": 1792884325826,
       "tag": "0012_templates",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1792900605502,
+      "tag": "0013_candidate_notes",
+      "breakpoints": true
     }
   ]
 }

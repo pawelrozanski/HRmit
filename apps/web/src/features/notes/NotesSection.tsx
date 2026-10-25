@@ -1,5 +1,5 @@
-import { employeeNoteInputSchema, type EmployeeNote } from '@hrmit/shared'
-import { NotebookPen, Plus, Trash2 } from 'lucide-react'
+import { noteInputSchema, type CandidateNote, type EmployeeNote } from '@hrmit/shared'
+import { NotebookPen, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/api/client.ts'
@@ -18,33 +18,43 @@ import { Label } from '@/components/ui/label.tsx'
 import { Textarea } from '@/components/ui/textarea.tsx'
 import { fieldErrors } from '@/lib/form.ts'
 
+type Note = EmployeeNote | CandidateNote
+export type NoteTarget = 'candidate' | 'employee'
+
 type Props = {
-  employeeId: number
-  /** Called with the new total after an add or a delete, so the list badge stays right. */
-  onCount: (n: number) => void
+  target: NoteTarget
+  id: number
+  /** Called with the new total after an add or a delete, so a list badge stays right. */
+  onCount?: (n: number) => void
 }
 
-/** Plain-text notes on one employee, newest first. Rendered as text, never as HTML. */
-export function EmployeeNotes({ employeeId, onCount }: Props) {
+/** The two note resources share one contract; this picks the endpoint. */
+const notesApi = (target: NoteTarget) =>
+  (target === 'candidate' ? api.api.candidates : api.api.employees)[':id'].notes
+
+/** Plain-text notes on one candidate or employee, newest first. Rendered as text, never as HTML. */
+export function NotesSection({ target, id, onCount = () => {} }: Props) {
   const { t, i18n } = useTranslation()
   const [adding, setAdding] = useState(false)
-  const [open, setOpen] = useState<EmployeeNote | null>(null)
+  const [open, setOpen] = useState<Note | null>(null)
   const [failed, setFailed] = useState(false)
   const notes = useApi(
     () =>
-      api.api.employees[':id'].notes.$get({ param: { id: String(employeeId) } }).then((r) => {
-        if (r.status !== 200) throw new Error(`HTTP ${r.status}`)
-        return r.json()
-      }),
-    [employeeId],
+      notesApi(target)
+        .$get({ param: { id: String(id) } })
+        .then((r) => {
+          if (r.status !== 200) throw new Error(`HTTP ${r.status}`)
+          return r.json() as Promise<Note[]>
+        }),
+    [target, id],
   )
   const when = (iso: string) =>
     new Date(iso).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })
 
-  const remove = async (note: EmployeeNote) => {
-    if (!window.confirm(t('employees.notes.deleteConfirm'))) return
-    const res = await api.api.employees[':id'].notes[':noteId'].$delete({
-      param: { id: String(employeeId), noteId: String(note.id) },
+  const remove = async (note: Note) => {
+    if (!window.confirm(t('notes.deleteConfirm'))) return
+    const res = await notesApi(target)[':noteId'].$delete({
+      param: { id: String(id), noteId: String(note.id) },
     })
     if (res.status !== 204) return setFailed(true)
     setOpen(null)
@@ -56,28 +66,28 @@ export function EmployeeNotes({ employeeId, onCount }: Props) {
   }
 
   return (
-    <section aria-labelledby="employee-notes" className="grid gap-3 px-4 text-sm">
+    <section aria-labelledby={`${target}-notes`} className="grid gap-3 text-sm">
       <div className="flex items-center justify-between gap-2">
-        <h3 id="employee-notes" className="flex items-center gap-2 font-medium">
+        <h3 id={`${target}-notes`} className="flex items-center gap-2 font-medium">
           <NotebookPen className="size-4 text-primary" aria-hidden="true" />
-          {t('employees.notes.title')}
+          {t('notes.title')}
           {notes.data && notes.data.length > 0 && (
             <span className="font-normal text-muted-foreground">({notes.data.length})</span>
           )}
         </h3>
         <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
-          <Plus data-icon="inline-start" /> {t('employees.notes.add')}
+          <Plus data-icon="inline-start" /> {t('notes.add')}
         </Button>
       </div>
       {failed && (
         <p role="alert" className="text-destructive">
-          {t('employees.notes.failed')}
+          {t('notes.failed')}
         </p>
       )}
       {!notes.data ? (
         <p className="text-muted-foreground">{t('common.loading')}</p>
       ) : notes.data.length === 0 ? (
-        <p className="text-muted-foreground italic">{t('employees.notes.empty')}</p>
+        <p className="text-muted-foreground italic">{t('notes.empty')}</p>
       ) : (
         <ul className="grid gap-2">
           {notes.data.map((note) => (
@@ -88,8 +98,14 @@ export function EmployeeNotes({ employeeId, onCount }: Props) {
                 className="flex w-full items-baseline justify-between gap-3 rounded-lg border bg-card px-3 py-2 text-left hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 <span className={note.title ? 'truncate' : 'text-muted-foreground italic'}>
-                  {note.title ?? t('employees.notes.untitled')}
+                  {note.title ?? t('notes.untitled')}
                 </span>
+                {note.source === 'assistant' && (
+                  <Sparkles
+                    className="size-3.5 shrink-0 text-primary"
+                    aria-label={t('notes.assistant')}
+                  />
+                )}
                 <time dateTime={note.createdAt} className="shrink-0 text-xs text-muted-foreground">
                   {when(note.createdAt)}
                 </time>
@@ -100,7 +116,8 @@ export function EmployeeNotes({ employeeId, onCount }: Props) {
       )}
       <NoteForm
         key={adding ? 'open' : 'closed'}
-        employeeId={employeeId}
+        target={target}
+        id={id}
         open={adding}
         onClose={() => setAdding(false)}
         onSaved={(note) => {
@@ -117,10 +134,15 @@ export function EmployeeNotes({ employeeId, onCount }: Props) {
             <>
               <DialogHeader>
                 <DialogTitle className={open.title ? '' : 'text-muted-foreground italic'}>
-                  {open.title ?? t('employees.notes.untitled')}
+                  {open.title ?? t('notes.untitled')}
                 </DialogTitle>
                 <DialogDescription>
                   <time dateTime={open.createdAt}>{when(open.createdAt)}</time>
+                  {open.source === 'assistant' && (
+                    <span className="mt-1 flex items-center gap-1 text-primary">
+                      <Sparkles className="size-3.5" aria-hidden="true" /> {t('notes.assistant')}
+                    </span>
+                  )}
                 </DialogDescription>
               </DialogHeader>
               <p className="max-h-[60vh] overflow-y-auto break-words whitespace-pre-wrap">
@@ -143,29 +165,25 @@ export function EmployeeNotes({ employeeId, onCount }: Props) {
 }
 
 type FormProps = {
-  employeeId: number
+  target: NoteTarget
+  id: number
   open: boolean
   onClose: () => void
-  onSaved: (note: EmployeeNote) => void
+  onSaved: (note: Note) => void
 }
 
 /** Plain <form> + FormData, validated with the shared zod schema, like the other forms. */
-function NoteForm({ employeeId, open, onClose, onSaved }: FormProps) {
+function NoteForm({ target, id, open, onClose, onSaved }: FormProps) {
   const { t } = useTranslation()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [failed, setFailed] = useState(false)
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const parsed = employeeNoteInputSchema.safeParse(
-      Object.fromEntries(new FormData(e.currentTarget)),
-    )
+    const parsed = noteInputSchema.safeParse(Object.fromEntries(new FormData(e.currentTarget)))
     if (!parsed.success) return setErrors(fieldErrors(parsed.error.issues, t))
     setErrors({})
-    const res = await api.api.employees[':id'].notes.$post({
-      param: { id: String(employeeId) },
-      json: parsed.data,
-    })
+    const res = await notesApi(target).$post({ param: { id: String(id) }, json: parsed.data })
     if (res.status !== 201) return setFailed(true)
     setFailed(false)
     onSaved(await res.json())
@@ -182,16 +200,16 @@ function NoteForm({ employeeId, open, onClose, onSaved }: FormProps) {
       <DialogContent>
         <form onSubmit={submit} className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>{t('employees.notes.add')}</DialogTitle>
-            <DialogDescription>{t('employees.notes.hint')}</DialogDescription>
+            <DialogTitle>{t('notes.add')}</DialogTitle>
+            <DialogDescription>{t('notes.hint')}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-1.5">
-            <Label htmlFor="note-title">{t('employees.notes.titleLabel')}</Label>
+            <Label htmlFor="note-title">{t('notes.titleLabel')}</Label>
             <Input id="note-title" name="title" maxLength={120} aria-invalid={!!errors.title} />
             {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="note-body">{t('employees.notes.bodyLabel')}</Label>
+            <Label htmlFor="note-body">{t('notes.bodyLabel')}</Label>
             <Textarea
               id="note-body"
               name="body"

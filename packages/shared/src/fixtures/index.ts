@@ -1,4 +1,4 @@
-import type { Candidate, Job } from '../schemas.ts'
+import type { Candidate, CandidateNote, Job } from '../schemas.ts'
 import { daysFromNow } from './dates.ts'
 
 export { daysFromNow } from './dates.ts'
@@ -84,7 +84,7 @@ const seeds: Seed[] = [
 ]
 
 export const candidates: Candidate[] = seeds.map(
-  ([jobId, firstName, lastName, stage, notes, daysInStage], i) => ({
+  ([jobId, firstName, lastName, stage, , daysInStage], i) => ({
     id: i + 1,
     jobId,
     firstName,
@@ -93,12 +93,28 @@ export const candidates: Candidate[] = seeds.map(
     phone: `+48 600 000 ${String(100 + i).padStart(3, '0')}`,
     stage,
     stageChangedAt: daysFromNow(-daysInStage),
-    notes,
+    notes: '',
     cvFilename: null,
     cvText: null,
     aiSummaryJson: null,
     createdAt: T,
   }),
+)
+
+/** One dated note per candidate whose seed has one (0.6.0); ids follow the candidate order. */
+export const candidateNotes: CandidateNote[] = seeds.flatMap(([, , , , notes], i) =>
+  notes
+    ? [
+        {
+          id: i + 1,
+          candidateId: i + 1,
+          title: null,
+          body: notes,
+          source: 'human' as const,
+          createdAt: T,
+        },
+      ]
+    : [],
 )
 
 /** Demo uploads ignore the file and attach this text instead (docs/ARCHITECTURE.md §4.2). */

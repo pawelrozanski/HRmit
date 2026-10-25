@@ -93,7 +93,8 @@ test('AI actions: 404, 422 without CV text, then summary and competencies merged
   expect(prompt).toContain('Candidate #1')
   expect(prompt).toContain('[email]')
   expect(prompt).toContain('[phone]')
-  for (const pii of [amelia.firstName, amelia.lastName, amelia.email, amelia.phone, amelia.notes])
+  const note = fixtures.candidateNotes.find((n) => n.candidateId === amelia.id)!.body
+  for (const pii of [amelia.firstName, amelia.lastName, amelia.email, amelia.phone, note])
     expect(prompt).not.toContain(pii)
 
   const competencies = fixtures.ai[1]!.competencies
@@ -204,8 +205,8 @@ test('POST /api/ai/questions/:jobId: job fields only in the prompt, applied only
   expect(prompt).toContain('[email]')
   expect(prompt).toContain('Polish')
   for (const c of fixtures.candidates)
-    for (const pii of [c.firstName, c.lastName, c.email, c.phone, c.notes].filter(Boolean))
-      expect(prompt).not.toContain(pii)
+    for (const pii of [c.firstName, c.lastName, c.email, c.phone]) expect(prompt).not.toContain(pii)
+  for (const n of fixtures.candidateNotes) expect(prompt).not.toContain(n.body)
   expect(prompt).not.toContain(CV)
 
   // A new job has no questions: the generated set is stored.

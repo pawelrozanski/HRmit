@@ -4,7 +4,7 @@ import {
   addMembersSchema,
   aiActionBodySchema,
   employeeInputSchema,
-  employeeNoteInputSchema,
+  noteInputSchema,
   aiPromptsSchema,
   aiSettingsSchema,
   anonymize,
@@ -406,9 +406,44 @@ export const handlers = [
     const i = store.candidates.findIndex((c) => c.id === Number(params.id))
     if (i < 0) return notFound()
     store.candidates.splice(i, 1)
+    store.candidateNotes = store.candidateNotes.filter((n) => n.candidateId !== Number(params.id))
     store.evaluations = store.evaluations.filter((e) => e.candidateId !== Number(params.id))
     store.emails = store.emails.filter((e) => e.candidateId !== Number(params.id))
     store.meetings = store.meetings.filter((m) => m.candidateId !== Number(params.id))
+    save()
+    return new HttpResponse(null, { status: 204 })
+  }),
+  http.get(`${base}/api/candidates/:id/notes`, ({ params }) => {
+    const id = Number(params.id)
+    if (!store.candidates.some((c) => c.id === id)) return notFound()
+    const rows = store.candidateNotes
+      .filter((n) => n.candidateId === id)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id)
+    return HttpResponse.json(rows)
+  }),
+  http.post(`${base}/api/candidates/:id/notes`, async ({ params, request }) => {
+    const id = Number(params.id)
+    if (!store.candidates.some((c) => c.id === id)) return notFound()
+    const body = noteInputSchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const note = {
+      id: nextId(store.candidateNotes),
+      candidateId: id,
+      title: body.data.title || null,
+      body: body.data.body,
+      source: body.data.source,
+      createdAt: new Date().toISOString(),
+    }
+    store.candidateNotes.push(note)
+    save()
+    return HttpResponse.json(note, { status: 201 })
+  }),
+  http.delete(`${base}/api/candidates/:id/notes/:noteId`, ({ params }) => {
+    const i = store.candidateNotes.findIndex(
+      (n) => n.id === Number(params.noteId) && n.candidateId === Number(params.id),
+    )
+    if (i < 0) return notFound()
+    store.candidateNotes.splice(i, 1)
     save()
     return new HttpResponse(null, { status: 204 })
   }),
@@ -799,13 +834,14 @@ export const handlers = [
   http.post(`${base}/api/employees/:id/notes`, async ({ params, request }) => {
     const id = Number(params.id)
     if (!store.employees.some((e) => e.id === id)) return notFound()
-    const body = employeeNoteInputSchema.safeParse(await request.json())
+    const body = noteInputSchema.safeParse(await request.json())
     if (!body.success) return invalid()
     const note = {
       id: nextId(store.employeeNotes),
       employeeId: id,
       title: body.data.title || null,
       body: body.data.body,
+      source: body.data.source,
       createdAt: new Date().toISOString(),
     }
     store.employeeNotes.push(note)

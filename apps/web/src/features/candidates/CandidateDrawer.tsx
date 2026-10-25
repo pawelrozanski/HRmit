@@ -19,6 +19,7 @@ import { useBlind } from './BlindContext.ts'
 import { CandidateForm } from './CandidateForm.tsx'
 import { candidateName } from './candidateName.ts'
 import { CvSection } from './CvSection.tsx'
+import { NotesSection } from '../notes/NotesSection.tsx'
 import { Scorecard } from './Scorecard.tsx'
 
 type Props = {
@@ -87,11 +88,6 @@ export function CandidateDrawer({
               <Field label={t('candidates.phone')}>{blind ? hidden : candidate.phone}</Field>
               <Field label={t('candidates.stageChanged')}>{date(candidate.stageChangedAt)}</Field>
               <Field label={t('candidates.applied')}>{date(candidate.createdAt)}</Field>
-              <Field label={t('candidates.notes')}>
-                {candidate.notes || (
-                  <span className="text-muted-foreground">{t('candidates.noNotes')}</span>
-                )}
-              </Field>
               <Field label={t('cv.title')}>
                 <CvSection candidate={candidate} onUploaded={onChange} />
               </Field>
@@ -111,6 +107,9 @@ export function CandidateDrawer({
                 <EmailSection key={emailsKey} candidate={candidate} />
               </Field>
             </dl>
+            <div className="mt-4 px-4">
+              <NotesSection key={candidate.id} target="candidate" id={candidate.id} />
+            </div>
             <div className="mt-auto flex items-center justify-between gap-2 border-t p-4">
               <Button variant="outline" onClick={() => setEditing(true)}>
                 <Pencil data-icon="inline-start" /> {t('common.edit')}

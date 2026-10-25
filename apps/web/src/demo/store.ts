@@ -7,6 +7,7 @@ import {
   type AiPrompts,
   type AiSettingsView,
   type Candidate,
+  type CandidateNote,
   type Email,
   type EmailTemplate,
   type Employee,
@@ -26,6 +27,8 @@ import { DEMO_STORAGE_KEY } from '../config.ts'
 type Store = {
   jobs: Job[]
   candidates: Candidate[]
+  /** Dated notes (0.6.0); stores saved before carry the text in candidates[].notes. */
+  candidateNotes: CandidateNote[]
   questions: InterviewQuestion[]
   evaluations: (Evaluation & { candidateId: number })[]
   aiSettings: AiSettingsView
@@ -81,6 +84,24 @@ function load(): Store {
           ? { ...saved.aiSettings, provider: normalizeProviderId(saved.aiSettings.provider) }
           : AI_SETTINGS_DEFAULTS,
         jobs: (saved.jobs ?? []).map((j) => ({ ...j, teamId: j.teamId ?? null })),
+        candidates: (saved.candidates ?? []).map((c) => ({ ...c, notes: '' })),
+        // Stores from before 0.6.0 kept one free-text note per candidate: it becomes a dated note.
+        candidateNotes:
+          saved.candidateNotes ??
+          (saved.candidates ?? []).flatMap((c, i) =>
+            c.notes
+              ? [
+                  {
+                    id: i + 1,
+                    candidateId: c.id,
+                    title: null,
+                    body: c.notes,
+                    source: 'human' as const,
+                    createdAt: c.createdAt,
+                  },
+                ]
+              : [],
+          ),
         // Templates saved before 0.5.1 have no builtIn flag, name or description.
         templates: (saved.templates ?? fixtures.emailTemplates).map((t) => ({
           ...t,
@@ -92,6 +113,7 @@ function load(): Store {
         employeeNotes: (saved.employeeNotes ?? fixtures.employeeNotes).map((n) => ({
           ...n,
           title: n.title ?? null,
+          source: n.source ?? 'human',
         })),
       } as Store
     }
@@ -101,6 +123,7 @@ function load(): Store {
   return {
     jobs: structuredClone(fixtures.jobs),
     candidates: structuredClone(fixtures.candidates),
+    candidateNotes: structuredClone(fixtures.candidateNotes),
     questions: structuredClone(fixtures.questionRows),
     evaluations: seedEvaluations(),
     aiSettings: AI_SETTINGS_DEFAULTS,

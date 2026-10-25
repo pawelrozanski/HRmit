@@ -161,6 +161,7 @@ export const employeeNotes: EmployeeNote[] = [
     employeeId: 4,
     title: 'Q4 React interviews',
     body: 'Agreed to run the React interviews in Q4.',
+    source: 'human',
     createdAt: '2026-09-03T10:15:00.000Z',
   },
   {
@@ -168,6 +169,7 @@ export const employeeNotes: EmployeeNote[] = [
     employeeId: 4,
     title: null,
     body: 'Prefers morning slots for panels.',
+    source: 'human',
     createdAt: '2026-09-10T08:40:00.000Z',
   },
   {
@@ -175,6 +177,7 @@ export const employeeNotes: EmployeeNote[] = [
     employeeId: 4,
     title: 'Availability',
     body: 'Out of office 20-24 October.',
+    source: 'human',
     createdAt: '2026-09-28T14:05:00.000Z',
   },
   {
@@ -182,6 +185,7 @@ export const employeeNotes: EmployeeNote[] = [
     employeeId: 8,
     title: 'Panel preferences',
     body: 'Wants a second interviewer on every support panel.',
+    source: 'human',
     createdAt: '2026-09-05T11:30:00.000Z',
   },
   {
@@ -189,6 +193,7 @@ export const employeeNotes: EmployeeNote[] = [
     employeeId: 8,
     title: 'Languages',
     body: 'Can take Polish-language interviews.',
+    source: 'human',
     createdAt: '2026-09-17T09:00:00.000Z',
   },
   {
@@ -196,6 +201,7 @@ export const employeeNotes: EmployeeNote[] = [
     employeeId: 11,
     title: 'Take-home brief',
     body: 'Asked for the marketing take-home brief to be shortened.',
+    source: 'human',
     createdAt: '2026-09-12T15:20:00.000Z',
   },
 ]
