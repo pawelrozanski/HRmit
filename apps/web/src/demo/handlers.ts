@@ -58,7 +58,7 @@ import {
   VERSION,
 } from '@hrmit/shared'
 import { demoAnswer } from './chat.ts'
-import { save, store } from './store.ts'
+import { demoCv, save, store } from './store.ts'
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const notFound = () => HttpResponse.json({ error: 'not found' }, { status: 404 })
@@ -94,11 +94,7 @@ function recordEmployeeEmail(
   store.employeeEmails.push(row)
   return row
 }
-export const demoCv = (c: { firstName: string; lastName: string; email: string; phone: string }) =>
-  `${c.firstName} ${c.lastName}
-${c.email} | ${c.phone}
-
-${fixtures.cvText}`
+export { demoCv } from './store.ts'
 
 const nameConflict = () => HttpResponse.json({ error: 'name taken' }, { status: 409 })
 const templateNameTaken = (name: string, key = '') =>
@@ -609,8 +605,9 @@ export const handlers = [
     ),
   ),
   // CV against the requirements (ADR 0010). No model runs on GitHub Pages.
-  // ponytail: keyword overlap between each requirement line and the CV stands in for the model;
-  // good enough for the one fictional CV the demo attaches.
+  // Fixture candidates get their recorded answer (fixtures.requirementChecks).
+  // ponytail: for anyone else a keyword overlap between each requirement line and the CV stands
+  // in for the model; good enough for the fictional CV a demo upload attaches.
   http.post(`${base}/api/ai/requirements/:candidateId`, async ({ params, request }) => {
     const body = aiActionBodySchema.safeParse(await request.json())
     if (!body.success) return invalid()
@@ -621,9 +618,19 @@ export const handlers = [
     if (requirementLines(job).length === 0)
       return HttpResponse.json({ error: 'no requirements' }, { status: 422 })
     await delay(1200)
+    const lines = requirementLines(job)
+    // The recorded answer holds while the job's lines and the CV are still the fixture ones.
+    const fixtureJob = fixtures.jobs.find((j) => j.id === job.id)
+    const recorded = fixtures.requirementChecks[candidate.id]
+    const same =
+      recorded &&
+      fixtureJob &&
+      candidate.cvText === demoCv(candidate) &&
+      JSON.stringify(requirementLines(fixtureJob)) === JSON.stringify(lines)
     const cv = candidate.cvText
     const sentences = cv.split(/(?<=[.:])\s+|\n+/).filter(Boolean)
-    const items = requirementLines(job).map((line) => {
+    const items = lines.map((line, i) => {
+      if (same) return { ...line, status: recorded[i]![0], evidence: recorded[i]![1] }
       const words = line.requirement.toLowerCase().match(/[\p{L}\d+#]{4,}/gu) ?? []
       const found = words.filter((w) => cv.toLowerCase().includes(w))
       const status: MatchStatus =

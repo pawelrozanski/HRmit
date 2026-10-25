@@ -4,6 +4,18 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+### Added
+
+- Demo: every fictional candidate has a CV of their own, written to differ in what they cover, and the demo's requirements check answers from a recorded result per candidate, so opening a candidate shows green, amber and red lines that match their CV. Content Marketing has three candidates now.
+
+### Changed
+
+- Demo and first-run fixtures: the four recruitments have fuller requirements, nice-to-haves and a salary range each (Content Marketing had none). The AI summaries of the Frontend candidates follow their new CVs.
+
+### Fixed
+
+- The CV text box is focusable with the keyboard; it scrolls, and axe flagged it once candidates had long CVs.
+
 ## [0.6.2] - 2026-10-25
 
 ### Added

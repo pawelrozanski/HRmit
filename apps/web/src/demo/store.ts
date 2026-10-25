@@ -24,6 +24,27 @@ import {
 } from '@hrmit/shared'
 import { DEMO_STORAGE_KEY } from '../config.ts'
 
+/** The CV a demo candidate "uploaded": their own fixture CV, else the shared one, under a header. */
+export const demoCv = (c: Pick<Candidate, 'id' | 'firstName' | 'lastName' | 'email' | 'phone'>) =>
+  `${c.firstName} ${c.lastName}
+${c.email} | ${c.phone}
+
+${fixtures.cvs[c.id] ?? fixtures.cvText}`
+
+/**
+ * Fixture candidates arrive with their CV in the demo, so the requirements check has
+ * something to read. Only a fixture person who never had a CV gets one; uploads stay as they are.
+ */
+const withFixtureCv = (c: Candidate): Candidate => {
+  const f = fixtures.candidates.find((x) => x.id === c.id)
+  if (c.cvText || f?.lastName !== c.lastName) return c
+  return {
+    ...c,
+    cvFilename: `${c.firstName}-${c.lastName}-cv.pdf`.toLowerCase(),
+    cvText: demoCv(c),
+  }
+}
+
 /** Settings hold the view shapes only: no key or password is ever written to localStorage. */
 type Store = {
   jobs: Job[]
@@ -95,7 +116,7 @@ function load(): Store {
           id: j.id,
           createdAt: j.createdAt,
         })),
-        candidates: (saved.candidates ?? []).map((c) => ({ ...c, notes: '' })),
+        candidates: (saved.candidates ?? []).map((c) => withFixtureCv({ ...c, notes: '' })),
         // Stores from before 0.6.0 kept one free-text note per candidate: it becomes a dated note.
         candidateNotes:
           saved.candidateNotes ??
@@ -133,7 +154,7 @@ function load(): Store {
   }
   return {
     jobs: structuredClone(fixtures.jobs),
-    candidates: structuredClone(fixtures.candidates),
+    candidates: structuredClone(fixtures.candidates).map(withFixtureCv),
     candidateNotes: structuredClone(fixtures.candidateNotes),
     questions: structuredClone(fixtures.questionRows),
     evaluations: seedEvaluations(),

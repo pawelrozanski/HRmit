@@ -3,8 +3,8 @@ import type { Competencies, CvSummary } from '../../schemas.ts'
 /**
  * Pre-recorded AI output for the demo, keyed by fixture candidate id. Written by hand in the
  * same descriptive register the prompts ask for: what the CV says, never what to do about it.
- * Job 1 entries follow the shared demo CV text (fixtures.cvText); jobs 2 and 3 are plausible
- * for their roles. Everyone here is invented.
+ * Each entry follows that candidate's demo CV (fixtures.cvs; candidate 1 has the shared
+ * fixtures.cvText). Everyone here is invented.
  */
 export const ai: Record<number, { summary: CvSummary; competencies: Competencies }> = {
   1: {
@@ -33,97 +33,96 @@ export const ai: Record<number, { summary: CvSummary; competencies: Competencies
   2: {
     summary: {
       summary:
-        'Frontend developer with four years of professional React and TypeScript work. The current role at a scheduling company centres on a booking calendar and on build size and test coverage. Previous agency experience includes marketing sites and design-system tasks. A 2020 BSc in Computer Science is listed, along with Polish and English.',
+        'Frontend developer with three years of React at an online shop for home goods, mostly in JavaScript, with a move to TypeScript during a 2025 cart migration. The current role covers product pages, checkout and unit tests with Jest. Earlier work at an agency was Vue 2 landing pages and email templates. Education is a BSc in Information Technology from 2021.',
       highlights: [
-        'Owns a booking calendar feature end to end',
-        'Design-system work at an agency',
-        'BSc Computer Science, 2020',
+        'Three years of React in e-commerce',
+        'Migrated the cart to TypeScript in 2025',
+        'Unit tests with Jest',
+        'Tailwind CSS under skills',
       ],
     },
     competencies: {
       competencies: [
-        {
-          name: 'Component architecture',
-          evidence: 'Design-system work and a calendar feature owned since 2022.',
-        },
-        { name: 'Testing', evidence: 'Component tests introduced on the current product.' },
-        { name: 'Bilingual communication', evidence: 'Polish and English listed under skills.' },
+        { name: 'React', evidence: 'Product pages and checkout since 2023.' },
+        { name: 'Unit testing', evidence: 'Jest tests in the current role.' },
+        { name: 'Styling with Tailwind', evidence: 'Tailwind CSS listed under skills.' },
       ],
     },
   },
   3: {
     summary: {
       summary:
-        'Frontend developer whose CV covers four years of React and TypeScript, split between a scheduling product and a digital agency. The scheduling role mentions a booking calendar, component tests and a smaller bundle. The agency role mentions marketing sites, a design system and accessibility audits. Education is a BSc in Computer Science from 2020.',
+        'Junior frontend developer with a year and a half of commercial React and TypeScript at an agency, after a twelve-week bootcamp. The CV describes client dashboards, Cypress end-to-end tests and handoff from Figma. A BA in Graphic Design from 2023 precedes the move into development.',
       highlights: [
-        'React, TypeScript, testing, accessibility',
-        'Two employers since 2020',
-        'Marketing sites and design-system work',
+        'React and TypeScript dashboards for client projects',
+        'End-to-end tests in Cypress',
+        'Design background, BA Graphic Design',
+        'English (C1)',
       ],
     },
     competencies: {
       competencies: [
-        { name: 'React', evidence: 'Named in the summary line and in both roles.' },
-        { name: 'Accessibility', evidence: 'Audits at the agency; WCAG 2.1 under skills.' },
-        {
-          name: 'Build optimisation',
-          evidence: 'Bundle size reduction stated for the current role.',
-        },
+        { name: 'React and TypeScript', evidence: 'Client dashboards since 2025.' },
+        { name: 'End-to-end testing', evidence: 'Cypress tests in the current role.' },
+        { name: 'Design handoff', evidence: 'Works from Figma; graphic design degree.' },
       ],
     },
   },
   4: {
     summary: {
       summary:
-        'Four-year frontend developer with React and TypeScript across two employers. At the scheduling company the CV lists ownership of the booking calendar, the introduction of component tests and a one-third bundle reduction. At the agency the work was marketing sites, design-system components and accessibility audits. Completed a BSc in Computer Science in 2020.',
+        'Senior frontend developer with seven years of React and TypeScript, the last three on an applicant tracking SaaS. The CV describes leading an accessibility programme to WCAG 2.1 AA, building a Tailwind-based design system and introducing Playwright next to Testing Library. Earlier work was B2B accounting software with Storybook and Jest. Education is an MSc in Computer Science, 2018.',
       highlights: [
-        'Booking calendar ownership',
-        'Component tests introduced',
-        'Accessibility audits',
-        'BSc Computer Science',
+        'Seven years of React and TypeScript',
+        'Led an accessibility programme to WCAG 2.1 AA',
+        'Built a Tailwind design system',
+        'Playwright and Testing Library',
       ],
     },
     competencies: {
       competencies: [
-        { name: 'TypeScript', evidence: 'Listed in the summary and skills for both roles.' },
-        { name: 'Testing', evidence: 'Introduced component tests for the calendar.' },
-        { name: 'Accessibility', evidence: 'Audits at the agency and WCAG 2.1 under skills.' },
+        { name: 'Accessibility', evidence: 'Led the WCAG 2.1 AA programme.' },
+        { name: 'Design systems', evidence: 'Built the Tailwind-based design system.' },
+        { name: 'Testing', evidence: 'Playwright, Testing Library and Jest.' },
+        { name: 'HR product domain', evidence: 'Three years on an applicant tracking SaaS.' },
       ],
     },
   },
   5: {
     summary: {
       summary:
-        'Frontend developer with four years of React and TypeScript experience. The CV describes a scheduling product role focused on a booking calendar, tests and bundle size, preceded by agency work on marketing sites and a design system. Accessibility appears both as audit work and as a listed skill. Education is a BSc in Computer Science, 2020.',
+        'Full-stack developer whose CV centres on five years of Java and Node.js services for B2B logistics software, with React and TypeScript used since 2025 for occasional internal admin screens. Testing is described with JUnit and Jest, and the stack includes PostgreSQL and Docker. Education is an MSc in Software Engineering, 2020.',
       highlights: [
-        'React and TypeScript since 2020',
-        'Accessibility audits and WCAG 2.1',
-        'Polish and English',
+        'Five years of backend services',
+        'React only for internal admin screens',
+        'B2B logistics domain',
+        'English (C1)',
       ],
     },
     competencies: {
       competencies: [
-        { name: 'React and TypeScript', evidence: 'Both roles and the skills section.' },
-        { name: 'Design systems', evidence: 'Design-system work at the agency.' },
-        { name: 'Accessibility', evidence: 'Audits and WCAG 2.1 listed.' },
+        { name: 'Backend services', evidence: 'Java and Node.js since 2020.' },
+        { name: 'TypeScript', evidence: 'Node.js services and admin screens.' },
+        { name: 'Testing', evidence: 'JUnit and Jest.' },
       ],
     },
   },
   6: {
     summary: {
       summary:
-        'Frontend developer, four years in React and TypeScript. The current scheduling-product role covers a booking calendar, component tests and bundle-size work; the earlier agency role covers marketing sites, design-system tasks and accessibility audits. The CV lists a 2020 BSc in Computer Science and Polish and English.',
+        'Angular developer with four years on public-sector portals built to WCAG 2.1 AA, with unit tests in Jasmine and Karma and end-to-end tests in Cypress. React appears only through a 2025 online course and a side project. Education is a BEng in Computer Science, 2021; English is listed at B1.',
       highlights: [
-        'Owns the booking calendar at a scheduling product',
-        'Cut bundle size by a third',
-        'Design-system and accessibility work at an agency',
+        'Four years of Angular and TypeScript',
+        'Accessibility required by contract',
+        'Cypress end-to-end tests',
+        'React from a course and a side project',
       ],
     },
     competencies: {
       competencies: [
-        { name: 'Frontend engineering', evidence: 'Four years in React and TypeScript.' },
-        { name: 'Performance', evidence: 'Bundle size cut by a third.' },
-        { name: 'Testing', evidence: 'Component tests introduced.' },
+        { name: 'Accessibility', evidence: 'Portals built to WCAG 2.1 AA.' },
+        { name: 'TypeScript', evidence: 'Angular and RxJS since 2021.' },
+        { name: 'Testing', evidence: 'Jasmine, Karma and Cypress.' },
       ],
     },
   },
@@ -315,6 +314,62 @@ export const ai: Record<number, { summary: CvSummary; competencies: Competencies
         { name: 'Helpdesk support', evidence: 'Account resets and first-line questions.' },
         { name: 'Documentation', evidence: 'Wiki of common issues.' },
         { name: 'Languages', evidence: 'German, English and Polish.' },
+      ],
+    },
+  },
+  16: {
+    summary: {
+      summary:
+        'Content marketer with four years of writing for B2B software companies, currently at a workforce-scheduling SaaS. The CV describes blog and help-centre articles in English and Polish, keyword research in Ahrefs, reporting in Google Analytics 4, a monthly customer newsletter and ownership of the editorial calendar. Twenty published articles are linked. Education is an MA in English Studies, 2022.',
+      highlights: [
+        'Four years of B2B SaaS content',
+        'Writes in English and Polish',
+        'Ahrefs and Google Analytics 4',
+        'Owns the editorial calendar',
+      ],
+    },
+    competencies: {
+      competencies: [
+        { name: 'B2B content writing', evidence: 'Blog and help-centre articles since 2022.' },
+        { name: 'SEO', evidence: 'Keyword research in Ahrefs.' },
+        { name: 'Analytics', evidence: 'Reporting in Google Analytics 4.' },
+        { name: 'Editorial planning', evidence: 'Editorial calendar and monthly newsletter.' },
+      ],
+    },
+  },
+  17: {
+    summary: {
+      summary:
+        'Journalist with six years as a staff writer at a consumer news site, writing two to three articles a week and a weekly email newsletter, and planning stories with the editors. The CV mentions one sponsored whitepaper for a software company and SEO headlines written with the web team. Education is a BA in Journalism, 2020; English is the only language listed.',
+      highlights: [
+        'Six years of news writing',
+        'Weekly email newsletter',
+        'One whitepaper for a software company',
+      ],
+    },
+    competencies: {
+      competencies: [
+        { name: 'Writing at pace', evidence: 'Two to three articles a week since 2020.' },
+        { name: 'Newsletters', evidence: 'A weekly email newsletter.' },
+        { name: 'Editorial planning', evidence: 'Story planning with the editors.' },
+      ],
+    },
+  },
+  18: {
+    summary: {
+      summary:
+        'Social media manager with three years at a fashion label, producing Instagram and TikTok content, captions and short blog posts. The CV lists a monthly content calendar, campaign results in Google Analytics 4 and Meta Business Suite, and designs in Canva. Education is a BA in Cultural Studies, 2023; Swedish, Polish and English are listed.',
+      highlights: [
+        'Three years of social media content',
+        'Monthly content calendar',
+        'Google Analytics 4 and Meta Business Suite',
+      ],
+    },
+    competencies: {
+      competencies: [
+        { name: 'Social media content', evidence: 'Instagram and TikTok since 2023.' },
+        { name: 'Content planning', evidence: 'The monthly content calendar.' },
+        { name: 'Campaign reporting', evidence: 'Google Analytics 4 and Meta Business Suite.' },
       ],
     },
   },

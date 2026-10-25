@@ -18,6 +18,7 @@ import {
   pipelineStageSchema,
   questionsGenerationSchema,
   questionsProposalSchema,
+  matchStatusSchema,
   requirementLines,
   requirementsMatchGenerationSchema,
   requirementsMatchSchema,
@@ -167,4 +168,17 @@ test('requirementLines: requirements then nice-to-haves, blank lines dropped', (
     { requirement: 'TypeScript', kind: 'required' },
     { requirement: 'Figma', kind: 'niceToHave' },
   ])
+})
+
+test('demo CVs and recorded requirement checks cover every fixture candidate, line by line', () => {
+  for (const c of fixtures.candidates) {
+    if (c.id !== 1) expect(fixtures.cvs[c.id], `cv of ${c.id}`).toBeTruthy()
+    const job = fixtures.jobs.find((j) => j.id === c.jobId)!
+    const checks = fixtures.requirementChecks[c.id]!
+    expect(checks, `checks of ${c.id}`).toHaveLength(requirementLines(job).length)
+    for (const [status, evidence] of checks) {
+      matchStatusSchema.parse(status)
+      expect(evidence.length).toBeGreaterThan(0)
+    }
+  }
 })

@@ -4,6 +4,7 @@ import { daysFromNow } from './dates.ts'
 export { daysFromNow } from './dates.ts'
 
 export { ai } from './ai/index.ts'
+export { cvs, requirementChecks } from './cvs.ts'
 export { questions } from './questions.ts'
 export { evaluations, questionRows } from './evaluations.ts'
 export { emailTemplates, emails } from './emails.ts'
@@ -28,8 +29,9 @@ export const jobs: Job[] = [
     location: 'Warsaw, hybrid (2 days in the office) or remote within the EU',
     contract: 'B2B (net) or employment contract (gross)',
     requirements:
-      'At least 2 years of commercial work with React\nTypeScript in everyday use\nSemantic HTML and WCAG basics\nWritten English for code reviews',
-    niceToHave: 'Testing Library or Playwright\nTailwind CSS\nExperience with an HR or B2B product',
+      'At least 3 years of commercial work with React\nTypeScript in everyday use\nSemantic HTML, CSS and WCAG 2.1 basics\nAutomated tests (unit or component)\nCommunicative English (B2) for code reviews and documentation',
+    niceToHave:
+      'Playwright or Cypress end-to-end tests\nTailwind CSS or a design system\nExperience with a B2B or HR product',
     salaryMin: 14000,
     salaryMax: 19000,
     salaryCurrency: 'PLN',
@@ -47,8 +49,9 @@ export const jobs: Job[] = [
     location: 'Warsaw, office first',
     contract: 'Employment contract (gross)',
     requirements:
-      'At least 5 years in HR, 2 of them as a business partner\nRunning structured interviews\nFluent Polish and English',
-    niceToHave: 'Experience with engineering teams\nLabour law training',
+      'At least 5 years in HR, including 2 as an HR business partner\nRunning structured, competency-based interviews\nPartnering with managers on hiring plans and development paths\nPolish labour law in practice\nFluent Polish and English (C1)',
+    niceToHave:
+      'Experience supporting engineering or product teams\nCoaching or mentoring qualification\nSalary benchmarking and compensation reviews',
     salaryMin: 16000,
     salaryMax: 21000,
     salaryCurrency: 'PLN',
@@ -65,10 +68,12 @@ export const jobs: Job[] = [
     level: 'junior',
     location: 'Remote within Poland',
     contract: 'Employment contract (gross)',
-    requirements: 'Written English and Polish\nPatience with repeated questions',
-    niceToHave: 'A help-center tool such as Zendesk or Intercom',
-    salaryMin: 6500,
-    salaryMax: 8000,
+    requirements:
+      'Written Polish and English (B2 or higher)\nAt least 1 year in customer support, a helpdesk or a contact centre\nEmail and chat support\nDescribing a problem clearly enough for engineering to reproduce it',
+    niceToHave:
+      'A help-center tool such as Zendesk or Intercom\nWriting help-center articles\nAnother European language',
+    salaryMin: 7000,
+    salaryMax: 8500,
     salaryCurrency: 'PLN',
     salaryPeriod: 'month',
     createdAt: T,
@@ -83,10 +88,11 @@ export const jobs: Job[] = [
     level: 'mid',
     location: 'Krakow, hybrid',
     contract: 'Employment contract (gross)',
-    requirements: 'Clear written English\nA portfolio of published articles\nBasic web analytics',
-    niceToHave: 'SEO keyword research\nB2B SaaS experience',
-    salaryMin: null,
-    salaryMax: null,
+    requirements:
+      'At least 2 years writing B2B or SaaS content\nClear written English (C1)\nA portfolio of published articles\nSEO keyword research\nGoogle Analytics or a similar web analytics tool',
+    niceToHave: 'Writing in Polish\nEmail newsletters\nPlanning an editorial calendar',
+    salaryMin: 9000,
+    salaryMax: 12000,
     salaryCurrency: 'PLN',
     salaryPeriod: 'month',
     createdAt: T,
@@ -119,6 +125,16 @@ const seeds: Seed[] = [
   [3, 'Elise', 'Marchetti', 'interview', 'Bilingual, support experience in SaaS.', 25],
   [3, 'Rowan', 'Castellanos', 'screening', '', 30],
   [3, 'Felix', 'Brandt', 'applied', '', 33],
+  [
+    4,
+    'Lena',
+    'Kowalczyk',
+    'screening',
+    'Portfolio link works; asked about the newsletter tool.',
+    2,
+  ],
+  [4, 'Tobias', 'Wren', 'applied', '', 1],
+  [4, 'Sofia', 'Lindqvist', 'applied', '', 3],
 ]
 
 export const candidates: Candidate[] = seeds.map(

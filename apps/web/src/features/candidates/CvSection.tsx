@@ -85,7 +85,12 @@ export function CvSection({ candidate, onUploaded }: Props) {
             )}
           </p>
           {candidate.cvText ? (
-            <pre className="max-h-64 overflow-auto rounded-md border bg-muted p-3 font-sans text-xs whitespace-pre-wrap">
+            // Scrollable, so it takes keyboard focus (axe scrollable-region-focusable).
+            <pre
+              tabIndex={0}
+              aria-label={t('cv.title')}
+              className="max-h-64 overflow-auto rounded-md border bg-muted p-3 font-sans text-xs whitespace-pre-wrap"
+            >
               {candidate.cvText}
             </pre>
           ) : (

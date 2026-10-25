@@ -266,15 +266,19 @@ test('missing ids give null, filters apply, search ignores names', async () => {
     id: 1,
     level: 'mid',
     salary: { min: 14000, max: 19000, currency: 'PLN', period: 'month' },
-    niceToHave: [
-      'Testing Library or Playwright',
-      'Tailwind CSS',
-      'Experience with an HR or B2B product',
-    ],
+    niceToHave: fixtures.jobs[0]!.niceToHave.split('\n'),
   })
-  expect(frontend?.requirements).toHaveLength(4)
-  // Job 4 discloses no range.
+  expect(frontend?.requirements).toHaveLength(5)
+  // A job that discloses no range gives null.
+  await db
+    .update(schema.jobs)
+    .set({ salaryMin: null, salaryMax: null })
+    .where(eq(schema.jobs.id, 4))
   expect((await chatToolFns.getRecruitment({ jobId: 4 }, ctx))?.salary).toBeNull()
+  await db
+    .update(schema.jobs)
+    .set({ salaryMin: 9000, salaryMax: 12000 })
+    .where(eq(schema.jobs.id, 4))
   expect(await chatToolFns.getRecruitment({}, ctx)).toBeNull()
   expect((await chatToolFns.teamOverview({ team: 'IT' }, ctx)).map((t) => t.name)).toEqual(['IT'])
   expect(

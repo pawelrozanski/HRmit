@@ -46,6 +46,9 @@ test('kanban, candidate page, reset and language', async ({ page }) => {
   await expect(page).toHaveURL(/\/recruitments\/1\/candidates\/3$/)
   await expect(page.getByRole('heading', { name: 'Priya Lennox' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'CV against the requirements' })).toBeVisible()
+  // The demo counts as a local model, so the recorded check appears without a click.
+  await expect(page.getByText('In the CV').first()).toBeVisible()
+  await expect(page.getByText('Not mentioned').first()).toBeVisible()
   await expectNoSeriousA11y(page)
   await page.getByRole('combobox', { name: 'Move to stage' }).selectOption('offer')
   await page.getByRole('tab', { name: 'Interview' }).click()

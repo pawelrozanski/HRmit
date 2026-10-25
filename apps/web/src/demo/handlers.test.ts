@@ -122,7 +122,7 @@ test('demo POST /api/ai/chat: scenarios stream like the server, unknown question
   expect(req.text).toMatch(/Zespół rekrutujący: IT/)
   expect(req.text).toMatch(/Poziom: specjalista \(mid\)/)
   expect(req.text).toMatch(/Widełki: 14\s000–19\s000 PLN miesięcznie/)
-  expect(req.text).toMatch(/Mile widziane:\n- Testing Library/)
+  expect(req.text).toMatch(/Mile widziane:\n- Playwright/)
   const notes = await chat('What do the notes say?', { view: 'employee', id: 4 })
   expect(notes.text).toContain('Out of office 20-24 October.')
   expect(notes.refs?.employees['4']?.name).toBeTruthy()
@@ -166,7 +166,11 @@ test('demo GET /api/jobs returns the fixtures', async () => {
 
 test('demo GET /api/jobs/:id/candidates filters by stage', async () => {
   const all = candidateSchema.array().parse(await get('/api/jobs/2/candidates'))
-  expect(all).toEqual(fixtures.candidates.filter((c) => c.jobId === 2))
+  // Same people as the fixtures; the demo store adds their CV.
+  expect(all.map((c) => c.id)).toEqual(
+    fixtures.candidates.filter((c) => c.jobId === 2).map((c) => c.id),
+  )
+  expect(all.every((c) => c.cvText === demoCv(c))).toBe(true)
   const applied = candidateSchema.array().parse(await get('/api/jobs/2/candidates?stage=applied'))
   expect(applied.length).toBeGreaterThan(0)
   expect(applied.every((c) => c.stage === 'applied')).toBe(true)
@@ -310,7 +314,18 @@ test('demo AI settings: persisted without the key, test always succeeds', async 
 test('demo AI actions: 422 without CV, fixture answer after upload, persisted, discarded', async () => {
   const ai = (kind: string, id: number) => send('POST', `/api/ai/${kind}/${id}`, { lang: 'en' })
   expect((await ai('summarize', 9999)).status).toBe(404)
-  expect((await ai('summarize', 2)).status).toBe(422)
+  // Fixture candidates come with a CV; a new one has none until an upload.
+  const fresh = candidateSchema.parse(
+    await (
+      await send('POST', '/api/candidates', {
+        jobId: 1,
+        firstName: 'Noor',
+        lastName: 'Example',
+        email: 'noor@example.com',
+      })
+    ).json(),
+  )
+  expect((await ai('summarize', fresh.id)).status).toBe(422)
 
   const form = new FormData()
   form.append('file', new File(['x'], 'cv.pdf'))
@@ -343,12 +358,11 @@ test('demo AI actions: 422 without CV, fixture answer after upload, persisted, d
 
 test('demo GET /api/ai/preview/:id anonymizes the uploaded text with the shared function', async () => {
   expect((await fetch('http://localhost/api/ai/preview/9999')).status).toBe(404)
-  expect((await fetch('http://localhost/api/ai/preview/3')).status).toBe(422)
   const theo = fixtures.candidates[1]!
   const preview = aiPreviewSchema.parse(await get('/api/ai/preview/2'))
   expect(preview.original).toBe(demoCv(theo))
   expect(preview.anonymized).toContain('Candidate #2')
-  expect(preview.anonymized).toContain(fixtures.cvText)
+  expect(preview.anonymized).toContain(fixtures.cvs[2]!.split('\n')[0]!)
   for (const pii of [theo.firstName, theo.lastName, theo.email, theo.phone])
     expect(preview.anonymized).not.toContain(pii)
   expect(preview.replacements.map((r) => r.kind).sort()).toEqual(['email', 'name', 'phone'])
