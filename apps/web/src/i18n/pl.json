@@ -63,14 +63,44 @@
     "candidateCount_other": "{{count}} kandydatów",
     "new": "Nowa rekrutacja",
     "edit": "Edytuj rekrutację",
-    "formHint": "Tytuł i opis zobaczą kandydaci oraz asystent AI.",
+    "formHint": "Wszystko, co tu wpiszesz, widać w zakładce Szczegóły i może to przeczytać asystent AI.",
     "titleLabel": "Tytuł",
     "descriptionLabel": "Opis",
     "statusLabel": "Status",
     "teamLabel": "Zespół",
     "noTeam": "Bez zespołu",
     "filterTeam": "Filtruj według zespołu",
-    "allTeams": "Wszystkie zespoły"
+    "allTeams": "Wszystkie zespoły",
+    "levelLabel": "Poziom",
+    "noLevel": "Nie określono",
+    "level": {
+      "intern": "Stażysta",
+      "junior": "Junior",
+      "mid": "Specjalista (mid)",
+      "senior": "Senior",
+      "lead": "Lead / Ekspert",
+      "manager": "Kierownik",
+      "director": "Dyrektor"
+    },
+    "locationLabel": "Lokalizacja i tryb pracy",
+    "locationPlaceholder": "np. Warszawa, hybrydowo",
+    "contractLabel": "Umowa",
+    "contractPlaceholder": "np. B2B (netto) lub umowa o pracę (brutto)",
+    "requirementsLabel": "Wymagania",
+    "niceToHaveLabel": "Mile widziane",
+    "linesHint": "Jedna pozycja w wierszu.",
+    "salaryLabel": "Widełki wynagrodzenia",
+    "salaryMin": "Od",
+    "salaryMax": "Do",
+    "salaryCurrency": "Waluta (np. PLN, EUR)",
+    "salaryPeriodLabel": "Okres",
+    "salaryHint": "Zostaw oba pola puste, jeśli widełki nie są jawne.",
+    "period": {
+      "month": "miesięcznie",
+      "year": "rocznie",
+      "hour": "za godzinę"
+    },
+    "notSet": "Nie podano"
   },
   "candidates": {
     "title": "Kandydaci",
@@ -100,7 +130,8 @@
     "importedAi": "Pola wypełnił lokalny model na podstawie CV. Sprawdź je przed zapisem.",
     "importedHeuristic": "Pola odgadnięte z tekstu CV (brak lokalnego modelu). Sprawdź je przed zapisem.",
     "importFailed": "Nie udało się odczytać tego CV.",
-    "cvAttached": "{{name}} zostanie przesłane razem z kandydatem."
+    "cvAttached": "{{name}} zostanie przesłane razem z kandydatem.",
+    "job": "Szczegóły"
   },
   "stage": {
     "applied": "Zgłoszenie",
@@ -116,7 +147,9 @@
   "form": {
     "required": "To pole jest wymagane.",
     "invalidEmail": "Podaj poprawny adres e-mail.",
-    "saveFailed": "Nie udało się zapisać. Spróbuj ponownie."
+    "saveFailed": "Nie udało się zapisać. Spróbuj ponownie.",
+    "salaryRange": "Kwota „Do” nie może być niższa niż „Od”.",
+    "currency": "Podaj trzyliterowy kod waluty, np. PLN."
   },
   "cv": {
     "title": "CV",

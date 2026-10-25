@@ -9,7 +9,14 @@ export function fieldErrors(issues: Issue[], t: TFunction): Record<string, strin
   const out: Record<string, string> = {}
   for (const issue of issues) {
     const field = String(issue.path[0] ?? '')
-    out[field] ??= issue.code === 'invalid_format' ? t('form.invalidEmail') : t('form.required')
+    out[field] ??=
+      issue.message === 'salary_range'
+        ? t('form.salaryRange')
+        : field === 'salaryCurrency'
+          ? t('form.currency')
+          : issue.code === 'invalid_format'
+            ? t('form.invalidEmail')
+            : t('form.required')
   }
   return out
 }

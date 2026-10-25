@@ -202,6 +202,10 @@ test('POST /api/ai/questions/:jobId: job fields only in the prompt, applied only
   const prompt = generateObject.mock.calls.at(-1)?.[0].prompt as string
   expect(prompt).toContain(job.title)
   expect(prompt).toContain(job.description)
+  expect(prompt).toContain('Level: mid')
+  expect(prompt).toContain('Requirements:\nAt least 2 years')
+  expect(prompt).toContain('Nice to have:\nTesting Library')
+  expect(prompt).not.toContain('14000')
   expect(prompt).toContain('[email]')
   expect(prompt).toContain('Polish')
   for (const c of fixtures.candidates)

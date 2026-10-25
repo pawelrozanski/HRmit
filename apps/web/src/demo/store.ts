@@ -4,6 +4,7 @@ import {
   normalizeProviderId,
   SMTP_SETTINGS_DEFAULTS,
   fixtures,
+  jobInputSchema,
   type AiPrompts,
   type AiSettingsView,
   type Candidate,
@@ -87,7 +88,12 @@ function load(): Store {
               chatEmployees: saved.aiSettings.chatEmployees ?? false,
             }
           : AI_SETTINGS_DEFAULTS,
-        jobs: (saved.jobs ?? []).map((j) => ({ ...j, teamId: j.teamId ?? null })),
+        // Jobs saved before 0.6.1 have no position details: the input schema's defaults fill them.
+        jobs: (saved.jobs ?? []).map((j) => ({
+          ...jobInputSchema.parse({ ...j, teamId: j.teamId ?? null }),
+          id: j.id,
+          createdAt: j.createdAt,
+        })),
         candidates: (saved.candidates ?? []).map((c) => ({ ...c, notes: '' })),
         // Stores from before 0.6.0 kept one free-text note per candidate: it becomes a dated note.
         candidateNotes:

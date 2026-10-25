@@ -1,8 +1,10 @@
 import { z } from 'zod'
 import {
+  jobLevelSchema,
   jobStatusSchema,
   noteSourceSchema,
   pipelineStageSchema,
+  salaryPeriodSchema,
   teamMemberRoleSchema,
 } from './schemas.ts'
 
@@ -104,8 +106,22 @@ export const chatToolOutputs = {
       id,
       title: z.string(),
       status: jobStatusSchema,
-      /** The whole text; requirements are part of it. Anonymized with a cloud provider. */
+      /** Free text written by people below is anonymized with a cloud provider. */
       description: z.string(),
+      level: jobLevelSchema.nullable(),
+      location: z.string(),
+      contract: z.string(),
+      requirements: z.string().array().describe('must-haves, one per item'),
+      niceToHave: z.string().array(),
+      /** What the offer discloses; null when the recruitment has no range. */
+      salary: z
+        .object({
+          min: id.nullable(),
+          max: id.nullable(),
+          currency: z.string(),
+          period: salaryPeriodSchema,
+        })
+        .nullable(),
       team: z.object({ name: z.string(), memberCount: id }).nullable(),
       stages: z.record(pipelineStageSchema, id),
       /** The structured interview guide, grouped by competency, in guide order. */

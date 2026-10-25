@@ -47,6 +47,15 @@ test('input schemas fill defaults and reject ids and CV fields', () => {
     description: '',
     status: 'open',
     teamId: null,
+    level: null,
+    location: '',
+    contract: '',
+    requirements: '',
+    niceToHave: '',
+    salaryMin: null,
+    salaryMax: null,
+    salaryCurrency: 'PLN',
+    salaryPeriod: 'month',
   })
   expect(() => jobInputSchema.parse({ title: '' })).toThrow()
   const c = candidateInputSchema.parse({

@@ -261,7 +261,20 @@ test('missing ids give null, filters apply, search ignores names', async () => {
   expect(await chatToolFns.getCandidate({ candidateId: 9999 }, ctx)).toBeNull()
   expect(await chatToolFns.getRecruitment({ jobId: 9999 }, ctx)).toBeNull()
   expect((await chatToolFns.listRecruitments({ team: 'it' }, ctx)).map((j) => j.id)).toEqual([1])
-  expect((await chatToolFns.getRecruitment({ title: 'frontend' }, ctx))?.id).toBe(1)
+  const frontend = await chatToolFns.getRecruitment({ title: 'frontend' }, ctx)
+  expect(frontend).toMatchObject({
+    id: 1,
+    level: 'mid',
+    salary: { min: 14000, max: 19000, currency: 'PLN', period: 'month' },
+    niceToHave: [
+      'Testing Library or Playwright',
+      'Tailwind CSS',
+      'Experience with an HR or B2B product',
+    ],
+  })
+  expect(frontend?.requirements).toHaveLength(4)
+  // Job 4 discloses no range.
+  expect((await chatToolFns.getRecruitment({ jobId: 4 }, ctx))?.salary).toBeNull()
   expect(await chatToolFns.getRecruitment({}, ctx)).toBeNull()
   expect((await chatToolFns.teamOverview({ team: 'IT' }, ctx)).map((t) => t.name)).toEqual(['IT'])
   expect(

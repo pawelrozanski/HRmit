@@ -99,6 +99,13 @@
       "when": 1792900605502,
       "tag": "0013_candidate_notes",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1792924723696,
+      "tag": "0014_job_details",
+      "breakpoints": true
     }
   ]
 }

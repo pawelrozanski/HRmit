@@ -7,7 +7,14 @@ import {
   unique,
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
-import { NOTE_SOURCES, PIPELINE_STAGES, TEAM_MEMBER_ROLES, type AiSummary } from '@hrmit/shared'
+import {
+  JOB_LEVELS,
+  NOTE_SOURCES,
+  PIPELINE_STAGES,
+  SALARY_PERIODS,
+  TEAM_MEMBER_ROLES,
+  type AiSummary,
+} from '@hrmit/shared'
 
 // docs/ARCHITECTURE.md §3.
 
@@ -80,6 +87,16 @@ export const jobs = sqliteTable('jobs', {
     .default('open'),
   /** The hiring team; a deleted team leaves the job without one. */
   teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
+  // Position details (0.6.1); see jobSchema in packages/shared.
+  level: text('level', { enum: JOB_LEVELS }),
+  location: text('location').notNull().default(''),
+  contract: text('contract').notNull().default(''),
+  requirements: text('requirements').notNull().default(''),
+  niceToHave: text('nice_to_have').notNull().default(''),
+  salaryMin: integer('salary_min'),
+  salaryMax: integer('salary_max'),
+  salaryCurrency: text('salary_currency').notNull().default('PLN'),
+  salaryPeriod: text('salary_period', { enum: SALARY_PERIODS }).notNull().default('month'),
   createdAt: text('created_at').notNull(),
 })
 

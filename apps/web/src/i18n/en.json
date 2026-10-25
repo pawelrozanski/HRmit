@@ -61,14 +61,44 @@
     "candidateCount_other": "{{count}} candidates",
     "new": "New recruitment",
     "edit": "Edit recruitment",
-    "formHint": "Title and description are what candidates and the AI assistant will see.",
+    "formHint": "Everything here is shown in the Details tab and is readable by the AI assistant.",
     "titleLabel": "Title",
     "descriptionLabel": "Description",
     "statusLabel": "Status",
     "teamLabel": "Team",
     "noTeam": "No team",
     "filterTeam": "Filter by team",
-    "allTeams": "All teams"
+    "allTeams": "All teams",
+    "levelLabel": "Level",
+    "noLevel": "Not set",
+    "level": {
+      "intern": "Intern",
+      "junior": "Junior",
+      "mid": "Mid / Specialist",
+      "senior": "Senior",
+      "lead": "Lead / Expert",
+      "manager": "Manager",
+      "director": "Director"
+    },
+    "locationLabel": "Location and work mode",
+    "locationPlaceholder": "e.g. Warsaw, hybrid",
+    "contractLabel": "Contract",
+    "contractPlaceholder": "e.g. B2B (net) or employment contract (gross)",
+    "requirementsLabel": "Requirements",
+    "niceToHaveLabel": "Nice to have",
+    "linesHint": "One item per line.",
+    "salaryLabel": "Salary range",
+    "salaryMin": "From",
+    "salaryMax": "To",
+    "salaryCurrency": "Currency (e.g. PLN, EUR)",
+    "salaryPeriodLabel": "Period",
+    "salaryHint": "Leave both empty when the range is not disclosed.",
+    "period": {
+      "month": "per month",
+      "year": "per year",
+      "hour": "per hour"
+    },
+    "notSet": "Not set"
   },
   "candidates": {
     "title": "Candidates",
@@ -98,7 +128,8 @@
     "importedAi": "Fields filled in from the CV by the local model. Check them before saving.",
     "importedHeuristic": "Fields guessed from the CV text (no local model available). Check them before saving.",
     "importFailed": "Could not read this CV.",
-    "cvAttached": "{{name}} will be uploaded with the candidate."
+    "cvAttached": "{{name}} will be uploaded with the candidate.",
+    "job": "Details"
   },
   "stage": {
     "applied": "Applied",
@@ -114,7 +145,9 @@
   "form": {
     "required": "This field is required.",
     "invalidEmail": "Enter a valid email address.",
-    "saveFailed": "Could not save. Try again."
+    "saveFailed": "Could not save. Try again.",
+    "salaryRange": "\"To\" must not be lower than \"From\".",
+    "currency": "Use a three-letter currency code, e.g. PLN."
   },
   "cv": {
     "title": "CV",

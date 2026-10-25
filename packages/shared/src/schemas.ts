@@ -59,9 +59,27 @@ export type UpdateStatus = z.infer<typeof updateStatusSchema>
 
 export const jobStatusSchema = z.enum(['open', 'closed'])
 
+/** Seniority of the position (0.6.1). `mid` is what Polish offers call "specjalista". */
+export const JOB_LEVELS = [
+  'intern',
+  'junior',
+  'mid',
+  'senior',
+  'lead',
+  'manager',
+  'director',
+] as const
+export const jobLevelSchema = z.enum(JOB_LEVELS)
+export type JobLevel = z.infer<typeof jobLevelSchema>
+
+export const SALARY_PERIODS = ['month', 'year', 'hour'] as const
+export const salaryPeriodSchema = z.enum(SALARY_PERIODS)
+
 /**
  * A job is what the UI calls a "recruitment" (see the glossary in docs/ARCHITECTURE.md).
- * teamId is the hiring team, null when none is assigned.
+ * teamId is the hiring team, null when none is assigned. The position details (0.6.1) are what
+ * the offer says: requirements and nice-to-haves one per line, the salary range as whole numbers
+ * of `salaryCurrency` per `salaryPeriod`, null when not disclosed.
  */
 export const jobSchema = z.object({
   id: z.number().int(),
@@ -69,16 +87,45 @@ export const jobSchema = z.object({
   description: z.string(),
   status: jobStatusSchema,
   teamId: z.number().int().nullable(),
+  level: jobLevelSchema.nullable(),
+  /** Free text: city and work mode, e.g. "Warsaw, hybrid". */
+  location: z.string(),
+  /** Free text: contract type and gross or net, e.g. "B2B (net) or employment contract". */
+  contract: z.string(),
+  requirements: z.string(),
+  niceToHave: z.string(),
+  salaryMin: z.number().int().nonnegative().nullable(),
+  salaryMax: z.number().int().nonnegative().nullable(),
+  salaryCurrency: z.string().regex(/^[A-Z]{3}$/),
+  salaryPeriod: salaryPeriodSchema,
   createdAt: z.string(),
 })
 export type Job = z.infer<typeof jobSchema>
 
 /** Body of POST /api/jobs and PUT /api/jobs/:id. Closing a job is a PUT with status 'closed'. */
-export const jobInputSchema = jobSchema.omit({ id: true, createdAt: true }).extend({
-  description: z.string().default(''),
-  status: jobStatusSchema.default('open'),
-  teamId: z.number().int().nullable().default(null),
-})
+export const jobInputSchema = jobSchema
+  .omit({ id: true, createdAt: true })
+  .extend({
+    description: z.string().default(''),
+    status: jobStatusSchema.default('open'),
+    teamId: z.number().int().nullable().default(null),
+    level: jobLevelSchema.nullable().default(null),
+    location: z.string().default(''),
+    contract: z.string().default(''),
+    requirements: z.string().default(''),
+    niceToHave: z.string().default(''),
+    salaryMin: z.number().int().nonnegative().nullable().default(null),
+    salaryMax: z.number().int().nonnegative().nullable().default(null),
+    salaryCurrency: z
+      .string()
+      .regex(/^[A-Z]{3}$/)
+      .default('PLN'),
+    salaryPeriod: salaryPeriodSchema.default('month'),
+  })
+  .refine((j) => j.salaryMin === null || j.salaryMax === null || j.salaryMin <= j.salaryMax, {
+    path: ['salaryMax'],
+    message: 'salary_range',
+  })
 export type JobInput = z.input<typeof jobInputSchema>
 
 /**

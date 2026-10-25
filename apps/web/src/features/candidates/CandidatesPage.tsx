@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button.tsx'
 import { cn } from '@/lib/utils.ts'
 import { Switch } from '@/components/ui/switch.tsx'
 import { InterviewGuide } from '../recruitments/InterviewGuide.tsx'
+import { JobDetails } from '../recruitments/JobDetails.tsx'
+import { RecruitmentForm } from '../recruitments/RecruitmentForm.tsx'
 import { KanbanBoard } from '../pipeline/KanbanBoard.tsx'
 import { useScreen } from '../chat/ChatState.tsx'
 import { BlindContext, useBlindSetting } from './BlindContext.ts'
@@ -25,7 +27,9 @@ export function CandidatesPage() {
   const [selected, setSelected] = useState<Candidate | null>(null)
   const [moveError, setMoveError] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [view, setView] = useState<'pipeline' | 'guide'>('pipeline')
+  const [view, setView] = useState<'pipeline' | 'guide' | 'job'>('pipeline')
+  const [editingJob, setEditingJob] = useState(false)
+  const teams = useApi(() => api.api.teams.$get().then((r) => r.json()), [])
   // "This candidate" in the chat is the open drawer, else "this recruitment" is this page.
   useScreen(
     selected ? { view: 'candidate', id: selected.id } : { view: 'recruitment', id: Number(id) },
@@ -106,7 +110,7 @@ export function CandidatesPage() {
       )}
 
       <div role="tablist" className="mt-4 flex gap-1 border-b">
-        {(['pipeline', 'guide'] as const).map((v) => (
+        {(['pipeline', 'guide', 'job'] as const).map((v) => (
           <button
             key={v}
             role="tab"
@@ -128,6 +132,16 @@ export function CandidatesPage() {
         <div className="mt-4">
           <InterviewGuide jobId={Number(id)} />
         </div>
+      ) : view === 'job' ? (
+        job.data && (
+          <div className="mt-4">
+            <JobDetails
+              job={job.data}
+              teamName={teams.data?.find((x) => x.id === job.data?.teamId)?.name}
+              onEdit={() => setEditingJob(true)}
+            />
+          </div>
+        )
       ) : !candidates.data ? (
         <p className="mt-4 text-muted-foreground">{t('common.loading')}</p>
       ) : (
@@ -147,6 +161,19 @@ export function CandidatesPage() {
           setView('guide')
         }}
       />
+      {job.data && (
+        <RecruitmentForm
+          key={editingJob ? 'open' : 'closed'}
+          job={job.data}
+          teams={teams.data ?? []}
+          open={editingJob}
+          onClose={() => setEditingJob(false)}
+          onSaved={(saved) => {
+            job.setData(() => saved)
+            setEditingJob(false)
+          }}
+        />
+      )}
       <CandidateForm
         key={creating ? 'open' : 'closed'}
         jobId={Number(id)}

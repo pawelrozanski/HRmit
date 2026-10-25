@@ -29,6 +29,37 @@ test('POST and PUT /api/jobs create, update and close a job', async () => {
   expect(list.find((j) => j.id === job.id)?.status).toBe('closed')
 })
 
+test('position details: defaults, round trip, salary range and currency validated', async () => {
+  const job = jobSchema.parse(await (await json('POST', '/api/jobs', { title: 'Designer' })).json())
+  expect(job).toMatchObject({
+    level: null,
+    salaryMin: null,
+    salaryCurrency: 'PLN',
+    requirements: '',
+  })
+  const details = {
+    title: 'Designer',
+    level: 'senior',
+    location: 'Gdansk, remote',
+    contract: 'B2B (net)',
+    requirements: 'Figma\nDesign systems',
+    niceToHave: 'Motion design',
+    salaryMin: 15000,
+    salaryMax: 20000,
+    salaryCurrency: 'EUR',
+    salaryPeriod: 'year',
+  }
+  const put = await json('PUT', `/api/jobs/${job.id}`, details)
+  expect(jobSchema.parse(await put.json())).toMatchObject(details)
+  expect((await json('PUT', `/api/jobs/${job.id}`, { ...details, salaryMax: 100 })).status).toBe(
+    400,
+  )
+  expect(
+    (await json('PUT', `/api/jobs/${job.id}`, { ...details, salaryCurrency: 'zl' })).status,
+  ).toBe(400)
+  expect((await json('PUT', `/api/jobs/${job.id}`, { ...details, level: 'guru' })).status).toBe(400)
+})
+
 test('GET and PUT /api/jobs/:id/questions: seeded, replaced in order, validated', async () => {
   const seeded = interviewQuestionSchema
     .array()

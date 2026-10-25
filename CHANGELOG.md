@@ -4,6 +4,18 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-10-25
+
+### Added
+
+- Position details on a recruitment: level (intern to director, "Mid / Specialist" for the Polish "specjalista"), location and work mode, contract, requirements and nice-to-haves (one per line), and the salary range with currency and period (month, year or hour). The new and edit recruitment form has the fields; all are optional, and "To" lower than "From" is refused.
+- A Details tab next to Pipeline and Interview guide in a recruitment shows all of it, with an Edit button.
+- The assistant's `getRecruitment` tool returns the details too, so "what are the requirements?" or "what is the salary range?" is answered from them. Free text is anonymized for a cloud provider like the description.
+
+### Changed
+
+- Generating the interview guide now also gives the model the level, requirements and nice-to-haves (never the salary).
+
 ## [0.6.0] - 2026-10-25
 
 ### Added

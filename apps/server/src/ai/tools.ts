@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, like, lt, ne, or, sql } from 'drizzle-orm'
+import { and, eq, getTableColumns, gte, inArray, like, lt, ne, or, sql } from 'drizzle-orm'
 import {
   PIPELINE_STAGES,
   anonymize,
@@ -87,6 +87,15 @@ export async function scrub(text: string, ctx: ToolContext): Promise<string> {
   const people = await (ctx.people ??= loadPeople())
   return people.reduce((t, p) => anonymize(t, p, { inflected: true, label: p.label }).text, text)
 }
+
+/** A one-item-per-line field (requirements, nice-to-haves) as a list, scrubbed for cloud. */
+const lines = (text: string, ctx: ToolContext) =>
+  scrub(text, ctx).then((t) =>
+    t
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean),
+  )
 
 const DISABLED = {
   disabled: true as const,
@@ -203,10 +212,7 @@ const getRecruitment: Fn<'getRecruitment'> = async ({ jobId, title }, ctx) => {
   if (jobId === undefined && !title?.trim()) return null
   const [job] = await db
     .select({
-      id: jobs.id,
-      title: jobs.title,
-      status: jobs.status,
-      description: jobs.description,
+      ...getTableColumns(jobs),
       teamName: teams.name,
       memberCount: sql<number>`(select count(*) from team_members where team_members.team_id = jobs.team_id)`,
     })
@@ -238,6 +244,20 @@ const getRecruitment: Fn<'getRecruitment'> = async ({ jobId, title }, ctx) => {
     title: job.title,
     status: job.status,
     description: await scrub(job.description, ctx),
+    level: job.level,
+    location: await scrub(job.location, ctx),
+    contract: await scrub(job.contract, ctx),
+    requirements: await lines(job.requirements, ctx),
+    niceToHave: await lines(job.niceToHave, ctx),
+    salary:
+      job.salaryMin === null && job.salaryMax === null
+        ? null
+        : {
+            min: job.salaryMin,
+            max: job.salaryMax,
+            currency: job.salaryCurrency,
+            period: job.salaryPeriod,
+          },
     team: job.teamName === null ? null : { name: job.teamName, memberCount: job.memberCount },
     stages: Object.fromEntries(
       PIPELINE_STAGES.map((s) => [s, counts.find((c) => c.stage === s)?.n ?? 0]),

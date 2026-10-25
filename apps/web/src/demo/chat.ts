@@ -10,8 +10,19 @@ import {
   type ChatRefs,
   type ChatToolName,
 } from '@hrmit/shared'
-import { fixtures } from '@hrmit/shared'
+import { fixtures, type JobLevel } from '@hrmit/shared'
+import { salaryRange } from '../features/recruitments/salary.ts'
 import { store } from './store.ts'
+
+const LEVEL_PL: Record<JobLevel, string> = {
+  intern: 'stażysta',
+  junior: 'junior',
+  mid: 'specjalista (mid)',
+  senior: 'senior',
+  lead: 'lead / ekspert',
+  manager: 'kierownik',
+  director: 'dyrektor',
+}
 
 /**
  * Recorded chat answers for the demo (docs/ARCHITECTURE.md §4.2): no model runs on GitHub
@@ -51,7 +62,7 @@ const DAY = 86_400_000
 const KEYWORDS: [Scenario, RegExp][] = [
   ['best', /najlep|best|hire|zatrudn|odrzuc|reject|rank/i],
   ['noteSummary', /zanotuj|note down|write down|zapisz notatk/i],
-  ['requirements', /wymaga|requirement/i],
+  ['requirements', /wymaga|requirement|wide[łl]k|salary|wynagrodz|zarob|poziom|level|seniority/i],
   ['notes', /notatk|notes/i],
   ['scorecard', /poka[żz] oceny|ratings|scorecard/i],
   ['employeeRole', /rol[ęea]\b|role\b|stanowisk|position/i],
@@ -360,12 +371,33 @@ export function demoAnswer(question: string, context: ChatContext, lang: AiLang)
       const comps = [...new Set(qs.map((q) => q.competency))]
       const team = store.teams.find((x) => x.id === j.teamId)
       const members = team ? store.teamMembers.filter((m) => m.teamId === team.id).length : 0
+      const list = (text: string) =>
+        text
+          .split('\n')
+          .filter((l) => l.trim())
+          .map((l) => `- ${scrub(l.trim())}`)
+          .join('\n')
+      const salary = salaryRange(j, lang)
+      const facts = [
+        j.level && t(lang, `Level: ${j.level}.`, `Poziom: ${LEVEL_PL[j.level]}.`),
+        j.location &&
+          t(lang, `Location: ${scrub(j.location)}.`, `Lokalizacja: ${scrub(j.location)}.`),
+        j.contract && t(lang, `Contract: ${scrub(j.contract)}.`, `Umowa: ${scrub(j.contract)}.`),
+        salary &&
+          t(
+            lang,
+            `Salary: ${salary} per ${j.salaryPeriod}.`,
+            `Widełki: ${salary} ${{ month: 'miesięcznie', year: 'rocznie', hour: 'za godzinę' }[j.salaryPeriod]}.`,
+          ),
+        j.requirements.trim() && t(lang, 'Requirements:\n', 'Wymagania:\n') + list(j.requirements),
+        j.niceToHave.trim() && t(lang, 'Nice to have:\n', 'Mile widziane:\n') + list(j.niceToHave),
+      ].filter(Boolean)
       return answer(
         'getRecruitment',
         t(
           lang,
-          `${title(j.id)}: ${scrub(j.description)}\nThe interview guide covers ${comps.length} competencies (${comps.join(', ')}) in ${qs.length} questions.${team ? ` Hiring team: ${team.name} (${members} members).` : ' No hiring team assigned.'}`,
-          `${title(j.id)}: ${scrub(j.description)}\nPrzewodnik rozmowy obejmuje ${comps.length} kompetencji (${comps.join(', ')}) w ${qs.length} pytaniach.${team ? ` Zespół rekrutujący: ${team.name} (${members} osób).` : ' Bez przypisanego zespołu.'}`,
+          `${title(j.id)}: ${scrub(j.description)}\n${facts.join('\n')}\nThe interview guide covers ${comps.length} competencies (${comps.join(', ')}) in ${qs.length} questions.${team ? ` Hiring team: ${team.name} (${members} members).` : ' No hiring team assigned.'}`,
+          `${title(j.id)}: ${scrub(j.description)}\n${facts.join('\n')}\nPrzewodnik rozmowy obejmuje ${comps.length} kompetencji (${comps.join(', ')}) w ${qs.length} pytaniach.${team ? ` Zespół rekrutujący: ${team.name} (${members} osób).` : ' Bez przypisanego zespołu.'}`,
         ),
       )
     }

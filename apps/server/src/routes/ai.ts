@@ -165,7 +165,7 @@ export const aiRoute = new Hono()
   )
   // The chat assistant (ADR 0007): read-only tools, streamed NDJSON answer.
   .route('/chat', chatRoute)
-  // Interview guide for a job. The prompt sees the job title and description only, never a
+  // Interview guide for a job. The prompt sees the job's title, level, description, requirements and nice-to-haves only, never a
   // candidate (ADR 0004). Applied straight away when the job has no questions yet, otherwise
   // returned as a proposal the UI can accept or discard.
   .post('/questions/:jobId', zValidator('json', aiActionBodySchema), async (c) => {
@@ -176,7 +176,12 @@ export const aiRoute = new Hono()
     const text = (await getAiPrompts()).questions
     const lang = c.req.valid('json').lang
     const safe = questionsPrompt(
-      { ...job, description: anonymize(job.description).text },
+      {
+        ...job,
+        description: anonymize(job.description).text,
+        requirements: anonymize(job.requirements).text,
+        niceToHave: anonymize(job.niceToHave).text,
+      },
       lang,
       text,
     )

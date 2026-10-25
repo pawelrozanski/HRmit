@@ -27,7 +27,7 @@ const MAX_STEPS = 8
 const DESCRIPTIONS: Record<ChatToolName, string> = {
   listRecruitments: 'List recruitments (jobs), optionally by status or team name.',
   getRecruitment:
-    'One recruitment, by id or by part of its title, with the candidate count per pipeline stage.',
+    'One recruitment, by id or by part of its title: description, level, location, contract, requirements, nice-to-haves, salary range, hiring team, candidate count per pipeline stage and the interview guide.',
   upcomingMeetings: 'Scheduled interviews from now to N days ahead.',
   stuckCandidates: 'Candidates of open recruitments with no stage change for N days or more.',
   searchCandidates:
