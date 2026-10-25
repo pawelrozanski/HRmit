@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml"><img src="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-C2410C.svg" alt="MIT license" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.6.2-F26B1D.svg" alt="Version 0.6.2" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.6.3-F26B1D.svg" alt="Version 0.6.3" /></a>
 </p>
 
 ## What it does
@@ -134,7 +134,7 @@ Short version; the full review is in [docs/SECURITY.md](docs/SECURITY.md).
 
 ## Roadmap and out of scope
 
-Stages 0 to 11 of [docs/ROADMAP.md](docs/ROADMAP.md) are shipped as 0.1.0, CV import, the settings sidebar and the dark theme as 0.2.0, employees and teams as 0.3.0, employee notes as 0.3.1, titled notes in dialogs as 0.3.2, the AI provider catalog as 0.3.3, messages to employees and teams as 0.4.0, the dashboard and the chat assistant as 0.5.0, custom email templates as 0.5.1, editable prompts as 0.5.2, the backup download as 0.5.3, recovery, the off switch and the grouped settings as 0.5.4, the update check and the Windows installer as 0.5.5, the assistant reading notes, scorecards and employees and drafting notes for your approval as 0.6.0, the position details of a recruitment (level, requirements, nice-to-haves, salary range) as 0.6.1, the candidate page with the CV compared to the requirements as 0.6.2; see [CHANGELOG.md](CHANGELOG.md). Tracked but not planned: inbound applications over IMAP, Google Meet, a desktop installer, multi-user with authentication, a local NER model for anonymization, stage history and audit log.
+Stages 0 to 11 of [docs/ROADMAP.md](docs/ROADMAP.md) are shipped as 0.1.0, CV import, the settings sidebar and the dark theme as 0.2.0, employees and teams as 0.3.0, employee notes as 0.3.1, titled notes in dialogs as 0.3.2, the AI provider catalog as 0.3.3, messages to employees and teams as 0.4.0, the dashboard and the chat assistant as 0.5.0, custom email templates as 0.5.1, editable prompts as 0.5.2, the backup download as 0.5.3, recovery, the off switch and the grouped settings as 0.5.4, the update check and the Windows installer as 0.5.5, the assistant reading notes, scorecards and employees and drafting notes for your approval as 0.6.0, the position details of a recruitment (level, requirements, nice-to-haves, salary range) as 0.6.1, the candidate page with the CV compared to the requirements as 0.6.2, the richer demo with a CV per candidate as 0.6.3; see [CHANGELOG.md](CHANGELOG.md). Tracked but not planned: inbound applications over IMAP, Google Meet, a desktop installer, multi-user with authentication, a local NER model for anonymization, stage history and audit log.
 
 Issues and pull requests are welcome; please keep commits small and follow Conventional Commits.
 

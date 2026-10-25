@@ -4,6 +4,8 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-10-25
+
 ### Added
 
 - Demo: every fictional candidate has a CV of their own, written to differ in what they cover, and the demo's requirements check answers from a recorded result per candidate, so opening a candidate shows green, amber and red lines that match their CV. Content Marketing has three candidates now.
