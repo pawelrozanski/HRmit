@@ -594,5 +594,36 @@
       "settings": "Otwórz ustawienia AI"
     },
     "demoHint": "Tryb demo: asystent odpowiada na podpowiedzi z danych demo; pełny czat z lokalnym modelem działa w wersji lokalnej."
+  },
+  "update": {
+    "check": "Sprawdź aktualizacje",
+    "title": "Aktualizacje HRmit",
+    "privacy": "Sprawdzenie pyta GitHub o listę wydań HRmit. Żadne Twoje dane nie są wysyłane.",
+    "checking": "Sprawdzam…",
+    "failed": "Nie udało się sprawdzić aktualizacji. Czy ten komputer ma internet?",
+    "upToDate": "Masz najnowszą wersję ({{version}}).",
+    "available": "Dostępna jest wersja {{latest}}. Masz {{current}}.",
+    "whatsNew": "Co nowego (lista zmian)",
+    "backup": "Najpierw zrób kopię zapasową",
+    "backupHint": "Baza danych i pliki CV zostaną zapisane w data/backups/, zanim cokolwiek się zmieni.",
+    "manual": "Ta kopia nie jest repozytorium git (np. obraz Docker), więc nie zaktualizuje się sama. Pobierz nową wersję i zbuduj ją: git pull, potem docker compose up --build.",
+    "install": "Aktualizuj do {{version}}",
+    "reloadHint": "HRmit uruchomi się ponownie sam; ta strona odświeży się, gdy nowa wersja będzie gotowa. Nie zamykaj jej.",
+    "backupSaved": "Kopia zapasowa zapisana jako data/backups/{{name}}.",
+    "restart": "Wersja {{version}} jest zainstalowana. Wyłącz HRmit i uruchom go ponownie, aby z niej korzystać.",
+    "runFailed": "Aktualizacja została przerwana. Twoje dane są nietknięte; szczegóły poniżej (także w data/update.log).",
+    "steps": {
+      "fetch": "Pobieram nową wersję…",
+      "merge": "Wgrywam nową wersję…",
+      "install": "Instaluję zależności…",
+      "restart": "Uruchamiam HRmit ponownie…"
+    },
+    "refused": {
+      "not a git checkout": "Ta kopia nie jest repozytorium git, więc nie zaktualizuje się sama.",
+      "up to date": "Masz już najnowszą wersję.",
+      "local changes": "Pliki HRmit mają lokalne zmiany. Najpierw je zatwierdź lub odrzuć, potem aktualizuj."
+    },
+    "download": "Pobierz {{version}}",
+    "installer": "Pobierz nowy instalator i uruchom go. Zatrzyma HRmit, zainstaluje nową wersję na tej i uruchomi ją ponownie; Twoje dane w folderze HRmit na Twoim koncie zostają. Dla pewności najpierw pobierz kopię w zakładce Kopia i przywracanie."
   }
 }

@@ -564,5 +564,36 @@
       "settings": "Open AI settings"
     },
     "demoHint": "Demo mode: the assistant answers the suggested questions from the fixtures; the full chat with a local model works in the local version."
+  },
+  "update": {
+    "check": "Check for updates",
+    "title": "HRmit updates",
+    "privacy": "Checking asks GitHub for the list of HRmit releases. Nothing about your data is sent.",
+    "checking": "Checking…",
+    "failed": "Could not check for updates. Is this computer online?",
+    "upToDate": "You have the newest version ({{version}}).",
+    "available": "Version {{latest}} is available. You have {{current}}.",
+    "whatsNew": "What's new (changelog)",
+    "backup": "Back up my data first",
+    "backupHint": "The database and CV files are saved to data/backups/ before anything changes.",
+    "manual": "This copy is not a git checkout (for example the Docker image), so it cannot update itself. Pull the new version and rebuild: git pull, then docker compose up --build.",
+    "install": "Update to {{version}}",
+    "reloadHint": "HRmit restarts by itself; this page reloads when the new version is up. Keep it open.",
+    "backupSaved": "Backup saved as data/backups/{{name}}.",
+    "restart": "Version {{version}} is installed. Stop HRmit and start it again to use it.",
+    "runFailed": "The update stopped. Your data was not touched; details below (also in data/update.log).",
+    "steps": {
+      "fetch": "Downloading the new version…",
+      "merge": "Applying the new version…",
+      "install": "Installing dependencies…",
+      "restart": "Restarting HRmit…"
+    },
+    "refused": {
+      "not a git checkout": "This copy is not a git checkout, so it cannot update itself.",
+      "up to date": "You already have the newest version.",
+      "local changes": "HRmit's files have local changes. Commit or discard them first, then update."
+    },
+    "download": "Download {{version}}",
+    "installer": "Download the new installer and run it. It stops HRmit, installs the new version over this one and starts it again; your data in the HRmit folder of your user account stays. For extra safety, download a backup under Backup & Recovery first."
   }
 }

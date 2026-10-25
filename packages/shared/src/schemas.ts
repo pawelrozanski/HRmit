@@ -24,6 +24,39 @@ export const restoreResultSchema = z.object({
 })
 export type RestoreResult = z.infer<typeof restoreResultSchema>
 
+/**
+ * Answer of GET /api/update: the newest release tag on GitHub against the running version.
+ * install says how this copy is updated: `git` in place, `installer` by the new Windows
+ * installer (ADR 0008), `manual` (the Docker image) by the steps the dialog shows.
+ */
+export const updateCheckSchema = z.object({
+  current: z.string(),
+  latest: z.string(),
+  available: z.boolean(),
+  install: z.enum(['git', 'installer', 'manual']),
+})
+export type UpdateCheck = z.infer<typeof updateCheckSchema>
+
+export const updateStartSchema = z.object({ backup: z.boolean() })
+
+/** Progress of the detached updater, kept in data/update.json; null before the first run. */
+export const updateRunSchema = z.object({
+  state: z.enum(['running', 'done', 'failed']),
+  target: z.string(),
+  step: z.enum(['fetch', 'merge', 'install', 'restart']),
+  /** File name under data/backups/, null when the checkbox was off. */
+  backup: z.string().nullable(),
+  error: z.string().nullable(),
+})
+export type UpdateRun = z.infer<typeof updateRunSchema>
+
+/** Answer of POST /api/update and GET /api/update/status: the running version and the last run. */
+export const updateStatusSchema = z.object({
+  version: z.string(),
+  run: updateRunSchema.nullable(),
+})
+export type UpdateStatus = z.infer<typeof updateStatusSchema>
+
 export const jobStatusSchema = z.enum(['open', 'closed'])
 
 /**

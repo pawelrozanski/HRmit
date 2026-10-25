@@ -10,6 +10,7 @@ import { jobsRoute } from './routes/jobs.ts'
 import { settingsRoute } from './routes/settings.ts'
 import { teamsRoute } from './routes/teams.ts'
 import { templatesRoute } from './routes/templates.ts'
+import { updateRoute } from './routes/update.ts'
 
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]'])
 const isLoopback = (url: string) => {
@@ -52,5 +53,6 @@ export const app = new Hono()
   .route('/api/templates', templatesRoute)
   .route('/api/ai', aiRoute)
   .route('/api/backup', backupRoute)
+  .route('/api/update', updateRoute)
 
 export type AppType = typeof app

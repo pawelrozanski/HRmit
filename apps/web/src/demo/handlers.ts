@@ -40,6 +40,8 @@ import {
   type EmailPreview,
   type Health,
   type RestoreResult,
+  type UpdateCheck,
+  type UpdateStatus,
   type InterviewQuestionInput,
   type Meeting,
   type MeetingPreview,
@@ -298,6 +300,21 @@ function dashboard(stuckDays: number): Dashboard {
 export const handlers = [
   // Nothing runs on the visitor's machine; the button is hidden in the demo anyway.
   http.post(`${base}/api/shutdown`, () => HttpResponse.json({ ok: true })),
+  // The demo is always the newest build; the update button is hidden there too.
+  http.get(`${base}/api/update`, () =>
+    HttpResponse.json<UpdateCheck>({
+      current: VERSION,
+      latest: VERSION,
+      available: false,
+      install: 'manual',
+    }),
+  ),
+  http.post(`${base}/api/update`, () =>
+    HttpResponse.json({ error: 'not a git checkout' }, { status: 409 }),
+  ),
+  http.get(`${base}/api/update/status`, () =>
+    HttpResponse.json<UpdateStatus>({ version: VERSION, run: null }),
+  ),
   http.get(`${base}/api/health`, () =>
     HttpResponse.json<Health>({ ok: true, mode: 'demo', version: VERSION }),
   ),

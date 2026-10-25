@@ -44,6 +44,22 @@ function validDatabase(bytes: Buffer): Promise<boolean> {
     .finally(() => rm(tmp, { force: true }))
 }
 
+/** The database (a VACUUM INTO snapshot) and every upload, as one .tar.gz. Also used by the updater. */
+export async function backupArchive(): Promise<Buffer> {
+  const snapshot = join(tmpdir(), `hrmit-${crypto.randomUUID()}.db`)
+  await db.run(sql`VACUUM INTO ${snapshot}`)
+  try {
+    const entries: TarEntry[] = [{ name: 'hrmit.db', data: await readFile(snapshot) }]
+    for (const f of await readdir(uploadsDir))
+      entries.push({ name: `uploads/${f}`, data: await readFile(join(uploadsDir, f)) })
+    const body = tarGz(entries)
+    log.info('backup', { files: entries.length, bytes: body.length })
+    return body
+  } finally {
+    await rm(snapshot, { force: true })
+  }
+}
+
 /**
  * GET /api/backup: the database (a consistent VACUUM INTO snapshot, so the WAL is folded in)
  * and the CV files, as one .tar.gz. master.key is left out on purpose (docs/SECURITY.md):
@@ -56,23 +72,12 @@ function validDatabase(bytes: Buffer): Promise<boolean> {
  * ones from the backup; the secrets are unreadable (different key) and show as unset.
  */
 export const backupRoute = new Hono()
-  .get('/', async (c) => {
-    const snapshot = join(tmpdir(), `hrmit-${crypto.randomUUID()}.db`)
-    await db.run(sql`VACUUM INTO ${snapshot}`)
-    try {
-      const entries: TarEntry[] = [{ name: 'hrmit.db', data: await readFile(snapshot) }]
-      for (const f of await readdir(uploadsDir))
-        entries.push({ name: `uploads/${f}`, data: await readFile(join(uploadsDir, f)) })
-      const body = tarGz(entries)
-      log.info('backup', { files: entries.length, bytes: body.length })
-      return c.body(new Uint8Array(body), 200, {
-        'content-type': 'application/gzip',
-        'content-disposition': `attachment; filename="${backupName()}"`,
-      })
-    } finally {
-      await rm(snapshot, { force: true })
-    }
-  })
+  .get('/', async (c) =>
+    c.body(new Uint8Array(await backupArchive()), 200, {
+      'content-type': 'application/gzip',
+      'content-disposition': `attachment; filename="${backupName()}"`,
+    }),
+  )
   .post('/restore', zValidator('form', z.object({ file: z.instanceof(File) })), async (c) => {
     let entries: TarEntry[]
     try {

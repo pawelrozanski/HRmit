@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { IS_DEMO } from '@/config.ts'
 import { readTheme, setTheme, THEMES } from '@/theme.ts'
+import { UpdateDialog } from './UpdateDialog.tsx'
 
 const REPO = 'https://github.com/pawelrozanski/HRmit'
 const LANGS = ['en', 'pl'] as const
@@ -79,6 +80,7 @@ export function GeneralSettings() {
             {t('settings.license')}
           </a>
         </p>
+        {!IS_DEMO && <UpdateDialog />}
       </section>
 
       {!IS_DEMO && <Shutdown />}
