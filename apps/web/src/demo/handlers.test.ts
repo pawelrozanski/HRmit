@@ -227,6 +227,10 @@ test('demo AI settings: persisted without the key, test always succeeds', async 
   expect(aiSettingsViewSchema.parse(await saved.json())).toEqual({ ...body, hasApiKey: true })
   expect(storage.get(DEMO_STORAGE_KEY)).not.toContain('sk-ant-demo')
   expect(persisted().aiSettings).toEqual({ ...body, hasApiKey: true })
+  // The backup is the whole store as a JSON download.
+  const backup = await fetch('http://localhost/api/backup')
+  expect(backup.headers.get('content-disposition')).toMatch(/hrmit-demo-backup-.*\.json"$/)
+  expect(Object.keys(await backup.json())).toContain('candidates')
   // Prompt texts round-trip through the store.
   const { AI_PROMPT_DEFAULTS, aiPromptsSchema } = await import('@hrmit/shared')
   expect(aiPromptsSchema.parse(await get('/api/settings/prompts'))).toEqual(AI_PROMPT_DEFAULTS)

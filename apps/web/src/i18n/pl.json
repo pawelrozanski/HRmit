@@ -137,7 +137,8 @@
       "general": "Ogólne",
       "ai": "Ustawienia AI",
       "email": "E-mail (SMTP)",
-      "templates": "Szablony e-maili"
+      "templates": "Szablony e-maili",
+      "backup": "Kopia zapasowa"
     },
     "sections": "Sekcje ustawień",
     "language": "Język",
@@ -207,6 +208,17 @@
       "questions": "Pytania na rozmowę",
       "chat": "Czat asystenta AI"
     }
+  },
+  "backup": {
+    "title": "Kopia zapasowa",
+    "intro": "Pobierz kopię wszystkiego, co HRmit przechowuje na tym komputerze, i trzymaj ją w bezpiecznym miejscu. Plik zawiera dane osobowe Twoich kandydatów.",
+    "demoIntro": "Tryb demo: kopia to dane demo z tej przeglądarki w pliku JSON. W prawdziwej aplikacji pobierana jest baza danych i pliki CV w jednym archiwum.",
+    "contains": "Archiwum zawiera bazę danych (rekrutacje, kandydaci, notatki, szablony, ustawienia, historia e-maili) oraz wgrane pliki CV.",
+    "noKey": "Klucz szyfrujący nie jest dołączany, więc zapisany klucz AI i hasło SMTP pozostają nieczytelne; po przywróceniu wpisz je ponownie.",
+    "restore": "Aby przywrócić: zatrzymaj HRmit, wgraj hrmit.db i folder uploads z archiwum do folderu data i uruchom ponownie.",
+    "download": "Pobierz kopię zapasową",
+    "working": "Przygotowuję…",
+    "done": "Zapisano {{name}} ({{size}})."
   },
   "ai": {
     "title": "Asystent AI",

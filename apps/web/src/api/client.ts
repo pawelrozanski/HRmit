@@ -10,3 +10,5 @@ export const api = hc<AppType>(base)
 
 /** Download link for a candidate's CV. Built by hand: hc's $url() needs an absolute base. */
 export const cvUrl = (candidateId: number) => `${base}/api/candidates/${candidateId}/cv`
+/** The backup archive (binary, not a typed route). */
+export const backupUrl = `${base}/api/backup`

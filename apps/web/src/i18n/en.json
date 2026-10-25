@@ -135,7 +135,8 @@
       "general": "General",
       "ai": "AI settings",
       "email": "Email (SMTP)",
-      "templates": "Email templates"
+      "templates": "Email templates",
+      "backup": "Backup"
     },
     "sections": "Settings sections",
     "language": "Language",
@@ -205,6 +206,17 @@
       "questions": "Interview questions",
       "chat": "AI assistant chat"
     }
+  },
+  "backup": {
+    "title": "Backup",
+    "intro": "Download a copy of everything HRmit stores on this computer and keep it somewhere safe. The file contains personal data of your candidates.",
+    "demoIntro": "Demo mode: the backup is the demo data of this browser as a JSON file. The real app downloads the database and the CV files as one archive.",
+    "contains": "The archive holds the database (recruitments, candidates, notes, templates, settings, email history) and the uploaded CV files.",
+    "noKey": "The encryption key is not included, so the stored AI key and SMTP password stay unreadable; enter them again after a restore.",
+    "restore": "To restore, stop HRmit, put hrmit.db and the uploads folder from the archive into the data folder, and start it again.",
+    "download": "Download backup",
+    "working": "Preparing…",
+    "done": "Saved {{name}} ({{size}})."
   },
   "ai": {
     "title": "AI assistant",

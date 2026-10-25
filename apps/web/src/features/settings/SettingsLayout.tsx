@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { cn } from '@/lib/utils.ts'
 
-export const SETTINGS_TABS = ['general', 'ai', 'email', 'templates'] as const
+export const SETTINGS_TABS = ['general', 'ai', 'email', 'templates', 'backup'] as const
 
 /**
  * /settings/<tab>: a WAI-ARIA vertical tab list on the left, the tab's route on the right.

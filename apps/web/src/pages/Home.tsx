@@ -17,6 +17,7 @@ import { CandidatesPage } from '../features/candidates/CandidatesPage.tsx'
 import { EmployeesPage } from '../features/employees/EmployeesPage.tsx'
 import { RecruitmentsPage } from '../features/recruitments/RecruitmentsPage.tsx'
 import { AiSettings } from '../features/settings/AiSettings.tsx'
+import { BackupSettings } from '../features/settings/BackupSettings.tsx'
 import { GeneralSettings } from '../features/settings/GeneralSettings.tsx'
 import { SettingsLayout } from '../features/settings/SettingsLayout.tsx'
 import { SmtpSettings } from '../features/settings/SmtpSettings.tsx'
@@ -113,6 +114,7 @@ function Shell() {
             <Route path="ai" element={<AiSettings />} />
             <Route path="email" element={<SmtpSettings />} />
             <Route path="templates" element={<TemplatesSettings />} />
+            <Route path="backup" element={<BackupSettings />} />
           </Route>
         </Routes>
       </main>

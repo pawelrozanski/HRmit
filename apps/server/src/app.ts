@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { VERSION, type Health } from '@hrmit/shared'
 import { aiRoute } from './routes/ai.ts'
+import { backupRoute } from './routes/backup.ts'
 import { candidatesRoute } from './routes/candidates.ts'
 import { dashboardRoute } from './routes/dashboard.ts'
 import { employeesRoute } from './routes/employees.ts'
@@ -42,5 +43,6 @@ export const app = new Hono()
   .route('/api/settings', settingsRoute)
   .route('/api/templates', templatesRoute)
   .route('/api/ai', aiRoute)
+  .route('/api/backup', backupRoute)
 
 export type AppType = typeof app

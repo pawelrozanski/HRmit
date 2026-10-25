@@ -450,6 +450,16 @@ export const handlers = [
     save()
     return HttpResponse.json(store.aiSettings)
   }),
+  // The demo backup is the store itself: what a reset would wipe, as one JSON file.
+  http.get(`${base}/api/backup`, () => {
+    const stamp = new Date().toISOString().slice(0, 16).replace('T', '-').replace(':', '')
+    return new HttpResponse(JSON.stringify(store, null, 2), {
+      headers: {
+        'content-type': 'application/json',
+        'content-disposition': `attachment; filename="hrmit-demo-backup-${stamp}.json"`,
+      },
+    })
+  }),
   http.get(`${base}/api/settings/prompts`, () => HttpResponse.json(store.prompts)),
   http.put(`${base}/api/settings/prompts`, async ({ request }) => {
     const body = aiPromptsSchema.safeParse(await request.json())
