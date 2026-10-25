@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml"><img src="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-C2410C.svg" alt="MIT license" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.5.5-F26B1D.svg" alt="Version 0.5.5" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.6.0-F26B1D.svg" alt="Version 0.6.0" /></a>
 </p>
 
 ## What it does
