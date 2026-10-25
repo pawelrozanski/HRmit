@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
 import { PIPELINE_STAGES, type Candidate, type PipelineStage } from '@hrmit/shared'
-import { Pencil, Trash2 } from 'lucide-react'
+import { MessageSquare, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/api/client.ts'
 import { Button } from '@/components/ui/button.tsx'
 import { AiSection } from '../ai/AiSection.tsx'
+import { useChat } from '../chat/ChatState.tsx'
 import { EmailSection } from '../email/EmailSection.tsx'
 import { MeetingsSection } from '../meetings/MeetingsSection.tsx'
 import {
@@ -41,6 +42,7 @@ export function CandidateDrawer({
 }: Props) {
   const { t, i18n } = useTranslation()
   const blind = useBlind()
+  const chat = useChat()
   const [editing, setEditing] = useState(false)
   const [deleteFailed, setDeleteFailed] = useState(false)
   // Bumped after an invite goes out: remounts the email history so the new row shows up.
@@ -65,6 +67,15 @@ export function CandidateDrawer({
             <SheetHeader>
               <SheetTitle>{candidateName(candidate, blind, t)}</SheetTitle>
               <SheetDescription>{t('candidates.details')}</SheetDescription>
+              {/* The header button sits under this sheet's overlay, so the chat opens from here. */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="justify-self-start"
+                onClick={() => chat.setOpen(true)}
+              >
+                <MessageSquare data-icon="inline-start" /> {t('chat.askHere')}
+              </Button>
             </SheetHeader>
             <dl className="grid gap-3 px-4 text-sm">
               <Field label={t('candidates.stage')}>

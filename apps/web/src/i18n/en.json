@@ -574,7 +574,8 @@
       "saved": "Saved as a note, marked as drafted by the assistant.",
       "open": "Open it",
       "dismissed": "Draft discarded."
-    }
+    },
+    "askHere": "Ask the assistant"
   },
   "update": {
     "check": "Check for updates",

@@ -1,6 +1,6 @@
 import { noteInputSchema, type CandidateNote, type EmployeeNote } from '@hrmit/shared'
 import { NotebookPen, Plus, Sparkles, Trash2 } from 'lucide-react'
-import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
 import { Textarea } from '@/components/ui/textarea.tsx'
 import { fieldErrors } from '@/lib/form.ts'
+import { NOTE_SAVED } from '../chat/ProposalCard.tsx'
 
 type Note = EmployeeNote | CandidateNote
 export type NoteTarget = 'candidate' | 'employee'
@@ -50,6 +51,25 @@ export function NotesSection({ target, id, onCount = () => {} }: Props) {
   )
   const when = (iso: string) =>
     new Date(iso).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })
+
+  // A note saved from the chat panel's proposal card lands in this list without a refetch.
+  useEffect(() => {
+    const onSaved = (e: Event) => {
+      const note = (e as CustomEvent<Note>).detail
+      const mine =
+        target === 'candidate'
+          ? 'candidateId' in note && note.candidateId === id
+          : 'employeeId' in note && note.employeeId === id
+      if (!mine) return
+      notes.setData((list) => {
+        if (list.some((n) => n.id === note.id)) return list
+        onCount(list.length + 1)
+        return [note, ...list]
+      })
+    }
+    window.addEventListener(NOTE_SAVED, onSaved)
+    return () => window.removeEventListener(NOTE_SAVED, onSaved)
+  }, [target, id])
 
   const remove = async (note: Note) => {
     if (!window.confirm(t('notes.deleteConfirm'))) return

@@ -11,6 +11,9 @@ import { APP_ROOT } from '@/config.ts'
 import { useChat, type Proposal } from './ChatState.tsx'
 import { resolveNames } from './chatText.ts'
 
+/** Fired with the saved note when a proposal is stored from the chat. */
+export const NOTE_SAVED = 'hrmit:note-saved'
+
 type Props = {
   proposal: Proposal
   onChange: (p: Proposal) => void
@@ -54,7 +57,10 @@ export function ProposalCard({ proposal, onChange, onNavigate }: Props) {
     })
     setBusy(false)
     if (res.status !== 201) return setFailed(true)
-    onChange({ ...proposal, saved: await res.json() })
+    const saved = await res.json()
+    onChange({ ...proposal, saved })
+    // The drawer under the panel may show this person's notes: hand it the new row.
+    window.dispatchEvent(new CustomEvent(NOTE_SAVED, { detail: saved }))
   }
 
   const heading = (

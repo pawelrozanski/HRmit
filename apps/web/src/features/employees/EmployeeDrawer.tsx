@@ -1,5 +1,5 @@
 import type { EmployeeWithTeams } from '@hrmit/shared'
-import { Pencil, Trash2 } from 'lucide-react'
+import { MessageSquare, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -16,6 +16,7 @@ import {
 import { APP_ROOT } from '@/config.ts'
 import { EmployeeForm } from './EmployeeForm.tsx'
 import { EmployeeMessages } from './EmployeeMessages.tsx'
+import { useChat } from '../chat/ChatState.tsx'
 import { NotesSection } from '../notes/NotesSection.tsx'
 
 type Props = {
@@ -29,6 +30,7 @@ export const fullName = (e: { firstName: string; lastName: string }) =>
   `${e.firstName} ${e.lastName}`
 
 export function EmployeeDrawer({ employee, onClose, onChange, onDelete }: Props) {
+  const chat = useChat()
   const { t, i18n } = useTranslation()
   const [editing, setEditing] = useState(false)
   const [deleteFailed, setDeleteFailed] = useState(false)
@@ -51,6 +53,14 @@ export function EmployeeDrawer({ employee, onClose, onChange, onDelete }: Props)
             <SheetHeader>
               <SheetTitle className="text-lg">{fullName(employee)}</SheetTitle>
               <SheetDescription>{employee.position}</SheetDescription>
+              <Button
+                variant="outline"
+                size="sm"
+                className="justify-self-start"
+                onClick={() => chat.setOpen(true)}
+              >
+                <MessageSquare data-icon="inline-start" /> {t('chat.askHere')}
+              </Button>
             </SheetHeader>
             <dl className="grid gap-3 px-4 text-sm">
               <div>
