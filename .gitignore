@@ -1,6 +1,8 @@
 # dependencies and builds
 node_modules/
 dist/
+# desktop installer output (apps/desktop)
+release/
 *.tsbuildinfo
 
 # runtime data: database, uploads, master key. Never commit.

@@ -12,7 +12,9 @@ const PORT = Number(process.env.PORT ?? 3000)
 const HOST = process.env.HOST ?? '127.0.0.1'
 
 // Production: serve the built web app from the same process.
-const webDist = fileURLToPath(new URL('../../web/dist/', import.meta.url))
+// HRMIT_WEB_DIST: the Windows install (ADR 0008) ships the build next to its server bundle.
+const webDist =
+  process.env.HRMIT_WEB_DIST ?? fileURLToPath(new URL('../../web/dist/', import.meta.url))
 if (existsSync(webDist)) {
   app.use('/*', serveStatic({ root: webDist }))
   app.get('/*', serveStatic({ root: webDist, path: 'index.html' }))

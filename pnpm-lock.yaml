@@ -328,6 +328,12 @@ importers:
         specifier: ^7.1.9
         version: 7.3.7(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)
 
+  apps/windows:
+    devDependencies:
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+
   packages/shared:
     dependencies:
       zod:

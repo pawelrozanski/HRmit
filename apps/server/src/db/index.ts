@@ -45,7 +45,9 @@ export const db = drizzle(
 /** Migrations, then the fixture seeds. Runs at start and again after a restore. */
 async function prepare() {
   await migrate(db, async (queries) => sqlite.exec(queries.join(';\n')), {
-    migrationsFolder: fileURLToPath(new URL('../../drizzle', import.meta.url)),
+    // The Windows install (ADR 0008) runs a bundle, so it points at its own copy of the folder.
+    migrationsFolder:
+      process.env.HRMIT_MIGRATIONS_DIR ?? fileURLToPath(new URL('../../drizzle', import.meta.url)),
   })
 
   // First run: seed from the shared fixtures so the UI is not empty.
