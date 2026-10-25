@@ -90,8 +90,10 @@ const phonePattern = (phone: string) => {
 export type AnonymizeOptions = {
   /**
    * Also match inflected forms of the name ("Amelię", "Hartwella"): the stem without its last
-   * letter plus up to three letters, for names of four letters or more. Meant for the recruiter's
-   * own words in the chat, where Polish declension is the norm; CV text keeps exact matching.
+   * letter plus up to three letters, for names of five letters or more; a four-letter name keeps
+   * its last letter and takes up to three more ("Theo" must not eat "the", found in the 0.6.0
+   * review). Meant for the recruiter's own words and for notes in the chat, where Polish
+   * declension is the norm; CV text keeps exact matching.
    */
   inflected?: boolean
   /** The pseudonym that replaces the name; default `Candidate #<id>`, `Employee #<id>` for staff. */
@@ -101,9 +103,9 @@ export type AnonymizeOptions = {
 const namePattern = (name: string, inflected: boolean) => {
   const folded = fold(name.trim())
   if (!folded) return ''
-  return inflected && folded.length >= 4
-    ? `${escape(folded.slice(0, -1))}\\p{L}{0,3}`
-    : escape(folded)
+  if (!inflected || folded.length < 4) return escape(folded)
+  const stem = folded.length >= 5 ? folded.slice(0, -1) : folded
+  return `${escape(stem)}\\p{L}{0,3}`
 }
 
 /** Without a candidate (job text) only the pattern passes run: there are no fields to match. */

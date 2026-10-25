@@ -121,4 +121,12 @@ test("inflected: Polish declension of the name is caught in the recruiter's own 
   // Short names stay exact even when inflected, so "Ola" does not eat "Olaf".
   const ola = { ...amelia, firstName: 'Ola', lastName: 'Nowak' }
   expect(anonymize('Ola and Olaf', ola, { inflected: true }).text).toBe('Candidate #1 and Olaf')
+  // A four-letter name keeps its last letter: "Theo" does not eat "the", "them" or "they"
+  // (so a changed vowel like "Thea" is missed; the trade is deliberate).
+  const theo = { ...amelia, id: 2, firstName: 'Theo', lastName: 'Blackwood' }
+  expect(anonymize('Theo and Thea met the team; they asked.', theo, { inflected: true }).text).toBe(
+    'Candidate #2 and Thea met the team; they asked.',
+  )
+  // Another person's label: employees become "Employee #N" in the chat (ADR 0009).
+  expect(anonymize('Ask Amelia.', amelia, { label: 'Employee #7' }).text).toBe('Ask Employee #7.')
 })
