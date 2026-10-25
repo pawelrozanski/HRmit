@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
-import { VERSION, type Health } from '@hrmit/shared'
+import { VERSION, type Health, type ShutdownResult } from '@hrmit/shared'
+import { log } from './log.ts'
 import { aiRoute } from './routes/ai.ts'
 import { backupRoute } from './routes/backup.ts'
 import { candidatesRoute } from './routes/candidates.ts'
@@ -35,6 +36,13 @@ export const app = new Hono()
     await next()
   })
   .get('/api/health', (c) => c.json<Health>({ ok: true, mode: 'local', version: VERSION }))
+  // The off switch in Settings > General (0.5.4): answer first, exit on the next tick so the
+  // response leaves the socket. Loopback-only like everything else; see docs/SECURITY.md.
+  .post('/api/shutdown', (c) => {
+    log.info('shutdown requested')
+    setTimeout(() => process.exit(0), 100)
+    return c.json<ShutdownResult>({ ok: true })
+  })
   .route('/api/dashboard', dashboardRoute)
   .route('/api/jobs', jobsRoute)
   .route('/api/candidates', candidatesRoute)

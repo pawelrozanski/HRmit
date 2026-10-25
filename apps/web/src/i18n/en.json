@@ -139,6 +139,11 @@
       "templates": "Email templates",
       "backup": "Backup & Recovery"
     },
+    "groups": {
+      "ai": "AI",
+      "mail": "Mail",
+      "files": "Files"
+    },
     "sections": "Settings sections",
     "language": "Language",
     "languages": {
@@ -154,6 +159,15 @@
     "about": "About HRmit",
     "version": "Version {{version}}, {{mode}} mode.",
     "changelog": "Changelog",
+    "license": "License",
+    "shutdown": {
+      "title": "Shut down HRmit",
+      "hint": "Stops the HRmit server on this computer. This page stays open but stops working; close the tab and start HRmit again the way you started it.",
+      "button": "Shut down HRmit",
+      "working": "Shutting down…",
+      "confirm": "Shut down HRmit now? Nothing is lost; start it again to continue.",
+      "done": "HRmit is off. You can close this tab."
+    },
     "title": "AI settings",
     "privacy": "Ollama runs on your computer and sees the full text. Cloud providers only ever receive anonymized data (names and contact details replaced), and only after you opt in. Your key is stored encrypted and never shown again.",
     "provider": "Provider",

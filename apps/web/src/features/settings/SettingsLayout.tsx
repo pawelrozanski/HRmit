@@ -4,6 +4,15 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { cn } from '@/lib/utils.ts'
 
 export const SETTINGS_TABS = ['general', 'ai', 'prompts', 'email', 'templates', 'backup'] as const
+type Tab = (typeof SETTINGS_TABS)[number]
+
+/** One tab list per group (0.5.4); General stands alone. Arrow keys still walk all of them. */
+const GROUPS: { key: 'general' | 'ai' | 'mail' | 'files'; tabs: Tab[] }[] = [
+  { key: 'general', tabs: ['general'] },
+  { key: 'ai', tabs: ['ai', 'prompts'] },
+  { key: 'mail', tabs: ['email', 'templates'] },
+  { key: 'files', tabs: ['backup'] },
+]
 
 /**
  * /settings/<tab>: a WAI-ARIA vertical tab list on the left, the tab's route on the right.
@@ -45,31 +54,52 @@ export function SettingsLayout() {
   return (
     <div className="grid gap-6 md:grid-cols-[12rem_1fr]">
       <nav
-        role="tablist"
-        aria-orientation="vertical"
         aria-label={t('settings.sections')}
         onKeyDown={onKeyDown}
-        className="flex gap-1 overflow-x-auto border-b pb-2 md:flex-col md:border-r md:border-b-0 md:pr-4 md:pb-0"
+        className="flex gap-4 overflow-x-auto border-b pb-2 md:flex-col md:gap-5 md:border-r md:border-b-0 md:pr-4 md:pb-0"
       >
-        {SETTINGS_TABS.map((tab, i) => (
-          <Link
-            key={tab}
-            to={tab}
-            role="tab"
-            id={`settings-tab-${tab}`}
-            aria-selected={i === selected}
-            aria-controls="settings-panel"
-            tabIndex={i === selected ? 0 : -1}
-            ref={(el) => {
-              refs.current[i] = el
-            }}
-            className={cn(
-              'rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none',
-              i === selected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+        {GROUPS.map((group) => (
+          <div key={group.key} className="flex shrink-0 gap-1 md:flex-col">
+            {group.key !== 'general' && (
+              <span
+                id={`settings-group-${group.key}`}
+                className="px-3 py-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase md:border-t md:pt-3"
+              >
+                {t(`settings.groups.${group.key}`)}
+              </span>
             )}
-          >
-            {t(`settings.tabs.${tab}`)}
-          </Link>
+            <div
+              role="tablist"
+              aria-orientation="vertical"
+              aria-labelledby={group.key === 'general' ? undefined : `settings-group-${group.key}`}
+              aria-label={group.key === 'general' ? t('settings.tabs.general') : undefined}
+              className="flex gap-1 md:flex-col"
+            >
+              {group.tabs.map((tab) => {
+                const i = SETTINGS_TABS.indexOf(tab)
+                return (
+                  <Link
+                    key={tab}
+                    to={tab}
+                    role="tab"
+                    id={`settings-tab-${tab}`}
+                    aria-selected={i === selected}
+                    aria-controls="settings-panel"
+                    tabIndex={i === selected ? 0 : -1}
+                    ref={(el) => {
+                      refs.current[i] = el
+                    }}
+                    className={cn(
+                      'rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none',
+                      i === selected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+                    )}
+                  >
+                    {t(`settings.tabs.${tab}`)}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
         ))}
       </nav>
       <div

@@ -13,6 +13,10 @@ export const healthSchema = z.object({
 })
 export type Health = z.infer<typeof healthSchema>
 
+/** Answer of POST /api/shutdown, sent just before the process exits. */
+export const shutdownResultSchema = z.object({ ok: z.literal(true) })
+export type ShutdownResult = z.infer<typeof shutdownResultSchema>
+
 /** Answer of POST /api/backup/restore: what the restored data holds. */
 export const restoreResultSchema = z.object({
   candidates: z.number().int(),

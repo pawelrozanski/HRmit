@@ -1,8 +1,11 @@
+import { Power } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
+import { Button } from '@/components/ui/button.tsx'
 import { Label } from '@/components/ui/label.tsx'
+import { IS_DEMO } from '@/config.ts'
 import { readTheme, setTheme, THEMES } from '@/theme.ts'
 
 const REPO = 'https://github.com/pawelrozanski/HRmit'
@@ -72,8 +75,57 @@ export function GeneralSettings() {
           <a href={REPO} className="text-primary underline">
             GitHub
           </a>
+          <a href={`${REPO}/blob/main/LICENSE`} className="text-primary underline">
+            {t('settings.license')}
+          </a>
         </p>
       </section>
+
+      {!IS_DEMO && <Shutdown />}
     </div>
+  )
+}
+
+/**
+ * Stops the server on this computer. The page stays up (static files are already loaded) and
+ * says so; starting HRmit again is done where it was started from.
+ */
+function Shutdown() {
+  const { t } = useTranslation()
+  const [state, setState] = useState<'idle' | 'working' | 'off' | 'failed'>('idle')
+
+  const shutdown = async () => {
+    if (!window.confirm(t('settings.shutdown.confirm'))) return
+    setState('working')
+    try {
+      const res = await api.api.shutdown.$post()
+      setState(res.status === 200 ? 'off' : 'failed')
+    } catch {
+      setState('failed')
+    }
+  }
+
+  return (
+    <section className="grid gap-2 rounded-lg border bg-card p-4 text-sm">
+      <h3 className="font-semibold text-primary">{t('settings.shutdown.title')}</h3>
+      <p className="text-muted-foreground">{t('settings.shutdown.hint')}</p>
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={state !== 'idle' && state !== 'failed'}
+          onClick={shutdown}
+        >
+          <Power data-icon="inline-start" />
+          {state === 'working' ? t('settings.shutdown.working') : t('settings.shutdown.button')}
+        </Button>
+        {state === 'off' && <span role="status">{t('settings.shutdown.done')}</span>}
+        {state === 'failed' && (
+          <span role="alert" className="text-destructive">
+            {t('common.error')}
+          </span>
+        )}
+      </div>
+    </section>
   )
 }

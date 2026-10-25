@@ -141,6 +141,11 @@
       "templates": "Szablony e-maili",
       "backup": "Kopia i przywracanie"
     },
+    "groups": {
+      "ai": "AI",
+      "mail": "Poczta",
+      "files": "Pliki"
+    },
     "sections": "Sekcje ustawień",
     "language": "Język",
     "languages": {
@@ -156,6 +161,15 @@
     "about": "O HRmit",
     "version": "Wersja {{version}}, tryb {{mode}}.",
     "changelog": "Lista zmian",
+    "license": "Licencja",
+    "shutdown": {
+      "title": "Wyłącz HRmit",
+      "hint": "Zatrzymuje serwer HRmit na tym komputerze. Ta strona zostanie otwarta, ale przestanie działać; zamknij kartę i uruchom HRmit ponownie tak, jak go uruchamiasz.",
+      "button": "Wyłącz HRmit",
+      "working": "Wyłączam…",
+      "confirm": "Wyłączyć HRmit teraz? Nic nie przepada; uruchom go ponownie, aby kontynuować.",
+      "done": "HRmit jest wyłączony. Możesz zamknąć tę kartę."
+    },
     "title": "Ustawienia AI",
     "privacy": "Ollama działa na Twoim komputerze i widzi pełny tekst. Dostawcy w chmurze otrzymują wyłącznie zanonimizowane dane (imiona, nazwiska i dane kontaktowe są zastępowane) i tylko po Twojej wyraźnej zgodzie. Klucz jest przechowywany w postaci zaszyfrowanej i nigdy nie jest ponownie wyświetlany.",
     "provider": "Dostawca",

@@ -61,6 +61,14 @@ test('settings: keyboard, theme, language, both themes pass axe', async ({ page 
   await expect(page.getByRole('heading', { name: 'General' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page')
   await expect(page.getByText(/Version \d+\.\d+\.\d+, demo mode/)).toBeVisible()
+  await expect(page.getByRole('link', { name: 'License' })).toHaveAttribute('href', /LICENSE$/)
+  // Grouped tab lists (0.5.4): General alone, then AI, Mail and Files; no off switch in the demo.
+  await expect(page.getByRole('tablist')).toHaveCount(4)
+  await expect(page.getByRole('tablist', { name: 'Mail' }).getByRole('tab')).toHaveText([
+    'Email (SMTP)',
+    'Email templates',
+  ])
+  await expect(page.getByRole('button', { name: 'Shut down HRmit' })).toHaveCount(0)
   await expectNoSeriousA11y(page)
 
   // Tab from the page start: skip link, demo banner, header links, then the selected tab.

@@ -6,12 +6,15 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ### Added
 
+- Shut down HRmit: a button in Settings → General stops the server on this computer after a confirm (`POST /api/shutdown`, answers then exits). Hidden in the demo.
 - Recovery: Settings → Backup & Recovery takes the downloaded `.tar.gz` back (`POST /api/backup/restore`). The archive is checked first (format, file names, SQLite integrity, core tables); then the database is swapped on the open handle, migrated and seeded again, the uploads folder replaced, and the page reloads. A damaged file is refused and nothing changes. The demo takes its JSON file back the same way.
 
 ### Changed
 
 - The prompt editor moved from AI settings to its own tab, Settings → AI prompts.
 - The Backup tab is called Backup & Recovery.
+- The settings tab list is grouped: General on its own, then AI (AI settings, AI prompts), Mail (Email (SMTP), Email templates) and Files (Backup & Recovery), each group a labelled tab list with a line above it.
+- About HRmit links to the license next to the changelog and GitHub.
 
 ## [0.5.3] - 2026-10-25
 

@@ -296,6 +296,8 @@ function dashboard(stuckDays: number): Dashboard {
 
 /** One handler per server route. Must return shapes that pass the shared zod schemas. */
 export const handlers = [
+  // Nothing runs on the visitor's machine; the button is hidden in the demo anyway.
+  http.post(`${base}/api/shutdown`, () => HttpResponse.json({ ok: true })),
   http.get(`${base}/api/health`, () =>
     HttpResponse.json<Health>({ ok: true, mode: 'demo', version: VERSION }),
   ),
