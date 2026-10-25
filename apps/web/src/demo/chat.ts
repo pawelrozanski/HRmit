@@ -2,9 +2,11 @@ import {
   PIPELINE_STAGES,
   anonymize,
   candidateLabel,
+  employeeLabel,
   isLocalProvider,
   type AiLang,
   type ChatContext,
+  type ChatProposal,
   type ChatRefs,
   type ChatToolName,
 } from '@hrmit/shared'
@@ -18,7 +20,13 @@ import { store } from './store.ts'
  * With a cloud provider picked in the demo settings the text uses "Candidate #N" and the
  * refs carry the names, exactly as the server would do.
  */
-export type DemoAnswer = { tool: ChatToolName | null; text: string; refs: ChatRefs }
+export type DemoAnswer = {
+  tool: ChatToolName | null
+  text: string
+  refs: ChatRefs
+  /** A note draft for the proposal card (ADR 0009); saved only when the visitor clicks Save. */
+  proposal?: ChatProposal
+}
 
 type Scenario =
   | 'today'
@@ -29,6 +37,11 @@ type Scenario =
   | 'longestHere'
   | 'summarize'
   | 'averages'
+  | 'scorecard'
+  | 'noteSummary'
+  | 'requirements'
+  | 'notes'
+  | 'employeeRole'
   | 'meetings'
   | 'recruitments'
 
@@ -37,6 +50,11 @@ const DAY = 86_400_000
 /** First match wins; the chips' own text matches before the looser keywords. */
 const KEYWORDS: [Scenario, RegExp][] = [
   ['best', /najlep|best|hire|zatrudn|odrzuc|reject|rank/i],
+  ['noteSummary', /zanotuj|note down|write down|zapisz notatk/i],
+  ['requirements', /wymaga|requirement/i],
+  ['notes', /notatk|notes/i],
+  ['scorecard', /poka[żz] oceny|ratings|scorecard/i],
+  ['employeeRole', /rol[ęea]\b|role\b|stanowisk|position/i],
   ['summarize', /stre[śs][ćc]|summar|podsumuj/i],
   ['averages', /[śs]redni|average|ocen|score/i],
   ['teamIt', /zesp|team/i],
@@ -67,6 +85,25 @@ export function demoAnswer(question: string, context: ChatContext, lang: AiLang)
     refs.candidates[c.id] = { name: `${c.firstName} ${c.lastName}`, jobId: c.jobId }
     return local ? `${c.firstName} ${c.lastName}` : candidateLabel(c.id)
   }
+  const staff = (e: { id: number; firstName: string; lastName: string }) => {
+    refs.employees[e.id] = { name: `${e.firstName} ${e.lastName}` }
+    return local ? `${e.firstName} ${e.lastName}` : employeeLabel(e.id)
+  }
+  /** Cloud: people's text loses every candidate's and employee's name, like the server does. */
+  const scrub = (text: string) =>
+    local
+      ? text
+      : [
+          ...store.candidates.map((c) => ({ ...c, label: candidateLabel(c.id) })),
+          ...store.employees.map((e) => ({ ...e, phone: '', label: employeeLabel(e.id) })),
+        ].reduce((t, p) => anonymize(t, p, { inflected: true, label: p.label }).text, text)
+  const employeesAllowed = local || store.aiSettings.chatEmployees
+  const employeesOff = t(
+    lang,
+    'Employee data is not available to the assistant with a cloud provider. You can turn it on in Settings → AI ("Employee data in the assistant").',
+    'Dane pracowników nie są dostępne dla asystenta przy dostawcy chmurowym. Możesz to włączyć w Ustawieniach → AI („Dane pracowników w asystencie”).',
+  )
+  const date = (iso: string) => new Date(iso).toLocaleDateString(lang, { dateStyle: 'medium' })
   const days = (iso: string) => Math.floor((Date.now() - Date.parse(iso)) / DAY)
   const when = (iso: string) =>
     new Date(iso).toLocaleString(lang, { weekday: 'long', hour: '2-digit', minute: '2-digit' })
@@ -92,6 +129,30 @@ export function demoAnswer(question: string, context: ChatContext, lang: AiLang)
   const active = store.candidates.filter(
     (c) => job(c.jobId)?.status === 'open' && c.stage !== 'rejected',
   )
+
+  const contextCandidate =
+    context.view === 'candidate' ? store.candidates.find((c) => c.id === context.id) : undefined
+  const contextEmployee =
+    context.view === 'employee' ? store.employees.find((e) => e.id === context.id) : undefined
+  /** Per competency: question, human rating and comment, plus the averages. Never a total. */
+  const scorecardOf = (c: { id: number; jobId: number }) => {
+    const qs = store.questions.filter((q) => q.jobId === c.jobId)
+    const rows = qs.map((q) => {
+      const e = store.evaluations.find((x) => x.candidateId === c.id && x.questionId === q.id)
+      return { ...q, rating: e?.score ?? null, comment: e?.note ?? '' }
+    })
+    const byComp = new Map<string, number[]>()
+    for (const r of rows)
+      if (r.rating !== null)
+        byComp.set(r.competency, [...(byComp.get(r.competency) ?? []), r.rating])
+    const averages = [...byComp].map(([competency, s]) => ({
+      competency,
+      average: (s.reduce((a, b) => a + b, 0) / s.length).toFixed(1),
+      answered: s.length,
+      total: rows.filter((r) => r.competency === competency).length,
+    }))
+    return { rows, averages, scored: rows.filter((r) => r.rating !== null).length }
+  }
 
   const scenario = pickScenario(question)
   const answer = (tool: ChatToolName | null, text: string): DemoAnswer => ({ tool, text, refs })
@@ -196,16 +257,198 @@ export function demoAnswer(question: string, context: ChatContext, lang: AiLang)
           if (q) byComp.set(q.competency, [...(byComp.get(q.competency) ?? []), e.score!])
         }
         const avg = [...byComp]
-          .map(([comp, s]) => `${comp} ${(s.reduce((a, b) => a + b, 0) / s.length).toFixed(1)}`)
+          .map(
+            ([comp, s]) =>
+              `${comp} ${(s.reduce((a, b) => a + b, 0) / s.length).toFixed(1)} (${s.length}/${qs.filter((q) => q.competency === comp).length})`,
+          )
           .join(', ')
-        return `- ${name(c)}, ${stageName(c.stage)}, ${t(lang, `${scored.length} of ${qs.length} questions scored`, `ocenione ${scored.length} z ${qs.length} pytań`)}${avg ? ` (${avg})` : ''}`
+        return `- ${name(c)}, ${stageName(c.stage)}, ${t(lang, `${scored.length} of ${qs.length} questions rated`, `ocenione ${scored.length} z ${qs.length} pytań`)}${avg ? ` (${avg})` : ''}`
       })
       return answer(
         'getRecruitment',
         t(
           lang,
-          `I do not rank or recommend candidates: that decision is yours. Here are the facts for ${title(j.id)}:\n${facts.join('\n') || '- nobody in interview or offer yet'}\nThe averages are per competency and come from your interviewers' scores, not from me.`,
-          `Nie rankinguję ani nie polecam kandydatów: ta decyzja należy do Ciebie. Fakty dla rekrutacji ${title(j.id)}:\n${facts.join('\n') || '- nikogo jeszcze na etapie rozmowy lub oferty'}\nŚrednie są per kompetencja i pochodzą z ocen Twoich rekruterów, nie ode mnie.`,
+          `I do not rank or recommend candidates: that decision is yours. Here are the facts from the scorecards for ${title(j.id)}:\n${facts.join('\n') || '- nobody in interview or offer yet'}\nThe averages are per competency (rated/total questions) and come from your interviewers' ratings, not from me; I do not add them up into one number.`,
+          `Nie rankinguję ani nie polecam kandydatów: ta decyzja należy do Ciebie. Fakty ze scorecardów dla rekrutacji ${title(j.id)}:\n${facts.join('\n') || '- nikogo jeszcze na etapie rozmowy lub oferty'}\nŚrednie są per kompetencja (ocenione/wszystkie pytania) i pochodzą z ocen Twoich rekruterów, nie ode mnie; nie sumuję ich w jedną liczbę.`,
+        ),
+      )
+    }
+    case 'scorecard': {
+      const c = contextCandidate
+      if (!c)
+        return answer(
+          null,
+          t(
+            lang,
+            'Open a candidate first, then ask about their scorecard.',
+            'Najpierw otwórz kandydata, potem zapytaj o jego oceny.',
+          ),
+        )
+      const { rows, averages, scored } = scorecardOf(c)
+      if (scored === 0)
+        return answer(
+          'getScorecard',
+          t(
+            lang,
+            `${name(c)} has no interview ratings yet (${rows.length} questions in the guide).`,
+            `${name(c)} nie ma jeszcze ocen z rozmowy (${rows.length} pytań w przewodniku).`,
+          ),
+        )
+      const lines = rows
+        .filter((r) => r.rating !== null)
+        .map(
+          (r) =>
+            `- ${r.competency}: "${r.question}" — ${r.rating}/5${r.comment ? `, ${scrub(r.comment)}` : ''}`,
+        )
+      const avg = averages
+        .map((a) => `${a.competency} ${a.average} (${a.answered}/${a.total})`)
+        .join(', ')
+      return answer(
+        'getScorecard',
+        t(
+          lang,
+          `Interview ratings for ${name(c)}, entered by your interviewers (${scored} of ${rows.length} questions):\n${lines.join('\n')}\nAverages per competency: ${avg}. These are their ratings, not mine; I do not add them up or compare candidates.`,
+          `Oceny z rozmowy dla ${name(c)}, wpisane przez Twoich rekruterów (${scored} z ${rows.length} pytań):\n${lines.join('\n')}\nŚrednie per kompetencja: ${avg}. To ich oceny, nie moje; nie sumuję ich ani nie porównuję kandydatów.`,
+        ),
+      )
+    }
+    case 'noteSummary': {
+      const c = contextCandidate
+      if (!c)
+        return answer(
+          null,
+          t(
+            lang,
+            'Open a candidate first, then ask me to note something down.',
+            'Najpierw otwórz kandydata, potem poproś o notatkę.',
+          ),
+        )
+      const { rows, averages, scored } = scorecardOf(c)
+      const comments = rows.filter((r) => r.comment).map((r) => `${r.competency}: ${r.comment}`)
+      const body = scrub(
+        t(
+          lang,
+          `Interview summary, ${date(new Date().toISOString())}. Stage: ${stageName(c.stage)}. ${scored} of ${rows.length} questions rated${averages.length ? `; averages per competency: ${averages.map((a) => `${a.competency} ${a.average}`).join(', ')}` : ''}.${comments.length ? ` Interviewer comments: ${comments.join('; ')}.` : ''}`,
+          `Podsumowanie rozmowy, ${date(new Date().toISOString())}. Etap: ${stageName(c.stage)}. Ocenione ${scored} z ${rows.length} pytań${averages.length ? `; średnie per kompetencja: ${averages.map((a) => `${a.competency} ${a.average}`).join(', ')}` : ''}.${comments.length ? ` Komentarze rekruterów: ${comments.join('; ')}.` : ''}`,
+        ),
+      )
+      return {
+        ...answer(
+          'proposeNote',
+          t(
+            lang,
+            `Here is a draft note for ${name(c)} with the facts from the scorecard. Nothing is saved until you click Save.`,
+            `Oto szkic notatki dla ${name(c)} z faktami ze scorecardu. Nic nie jest zapisane, dopóki nie klikniesz Zapisz.`,
+          ),
+        ),
+        proposal: {
+          target: 'candidate',
+          id: c.id,
+          title: t(lang, 'Interview summary', 'Podsumowanie rozmowy'),
+          body,
+        },
+      }
+    }
+    case 'requirements': {
+      const j = contextJob ?? open[0]
+      if (!j)
+        return answer(
+          'listRecruitments',
+          t(lang, 'No open recruitments.', 'Brak otwartych rekrutacji.'),
+        )
+      const qs = store.questions.filter((q) => q.jobId === j.id)
+      const comps = [...new Set(qs.map((q) => q.competency))]
+      const team = store.teams.find((x) => x.id === j.teamId)
+      const members = team ? store.teamMembers.filter((m) => m.teamId === team.id).length : 0
+      return answer(
+        'getRecruitment',
+        t(
+          lang,
+          `${title(j.id)}: ${scrub(j.description)}\nThe interview guide covers ${comps.length} competencies (${comps.join(', ')}) in ${qs.length} questions.${team ? ` Hiring team: ${team.name} (${members} members).` : ' No hiring team assigned.'}`,
+          `${title(j.id)}: ${scrub(j.description)}\nPrzewodnik rozmowy obejmuje ${comps.length} kompetencji (${comps.join(', ')}) w ${qs.length} pytaniach.${team ? ` Zespół rekrutujący: ${team.name} (${members} osób).` : ' Bez przypisanego zespołu.'}`,
+        ),
+      )
+    }
+    case 'notes': {
+      if (contextEmployee) {
+        if (!employeesAllowed) return answer('getNotes', employeesOff)
+        const e = contextEmployee
+        const rows = store.employeeNotes
+          .filter((n) => n.employeeId === e.id)
+          .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+        if (rows.length === 0)
+          return answer(
+            'getNotes',
+            t(lang, `No notes on ${staff(e)} yet.`, `Brak notatek o ${staff(e)}.`),
+          )
+        const lines = rows.map(
+          (n) =>
+            `- ${date(n.createdAt)}${n.title ? `, ${scrub(n.title)}` : ''}: ${scrub(n.body)}${n.source === 'assistant' ? t(lang, ' (drafted by the assistant)', ' (szkic asystenta)') : ''}`,
+        )
+        return answer(
+          'getNotes',
+          t(
+            lang,
+            `Notes on ${staff(e)}:\n${lines.join('\n')}`,
+            `Notatki o ${staff(e)}:\n${lines.join('\n')}`,
+          ),
+        )
+      }
+      const c = contextCandidate
+      if (!c)
+        return answer(
+          null,
+          t(
+            lang,
+            'Open a candidate or an employee first, then ask about the notes.',
+            'Najpierw otwórz kandydata lub pracownika, potem zapytaj o notatki.',
+          ),
+        )
+      const rows = store.candidateNotes
+        .filter((n) => n.candidateId === c.id)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      if (rows.length === 0)
+        return answer(
+          'getNotes',
+          t(lang, `No notes on ${name(c)} yet.`, `Brak notatek o ${name(c)}.`),
+        )
+      const lines = rows.map(
+        (n) =>
+          `- ${date(n.createdAt)}${n.title ? `, ${scrub(n.title)}` : ''}: ${scrub(n.body)}${n.source === 'assistant' ? t(lang, ' (drafted by the assistant)', ' (szkic asystenta)') : ''}`,
+      )
+      return answer(
+        'getNotes',
+        t(
+          lang,
+          `Notes on ${name(c)}:\n${lines.join('\n')}`,
+          `Notatki o ${name(c)}:\n${lines.join('\n')}`,
+        ),
+      )
+    }
+    case 'employeeRole': {
+      const e = contextEmployee
+      if (!e)
+        return answer(
+          null,
+          t(
+            lang,
+            'Open an employee first, then ask about their role.',
+            'Najpierw otwórz pracownika, potem zapytaj o jego rolę.',
+          ),
+        )
+      if (!employeesAllowed) return answer('searchEmployees', employeesOff)
+      const teams = store.teamMembers
+        .filter((m) => m.employeeId === e.id)
+        .map((m) => {
+          const team = store.teams.find((x) => x.id === m.teamId)
+          return `${team?.name ?? '?'}${m.role === 'lead' ? t(lang, ' (lead)', ' (lider)') : ''}`
+        })
+      return answer(
+        'searchEmployees',
+        t(
+          lang,
+          `${staff(e)} is ${e.position}.${e.duties ? ` Duties: ${scrub(e.duties).replace(/\n+/g, '; ')}.` : ''} ${teams.length ? `Teams: ${teams.join(', ')}.` : 'Not in any team.'}`,
+          `${staff(e)}: ${e.position}.${e.duties ? ` Obowiązki: ${scrub(e.duties).replace(/\n+/g, '; ')}.` : ''} ${teams.length ? `Zespoły: ${teams.join(', ')}.` : 'Bez zespołu.'}`,
         ),
       )
     }

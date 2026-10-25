@@ -196,19 +196,24 @@
       "sentFields": {
         "cv": "CV text (name and contact details replaced by Candidate #N and placeholders)",
         "title": "Job title",
-        "description": "Job description"
+        "description": "Job description",
+        "notes": "Notes and interviewer comments, only when you ask the assistant about them (names replaced)",
+        "employees": "Employees only if you turn on \"Employee data in the assistant\" below (names replaced)"
       },
       "never": "Never sent:",
       "neverFields": {
         "name": "Name",
         "email": "Email",
         "phone": "Phone",
-        "notes": "Notes",
         "photo": "Photo and the CV file itself"
       },
       "previewLink": "Preview anonymized data",
       "previewHint": "on any candidate with a CV, under AI assistant.",
       "confirm": "I understand, enable"
+    },
+    "chatEmployees": {
+      "label": "Employee data in the assistant (cloud)",
+      "hint": "Off: with a cloud provider the assistant cannot read employees at all. On: it may read position, duties, teams and notes of employees, with names replaced by \"Employee #N\" and notes anonymized, like candidate data. A local provider always may."
     }
   },
   "prompts": {
@@ -447,7 +452,7 @@
   },
   "employees": {
     "title": "Employees",
-    "intro": "The hiring side: interviewers and hiring managers. Employees are never sent to an AI provider.",
+    "intro": "The hiring side: interviewers and hiring managers. A cloud AI provider never sees employees unless you turn that on in Settings → AI; the local assistant may read them.",
     "search": "Search by name or position",
     "filterTeam": "Filter by team",
     "allTeams": "All teams",
@@ -511,8 +516,8 @@
     "title": "AI assistant",
     "local": "Local model",
     "cloud": "Cloud, anonymized",
-    "hint": "Ask about your recruitments, candidates, interviews and teams. The assistant reads your data through tools and never scores or ranks anyone.",
-    "cloudHint": "A cloud provider is active: the model sees \"Candidate #N\" and anonymized text; names are filled in here, on your computer.",
+    "hint": "Ask about your recruitments, candidates, scorecards, notes, interviews, teams and employees. The assistant reads your data through tools, never scores or ranks anyone, and can only draft a note that you save.",
+    "cloudHint": "A cloud provider is active: the model sees \"Candidate #N\" / \"Employee #N\" and anonymized text, notes included; names are filled in here, on your computer.",
     "empty": "Nothing asked yet. Try one of these:",
     "chips": {
       "today": "What interviews do I have today?",

@@ -545,7 +545,7 @@ export const handlers = [
     const body = chatRequestSchema.safeParse(await request.json())
     if (!body.success) return invalid()
     const { messages, context, lang } = body.data
-    const { tool, text, refs } = demoAnswer(messages.at(-1)!.content, context, lang)
+    const { tool, text, refs, proposal } = demoAnswer(messages.at(-1)!.content, context, lang)
     const encoder = new TextEncoder()
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
@@ -555,6 +555,8 @@ export const handlers = [
         }
         if (tool) await send({ type: 'tool', name: tool }, 700)
         for (const piece of text.split(/(?<=s)/)) await send({ type: 'text', text: piece }, 25)
+        // The draft is shown, never stored: saving is POST .../notes from the card.
+        if (proposal) await send({ type: 'proposal', proposal }, 0)
         await send({ type: 'refs', refs }, 0)
         await send({ type: 'done' }, 0)
         controller.close()

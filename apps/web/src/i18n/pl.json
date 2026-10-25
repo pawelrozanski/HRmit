@@ -198,19 +198,24 @@
       "sentFields": {
         "cv": "Tekst CV (imię, nazwisko i dane kontaktowe zastąpione przez Candidate #N i znaczniki)",
         "title": "Tytuł ogłoszenia",
-        "description": "Opis ogłoszenia"
+        "description": "Opis ogłoszenia",
+        "notes": "Notatki i komentarze z rozmów, tylko gdy pytasz o nie asystenta (nazwiska zastąpione)",
+        "employees": "Pracownicy tylko po włączeniu „Dane pracowników w asystencie” poniżej (nazwiska zastąpione)"
       },
       "never": "Nigdy nie wysyłane:",
       "neverFields": {
         "name": "Imię i nazwisko",
         "email": "E-mail",
         "phone": "Telefon",
-        "notes": "Notatki",
         "photo": "Zdjęcie i sam plik CV"
       },
       "previewLink": "Podgląd zanonimizowanych danych",
       "previewHint": "u dowolnego kandydata z CV, w sekcji Asystent AI.",
       "confirm": "Rozumiem, włącz"
+    },
+    "chatEmployees": {
+      "label": "Dane pracowników w asystencie (chmura)",
+      "hint": "Wyłączone: przy dostawcy chmurowym asystent w ogóle nie czyta pracowników. Włączone: może czytać stanowisko, obowiązki, zespoły i notatki pracowników, z nazwiskami zastąpionymi przez „Employee #N” i zanonimizowanymi notatkami, tak jak dane kandydatów. Dostawca lokalny może zawsze."
     }
   },
   "prompts": {
@@ -473,7 +478,7 @@
   },
   "employees": {
     "title": "Pracownicy",
-    "intro": "Strona rekrutująca: osoby prowadzące rozmowy i menedżerowie. Dane pracowników nigdy nie trafiają do dostawcy AI.",
+    "intro": "Strona rekrutująca: osoby prowadzące rozmowy i menedżerowie. Chmurowy dostawca AI nie widzi pracowników, chyba że włączysz to w Ustawieniach → AI; lokalny asystent może ich czytać.",
     "search": "Szukaj po nazwisku lub stanowisku",
     "filterTeam": "Filtruj według zespołu",
     "allTeams": "Wszystkie zespoły",
@@ -539,8 +544,8 @@
     "title": "Asystent AI",
     "local": "Model lokalny",
     "cloud": "Chmura, zanonimizowane",
-    "hint": "Pytaj o rekrutacje, kandydatów, rozmowy i zespoły. Asystent czyta dane przez narzędzia i nigdy nikogo nie ocenia ani nie rankinguje.",
-    "cloudHint": "Aktywny jest dostawca chmurowy: model widzi „Kandydat #N” i zanonimizowany tekst; imiona są uzupełniane tutaj, na Twoim komputerze.",
+    "hint": "Pytaj o rekrutacje, kandydatów, oceny z rozmów, notatki, spotkania, zespoły i pracowników. Asystent czyta dane przez narzędzia, nigdy nikogo nie ocenia ani nie rankinguje, a notatkę może tylko zaproponować do Twojego zapisu.",
+    "cloudHint": "Aktywny jest dostawca chmurowy: model widzi „Candidate #N” / „Employee #N” i zanonimizowany tekst, także notatki; imiona są uzupełniane tutaj, na Twoim komputerze.",
     "empty": "Jeszcze nic nie pytałeś. Wypróbuj:",
     "chips": {
       "today": "Jakie rozmowy mam dziś?",

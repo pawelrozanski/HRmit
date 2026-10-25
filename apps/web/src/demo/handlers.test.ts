@@ -88,10 +88,12 @@ test('demo POST /api/ai/chat: scenarios stream like the server, unknown question
       .map((l) => chatEventSchema.parse(JSON.parse(l)))
     const text = events.flatMap((e) => (e.type === 'text' ? [e.text] : [])).join('')
     const refs = events.find((e) => e.type === 'refs')
+    const proposal = events.find((e) => e.type === 'proposal')
     return {
       types: [...new Set(events.map((e) => e.type))],
       text,
       refs: refs?.type === 'refs' ? refs.refs : undefined,
+      proposal: proposal?.type === 'proposal' ? proposal.proposal : undefined,
     }
   }
   const longest = await chat('Who has been waiting the longest?')
@@ -103,6 +105,25 @@ test('demo POST /api/ai/chat: scenarios stream like the server, unknown question
   expect(best.text).toMatch(/Nie rankinguję/)
   expect(best.text).toContain('Amelia Hartwell')
   expect(best.text).toMatch(/decyzja należy do Ciebie/)
+  // 0.6.0 scenarios: scorecard facts, a note proposal that stores nothing, requirements, notes.
+  const card = await chat('Show the interview ratings', { view: 'candidate', id: 1 })
+  expect(card.types).toEqual(['tool', 'text', 'refs', 'done'])
+  expect(card.text).toMatch(/Accessibility: .*\/5/)
+  expect(card.text).toMatch(/not mine/)
+  const notesBefore = persisted().candidateNotes?.length
+  const draft = await chat('Note down a summary of the interview', { view: 'candidate', id: 1 })
+  expect(draft.types).toEqual(['tool', 'text', 'proposal', 'refs', 'done'])
+  expect(draft.proposal).toMatchObject({ target: 'candidate', id: 1, title: 'Interview summary' })
+  expect(draft.proposal?.body).toMatch(/Interview summary/)
+  expect(persisted().candidateNotes?.length).toBe(notesBefore)
+  const req = await chat('Jakie są wymagania?', { view: 'recruitment', id: 1 }, 'pl')
+  expect(req.text).toContain('React')
+  expect(req.text).toMatch(/Zespół rekrutujący: IT/)
+  const notes = await chat('What do the notes say?', { view: 'employee', id: 4 })
+  expect(notes.text).toContain('Out of office 20-24 October.')
+  expect(notes.refs?.employees['4']?.name).toBeTruthy()
+  const role = await chat('What is this person’s role?', { view: 'employee', id: 4 })
+  expect(role.text).toMatch(/Teams: /)
   const other = await chat('What is the meaning of life?')
   expect(other.types).toEqual(['text', 'refs', 'done'])
   expect(other.text).toContain('suggested questions')
@@ -115,7 +136,7 @@ test('demo POST /api/ai/chat: scenarios stream like the server, unknown question
       })
     ).status,
   ).toBe(400)
-})
+}, 20_000)
 
 test('demo GET /api/dashboard: relative fixtures give meetings, stuck rows and a failed email', async () => {
   const d = dashboardSchema.parse(await get('/api/dashboard'))

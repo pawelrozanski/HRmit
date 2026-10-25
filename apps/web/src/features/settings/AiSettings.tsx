@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dialog.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { Label } from '@/components/ui/label.tsx'
+import { Switch } from '@/components/ui/switch.tsx'
 import { ProviderLogo } from './ProviderLogo.tsx'
 
 export function AiSettings() {
@@ -34,7 +35,7 @@ export function AiSettings() {
   return <SettingsForm initial={loaded.data} />
 }
 
-type Form = { provider: string; baseUrl: string; model: string }
+type Form = { provider: string; baseUrl: string; model: string; chatEmployees: boolean }
 /** A consent waiting for the user: what to run, and which endpoint the dialog names. */
 type Pending = { run: () => void | Promise<void>; provider: string; baseUrl: string }
 
@@ -45,6 +46,7 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
     provider: initial.provider,
     baseUrl: initial.baseUrl,
     model: initial.model,
+    chatEmployees: initial.chatEmployees,
   })
   const info = getProvider(form.provider)
   const local = isLocalProvider(form)
@@ -94,6 +96,7 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
     setChoosing(false)
     const p = getProvider(id)
     const next: Form = {
+      ...form,
       provider: id,
       baseUrl: id === 'custom' && form.provider === 'custom' ? form.baseUrl : p.baseUrl,
       model: p.models.length && !p.models.includes(form.model) ? p.models[0]! : form.model,
@@ -255,6 +258,20 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
         </div>
       )}
 
+      {!local && (
+        <div className="grid gap-1.5 rounded-lg border p-3">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="chatEmployees">{t('settings.chatEmployees.label')}</Label>
+            <Switch
+              id="chatEmployees"
+              checked={form.chatEmployees}
+              onCheckedChange={(chatEmployees) => setForm({ ...form, chatEmployees })}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">{t('settings.chatEmployees.hint')}</p>
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <Button type="submit" disabled={busy}>
           {t('common.save')}
@@ -326,7 +343,7 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
             <div>
               <p className="font-medium">{t('settings.cloud.sent')}</p>
               <ul className="list-disc pl-5 text-muted-foreground">
-                {(['cv', 'title', 'description'] as const).map((k) => (
+                {(['cv', 'title', 'description', 'notes', 'employees'] as const).map((k) => (
                   <li key={k}>{t(`settings.cloud.sentFields.${k}`)}</li>
                 ))}
               </ul>
@@ -334,7 +351,7 @@ function SettingsForm({ initial }: { initial: AiSettingsView }) {
             <div>
               <p className="font-medium">{t('settings.cloud.never')}</p>
               <ul className="list-disc pl-5 text-muted-foreground">
-                {(['name', 'email', 'phone', 'notes', 'photo'] as const).map((k) => (
+                {(['name', 'email', 'phone', 'photo'] as const).map((k) => (
                   <li key={k}>{t(`settings.cloud.neverFields.${k}`)}</li>
                 ))}
               </ul>
