@@ -81,7 +81,11 @@ function load(): Store {
         ...saved,
         // Stores from before 0.3.3 named the custom provider 'openai-compatible'.
         aiSettings: saved.aiSettings
-          ? { ...saved.aiSettings, provider: normalizeProviderId(saved.aiSettings.provider) }
+          ? {
+              ...saved.aiSettings,
+              provider: normalizeProviderId(saved.aiSettings.provider),
+              chatEmployees: saved.aiSettings.chatEmployees ?? false,
+            }
           : AI_SETTINGS_DEFAULTS,
         jobs: (saved.jobs ?? []).map((j) => ({ ...j, teamId: j.teamId ?? null })),
         candidates: (saved.candidates ?? []).map((c) => ({ ...c, notes: '' })),

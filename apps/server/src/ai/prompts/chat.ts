@@ -7,6 +7,8 @@ const CONTEXT: Record<ChatContext['view'], (id?: number) => string> = {
     `The recruiter has recruitment #${id} open. "This recruitment" means jobId ${id}.`,
   candidate: (id) =>
     `The recruiter has candidate #${id} open. "This candidate", "him", "her" or "them" means candidateId ${id}.`,
+  employee: (id) =>
+    `The recruiter has employee #${id} open. "This employee", "him", "her" or "them" means employeeId ${id}.`,
   other: () => '',
 }
 

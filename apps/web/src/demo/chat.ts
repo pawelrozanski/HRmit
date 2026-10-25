@@ -56,7 +56,7 @@ const t = (lang: AiLang, en: string, pl: string) => (lang === 'pl' ? pl : en)
 
 export function demoAnswer(question: string, context: ChatContext, lang: AiLang): DemoAnswer {
   const local = isLocalProvider(store.aiSettings)
-  const refs: ChatRefs = { candidates: {}, recruitments: {} }
+  const refs: ChatRefs = { candidates: {}, recruitments: {}, employees: {} }
   const job = (id: number) => store.jobs.find((j) => j.id === id)
   const title = (id: number) => {
     const j = job(id)

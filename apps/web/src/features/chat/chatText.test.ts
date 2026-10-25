@@ -3,6 +3,7 @@ import { segments } from './chatText.ts'
 
 const refs = {
   candidates: { 1: { name: 'Amelia Hartwell', jobId: 1 }, 8: { name: 'Samuel Okonkwo', jobId: 2 } },
+  employees: {},
   recruitments: { 1: { title: 'Frontend Developer (React)' } },
 }
 
@@ -33,7 +34,7 @@ test('names and titles written by a local model are linked; unknown ids stay tex
   expect(out.map((s) => s.kind)).toEqual(['candidate', 'text', 'recruitment', 'text'])
   expect(out.at(-1)).toEqual({ kind: 'text', text: '. Candidate #99.' })
   expect(segments('', refs, false)).toEqual([])
-  expect(segments('plain', { candidates: {}, recruitments: {} }, false)).toEqual([
+  expect(segments('plain', { candidates: {}, recruitments: {}, employees: {} }, false)).toEqual([
     { kind: 'text', text: 'plain' },
   ])
 })

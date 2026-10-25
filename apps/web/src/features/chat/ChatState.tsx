@@ -21,7 +21,7 @@ type State = {
   reset: () => void
 }
 
-const EMPTY_REFS: ChatRefs = { candidates: {}, recruitments: {} }
+const EMPTY_REFS: ChatRefs = { candidates: {}, recruitments: {}, employees: {} }
 const Ctx = createContext<State | null>(null)
 
 /**
@@ -45,6 +45,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setRefs((prev) => ({
         candidates: { ...prev.candidates, ...r.candidates },
         recruitments: { ...prev.recruitments, ...r.recruitments },
+        employees: { ...prev.employees, ...r.employees },
       })),
     reset: () => {
       setMessagesState([])

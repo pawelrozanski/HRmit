@@ -3,7 +3,6 @@ import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import {
-  anonymize,
   chatRequestSchema,
   chatToolInputs,
   getProvider,
@@ -13,15 +12,17 @@ import {
 } from '@hrmit/shared'
 import { chatPrompt } from '../ai/prompts/chat.ts'
 import { createModel } from '../ai/provider.ts'
-import { chatToolFns, newRefs, type ToolContext } from '../ai/tools.ts'
-import { db } from '../db/index.ts'
-import { candidates } from '../db/schema.ts'
+import { chatToolFns, newContext, scrub, type ToolContext } from '../ai/tools.ts'
 import { log } from '../log.ts'
 import { getAiPrompts, getAiSettings } from '../settings.ts'
 import { sanitize } from './ai.ts'
 
-/** At most five model turns (tool rounds plus the final answer) per question. */
-const MAX_STEPS = 5
+/**
+ * At most eight model turns (tool rounds plus the final answer) per question: "compare the
+ * requirements with this candidate's scorecard and note it" is four tools and an answer, and a
+ * small model adds a detour or two.
+ */
+const MAX_STEPS = 8
 
 const DESCRIPTIONS: Record<ChatToolName, string> = {
   listRecruitments: 'List recruitments (jobs), optionally by status or team name.',
@@ -32,27 +33,15 @@ const DESCRIPTIONS: Record<ChatToolName, string> = {
   searchCandidates:
     'Find candidates by recruitment title, stage name or competency keyword. Not by name.',
   getCandidate:
-    'One candidate: stage, recruitment, stored AI summary and competencies, interview averages per competency, counts of meetings and emails.',
+    'One candidate: stage, recruitment, stored AI summary and competencies, interview averages per competency, counts of meetings, emails and notes.',
+  getScorecard:
+    "One candidate's structured interview scorecard: every question with the interviewer's rating (1 to 5) and comment, and the averages per competency.",
+  getNotes: 'Notes written about a candidate or an employee, with date and author.',
   teamOverview: 'Teams with member and open recruitment counts, optionally one team by name.',
-}
-
-/**
- * With a cloud provider the recruiter's own words are scrubbed too: a typed name becomes the
- * same "Candidate #N" the tools use, so the model can still look the person up by id. Inflected
- * forms ("Amelię", "Hartwella") are matched too: this is prose, not a CV.
- * ponytail: anonymize() once per candidate per message; fine for hundreds of candidates.
- */
-async function scrub(text: string) {
-  const people = await db
-    .select({
-      id: candidates.id,
-      firstName: candidates.firstName,
-      lastName: candidates.lastName,
-      email: candidates.email,
-      phone: candidates.phone,
-    })
-    .from(candidates)
-  return people.reduce((t, p) => anonymize(t, p, { inflected: true }).text, text)
+  searchEmployees:
+    'Employees (interviewers, hiring managers): position, duties, teams and role. By id, by part of a name or position, or by team name.',
+  proposeNote:
+    'Draft a note about a candidate or an employee for the recruiter to approve. Saves nothing: the recruiter sees the draft and decides. Only when asked to note something down.',
 }
 
 /**
@@ -111,10 +100,30 @@ function makeTools(ctx: ToolContext): ToolSet {
       inputSchema: s.getCandidate,
       execute: (i) => f.getCandidate(i, ctx),
     }),
+    getScorecard: tool({
+      description: d.getScorecard,
+      inputSchema: s.getScorecard,
+      execute: (i) => f.getScorecard(i, ctx),
+    }),
+    getNotes: tool({
+      description: d.getNotes,
+      inputSchema: s.getNotes,
+      execute: (i) => f.getNotes(i, ctx),
+    }),
     teamOverview: tool({
       description: d.teamOverview,
       inputSchema: s.teamOverview,
       execute: (i) => f.teamOverview(i, ctx),
+    }),
+    searchEmployees: tool({
+      description: d.searchEmployees,
+      inputSchema: s.searchEmployees,
+      execute: (i) => f.searchEmployees(i, ctx),
+    }),
+    proposeNote: tool({
+      description: d.proposeNote,
+      inputSchema: s.proposeNote,
+      execute: (i) => f.proposeNote(i, ctx),
     }),
   }
 }
@@ -137,13 +146,18 @@ export const chatRoute = new Hono().post('/', zValidator('json', chatRequestSche
     }
   }
 
-  const ctx: ToolContext = { local, refs: newRefs() }
+  // ADR 0009: employees are readable with a local provider, and with a cloud one only after
+  // the operator's opt-in in Settings → AI.
+  const ctx: ToolContext = newContext(local, local || settings.chatEmployees)
   const tools = makeTools(ctx)
+  // With a cloud provider the recruiter's own words are scrubbed too: a typed name becomes the
+  // same "Candidate #N" / "Employee #N" the tools use, so the model can still look the person
+  // up by id. Inflected forms ("Amelię", "Hartwella") are matched too: this is prose, not a CV.
   const history: ModelMessage[] = []
   for (const m of messages)
     history.push({
       role: m.role,
-      content: m.role === 'user' && !local ? await scrub(m.content) : m.content,
+      content: m.role === 'user' ? await scrub(m.content, ctx) : m.content,
     })
 
   const started = performance.now()
@@ -165,12 +179,19 @@ export const chatRoute = new Hono().post('/', zValidator('json', chatRequestSche
   c.header('content-type', 'application/x-ndjson; charset=utf-8')
   return stream(c, async (s) => {
     const send = (e: ChatEvent) => s.writeln(JSON.stringify(e))
+    // A proposeNote call leaves its draft in the context; it goes to the browser as an event
+    // the moment the tool has run, and nowhere else.
+    const flushProposals = async () => {
+      for (const proposal of ctx.proposals.splice(0)) await send({ type: 'proposal', proposal })
+    }
     try {
       for await (const part of result.fullStream) {
         if (part.type === 'tool-call') {
           called.push(part.toolName)
           await send({ type: 'tool', name: part.toolName })
-        } else if (part.type === 'text-delta') await send({ type: 'text', text: part.text })
+          await flushProposals()
+        } else if (part.type === 'tool-result') await flushProposals()
+        else if (part.type === 'text-delta') await send({ type: 'text', text: part.text })
         else if (part.type === 'error') throw part.error
       }
       await send({ type: 'refs', refs: ctx.refs })

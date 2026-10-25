@@ -524,7 +524,12 @@
       "summarize": "Summarize this candidate",
       "averages": "What are this candidate’s interview averages?",
       "meetings": "When is the interview with this candidate?",
-      "recruitments": "Which recruitments are open?"
+      "recruitments": "Which recruitments are open?",
+      "requirements": "What are the requirements?",
+      "scorecard": "Show the interview ratings",
+      "noteSummary": "Note down a summary of the interview",
+      "employeeNotes": "What do the notes say?",
+      "employeeRole": "What is this person’s role?"
     },
     "tools": {
       "listRecruitments": "Listing recruitments…",
@@ -533,7 +538,11 @@
       "stuckCandidates": "Checking who is waiting…",
       "searchCandidates": "Searching candidates…",
       "getCandidate": "Reading the candidate…",
-      "teamOverview": "Checking teams…"
+      "teamOverview": "Checking teams…",
+      "getScorecard": "Reading the scorecard…",
+      "getNotes": "Reading the notes…",
+      "searchEmployees": "Checking employees…",
+      "proposeNote": "Drafting a note…"
     },
     "thinking": "Thinking…",
     "inputLabel": "Your question",

@@ -20,7 +20,12 @@ test('GET /api/settings/ai returns the defaults on a fresh install', async () =>
 })
 
 test('PUT stores the key encrypted and GET never returns it', async () => {
-  const body = { provider: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', model: 'claude-x' }
+  const body = {
+    provider: 'anthropic',
+    baseUrl: 'https://api.anthropic.com/v1',
+    model: 'claude-x',
+    chatEmployees: false,
+  }
   const res = await put({ ...body, apiKey: KEY })
   expect(res.status).toBe(200)
   expect(await res.text()).not.toContain(KEY)

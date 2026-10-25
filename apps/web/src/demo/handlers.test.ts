@@ -58,6 +58,7 @@ type Store = {
   emails?: { candidateId: number; status: string }[]
   meetings?: { candidateId: number }[]
   employeeNotes?: { id: number; employeeId: number }[]
+  candidateNotes?: { id: number; candidateId: number }[]
   teams?: { id: number }[]
   teamMembers?: { teamId: number }[]
 }
@@ -223,7 +224,12 @@ test('demo candidates: create, edit, upload a CV, delete', async () => {
 test('demo AI settings: persisted without the key, test always succeeds', async () => {
   expect(aiSettingsViewSchema.parse(await get('/api/settings/ai'))).toEqual(AI_SETTINGS_DEFAULTS)
 
-  const body = { provider: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', model: 'claude-x' }
+  const body = {
+    provider: 'anthropic',
+    baseUrl: 'https://api.anthropic.com/v1',
+    model: 'claude-x',
+    chatEmployees: false,
+  }
   const saved = await send('PUT', '/api/settings/ai', { ...body, apiKey: 'sk-ant-demo' })
   expect(aiSettingsViewSchema.parse(await saved.json())).toEqual({ ...body, hasApiKey: true })
   expect(storage.get(DEMO_STORAGE_KEY)).not.toContain('sk-ant-demo')

@@ -338,6 +338,12 @@ export const aiSettingsSchema = z.object({
   baseUrl: z.string().url(),
   model: z.string().min(1),
   apiKey: z.string().nullable().optional(),
+  /**
+   * ADR 0009: let the chat assistant read employees (name as "Employee #N", position, duties,
+   * teams, notes after anonymization) with a cloud provider. Off by default; a local provider
+   * always may.
+   */
+  chatEmployees: z.boolean().default(false),
 })
 export type AiSettings = z.infer<typeof aiSettingsSchema>
 
@@ -352,6 +358,7 @@ export const AI_SETTINGS_DEFAULTS: AiSettingsView = {
   baseUrl: 'http://localhost:11434/v1',
   model: 'qwen2.5:7b-instruct',
   hasApiKey: false,
+  chatEmployees: false,
 }
 
 /** Result of POST /api/ai/test. The error text is sanitized on the server: no key, no stack. */

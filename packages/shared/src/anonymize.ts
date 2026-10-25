@@ -94,6 +94,8 @@ export type AnonymizeOptions = {
    * own words in the chat, where Polish declension is the norm; CV text keeps exact matching.
    */
   inflected?: boolean
+  /** The pseudonym that replaces the name; default `Candidate #<id>`, `Employee #<id>` for staff. */
+  label?: string
 }
 
 const namePattern = (name: string, inflected: boolean) => {
@@ -119,7 +121,7 @@ export function anonymize(
   // 1. Structured fields: email and phone first (an email often contains the name), then the
   // full name and each part on its own.
   if (candidate) {
-    const label = `Candidate #${candidate.id}`
+    const label = options.label ?? `Candidate #${candidate.id}`
     const first = namePattern(candidate.firstName, options.inflected ?? false)
     const last = namePattern(candidate.lastName, options.inflected ?? false)
     r = replaceFolded(text, escape(fold(candidate.email.trim())), '[email]')

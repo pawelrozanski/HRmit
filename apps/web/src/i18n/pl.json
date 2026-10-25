@@ -552,7 +552,12 @@
       "summarize": "Streść tego kandydata",
       "averages": "Jakie ma średnie z rozmowy?",
       "meetings": "Kiedy jest rozmowa z tym kandydatem?",
-      "recruitments": "Które rekrutacje są otwarte?"
+      "recruitments": "Które rekrutacje są otwarte?",
+      "requirements": "Jakie są wymagania?",
+      "scorecard": "Pokaż oceny z rozmowy",
+      "noteSummary": "Zanotuj podsumowanie rozmowy",
+      "employeeNotes": "Co mamy w notatkach?",
+      "employeeRole": "Jaką rolę ma ta osoba?"
     },
     "tools": {
       "listRecruitments": "Sprawdzam rekrutacje…",
@@ -561,7 +566,11 @@
       "stuckCandidates": "Sprawdzam, kto czeka…",
       "searchCandidates": "Szukam kandydatów…",
       "getCandidate": "Czytam kandydata…",
-      "teamOverview": "Sprawdzam zespoły…"
+      "teamOverview": "Sprawdzam zespoły…",
+      "getScorecard": "Czytam ocenę z rozmowy…",
+      "getNotes": "Czytam notatki…",
+      "searchEmployees": "Sprawdzam pracowników…",
+      "proposeNote": "Piszę szkic notatki…"
     },
     "thinking": "Myślę…",
     "inputLabel": "Twoje pytanie",

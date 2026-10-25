@@ -28,7 +28,7 @@ export const settingsRoute = new Hono()
   // apiKey omitted or '' keeps the stored key, a string replaces it, null removes it.
   .put('/ai', zValidator('json', aiSettingsSchema), async (c) => {
     const { apiKey, ...fields } = c.req.valid('json')
-    for (const [k, v] of Object.entries(fields)) await setSetting(`ai.${k}`, v)
+    for (const [k, v] of Object.entries(fields)) await setSetting(`ai.${k}`, String(v))
     if (apiKey === null || apiKey) await setSetting('ai.apiKey', apiKey)
     return c.json(await view())
   })

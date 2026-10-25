@@ -29,8 +29,9 @@ import { segments } from './chatText.ts'
 /** Suggested questions per screen, as i18n keys under chat.chips. */
 const CHIPS: Record<ChatContext['view'], string[]> = {
   dashboard: ['today', 'longest', 'teamIt', 'best'],
-  recruitment: ['thisRecruitment', 'longestHere', 'best'],
-  candidate: ['summarize', 'averages', 'meetings'],
+  recruitment: ['thisRecruitment', 'requirements', 'longestHere', 'best'],
+  candidate: ['summarize', 'scorecard', 'noteSummary', 'meetings'],
+  employee: ['employeeNotes', 'employeeRole'],
   other: ['today', 'recruitments', 'teamIt', 'best'],
 }
 

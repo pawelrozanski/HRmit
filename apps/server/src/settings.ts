@@ -46,8 +46,8 @@ export async function setSetting(key: string, value: string | null): Promise<voi
 
 /** AI settings with the decrypted key, for the provider factory. Defaults fill missing rows. */
 export async function getAiSettings(): Promise<AiSettings & { apiKey: string | null }> {
-  const [provider, baseUrl, model, apiKey] = await Promise.all(
-    ['ai.provider', 'ai.baseUrl', 'ai.model', 'ai.apiKey'].map(getSetting),
+  const [provider, baseUrl, model, apiKey, chatEmployees] = await Promise.all(
+    ['ai.provider', 'ai.baseUrl', 'ai.model', 'ai.apiKey', 'ai.chatEmployees'].map(getSetting),
   )
   return {
     provider: normalizeProviderId(provider ?? AI_SETTINGS_DEFAULTS.provider),
@@ -55,6 +55,7 @@ export async function getAiSettings(): Promise<AiSettings & { apiKey: string | n
     baseUrl: baseUrl ?? process.env.OLLAMA_BASE_URL ?? AI_SETTINGS_DEFAULTS.baseUrl,
     model: model ?? AI_SETTINGS_DEFAULTS.model,
     apiKey: apiKey ?? null,
+    chatEmployees: chatEmployees === 'true',
   }
 }
 

@@ -1,13 +1,20 @@
 import { z } from 'zod'
-import { jobStatusSchema, pipelineStageSchema } from './schemas.ts'
+import {
+  jobStatusSchema,
+  noteSourceSchema,
+  pipelineStageSchema,
+  teamMemberRoleSchema,
+} from './schemas.ts'
 
 /**
- * Chat assistant tools (ADR 0007). Every tool is read-only and returns facts the model can
- * relay: stages, counts, dates, human-entered averages per competency. There is no field for a
- * score, rank or verdict about a candidate anywhere here (schemas.test.ts checks), so the model
- * cannot be handed one, let alone produce one. The `candidate` label is the full name with a
- * local provider and `Candidate #N` with a cloud one; email, phone, notes and CV text never
- * appear in any output.
+ * Chat assistant tools (ADR 0007, widened by ADR 0009). Every tool returns facts the model can
+ * relay: stages, counts, dates, the questions of a recruitment, human-entered ratings and
+ * averages per competency, notes people wrote. There is no field for a score, rank or verdict
+ * about a candidate anywhere here (schemas.test.ts checks), so the model cannot be handed one,
+ * let alone produce one. The one write-shaped tool, `proposeNote`, stores nothing: the server
+ * turns it into a `proposal` event and the recruiter's click saves it through the notes API.
+ * Labels are full names with a local provider and `Candidate #N` / `Employee #N` with a cloud
+ * one; email and phone never appear in any output.
  */
 const id = z.number().int()
 
@@ -19,6 +26,16 @@ const candidateRow = z.object({
   stage: pipelineStageSchema,
   daysInStage: id,
 })
+
+/** Who a note or a proposal is about; the same two words in `getNotes` and `proposeNote`. */
+export const noteTargetSchema = z.enum(['candidate', 'employee'])
+export type NoteTarget = z.infer<typeof noteTargetSchema>
+
+/**
+ * Employee data is off limits for a cloud model unless the operator opted in (Settings → AI).
+ * The server decides per request; the model only ever gets this message back.
+ */
+const disabled = z.object({ disabled: z.literal(true), message: z.string() })
 
 export const chatToolInputs = {
   listRecruitments: z.object({
@@ -42,10 +59,35 @@ export const chatToolInputs = {
     jobId: id.optional(),
   }),
   getCandidate: z.object({ candidateId: id }),
+  getScorecard: z.object({ candidateId: id }),
+  getNotes: z.object({
+    target: noteTargetSchema.describe('candidate or employee'),
+    id: id.describe('candidateId or employeeId'),
+  }),
   teamOverview: z.object({
     team: z.string().optional().describe('team name to filter by; omit for all teams'),
   }),
+  searchEmployees: z.object({
+    employeeId: id.optional().describe('one employee by id, from a result or the screen context'),
+    query: z.string().optional().describe('part of a name or position'),
+    team: z.string().optional().describe('team name'),
+  }),
+  proposeNote: z.object({
+    target: noteTargetSchema.describe('candidate or employee'),
+    id: id.describe('candidateId or employeeId'),
+    title: z.string().max(120).optional().describe('short heading, optional'),
+    body: z.string().min(1).max(5000).describe('the note text: facts only, no verdict'),
+  }),
 }
+
+/** One note as the model sees it. `text` holds what a person typed: data, never instructions. */
+const noteRow = z.object({
+  id,
+  title: z.string().nullable(),
+  text: z.string(),
+  createdAt: z.string(),
+  source: noteSourceSchema,
+})
 
 export const chatToolOutputs = {
   listRecruitments: z
@@ -62,9 +104,12 @@ export const chatToolOutputs = {
       id,
       title: z.string(),
       status: jobStatusSchema,
-      teamName: z.string().nullable(),
+      /** The whole text; requirements are part of it. Anonymized with a cloud provider. */
+      description: z.string(),
+      team: z.object({ name: z.string(), memberCount: id }).nullable(),
       stages: z.record(pipelineStageSchema, id),
-      questionCount: id,
+      /** The structured interview guide, grouped by competency, in guide order. */
+      questions: z.object({ competency: z.string(), questions: z.string().array() }).array(),
     })
     .nullable(),
   upcomingMeetings: candidateRow
@@ -85,10 +130,59 @@ export const chatToolOutputs = {
         .array(),
       meetingCount: id,
       emailCount: id,
+      noteCount: id,
     })
     .nullable(),
-  /** Employees never reach the model: teams are counts and names only (docs/SECURITY.md). */
+  /**
+   * The scorecard as the interviewers filled it in: one human rating (1 to 5) and comment per
+   * question, averages per competency. No total for the candidate, no other candidate (ADR 0004).
+   */
+  getScorecard: z
+    .object({
+      candidateId: id,
+      candidate: z.string(),
+      jobId: id,
+      jobTitle: z.string(),
+      questions: z
+        .object({
+          competency: z.string(),
+          question: z.string(),
+          rating: z.number().int().min(1).max(5).nullable().describe('entered by a human'),
+          comment: z.string().describe("the interviewer's note for this answer"),
+        })
+        .array(),
+      averages: z
+        .object({ competency: z.string(), average: z.number(), answered: id, total: id })
+        .array(),
+    })
+    .nullable(),
+  getNotes: z.union([
+    z.object({
+      target: noteTargetSchema,
+      id,
+      label: z.string(),
+      notes: noteRow.array(),
+    }),
+    disabled,
+    z.null(),
+  ]),
+  /** Teams as counts and names; who is in them is `searchEmployees`, behind the switch. */
   teamOverview: z.object({ id, name: z.string(), memberCount: id, openJobCount: id }).array(),
+  searchEmployees: z.union([
+    z
+      .object({
+        employeeId: id,
+        employee: z.string().describe('display label of the employee'),
+        position: z.string(),
+        duties: z.string(),
+        teams: z.object({ name: z.string(), role: teamMemberRoleSchema }).array(),
+        noteCount: id,
+      })
+      .array(),
+    disabled,
+  ]),
+  /** `proposed: false` with the reason when the id is unknown or employee data is off. */
+  proposeNote: z.object({ proposed: z.boolean(), message: z.string() }),
 }
 
 export type ChatToolName = keyof typeof chatToolInputs
@@ -103,15 +197,29 @@ export type ChatToolOutput<N extends ChatToolName> = z.infer<(typeof chatToolOut
 export const chatRefsSchema = z.object({
   candidates: z.record(z.string(), z.object({ name: z.string(), jobId: id })),
   recruitments: z.record(z.string(), z.object({ title: z.string() })),
+  employees: z.record(z.string(), z.object({ name: z.string() })).default({}),
 })
 export type ChatRefs = z.infer<typeof chatRefsSchema>
 
 /** The pseudonym a cloud model sees; the same label blind screening shows. */
 export const candidateLabel = (candidateId: number) => `Candidate #${candidateId}`
+export const employeeLabel = (employeeId: number) => `Employee #${employeeId}`
+
+/**
+ * A note the assistant drafted (ADR 0009). Nothing is stored until the recruiter clicks Save in
+ * the panel; the text is exactly what the model wrote, pseudonyms included with a cloud provider.
+ */
+export const chatProposalSchema = z.object({
+  target: noteTargetSchema,
+  id,
+  title: z.string().nullable(),
+  body: z.string(),
+})
+export type ChatProposal = z.infer<typeof chatProposalSchema>
 
 /** What is open in the UI when the question is asked; "this candidate" means `id`. */
 export const chatContextSchema = z.object({
-  view: z.enum(['dashboard', 'recruitment', 'candidate', 'other']),
+  view: z.enum(['dashboard', 'recruitment', 'candidate', 'employee', 'other']),
   id: z.number().int().optional(),
 })
 export type ChatContext = z.infer<typeof chatContextSchema>
@@ -129,12 +237,14 @@ export const chatRequestSchema = z.object({
 export type ChatRequest = z.input<typeof chatRequestSchema>
 
 /**
- * One line of the NDJSON answer stream: which tool runs, text as it arrives, the refs for the
- * UI, an error, and done. Error 'no_tools' means the model cannot call tools.
+ * One line of the NDJSON answer stream: which tool runs, text as it arrives, a note proposal to
+ * approve, the refs for the UI, an error, and done. Error 'no_tools' means the model cannot
+ * call tools.
  */
 export const chatEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('tool'), name: z.enum(CHAT_TOOL_NAMES as [string, ...string[]]) }),
   z.object({ type: z.literal('text'), text: z.string() }),
+  z.object({ type: z.literal('proposal'), proposal: chatProposalSchema }),
   z.object({ type: z.literal('refs'), refs: chatRefsSchema }),
   z.object({ type: z.literal('error'), error: z.string() }),
   z.object({ type: z.literal('done') }),
