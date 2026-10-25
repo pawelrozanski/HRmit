@@ -134,9 +134,10 @@
     "tabs": {
       "general": "General",
       "ai": "AI settings",
+      "prompts": "AI prompts",
       "email": "Email (SMTP)",
       "templates": "Email templates",
-      "backup": "Backup"
+      "backup": "Backup & Recovery"
     },
     "sections": "Settings sections",
     "language": "Language",
@@ -208,15 +209,25 @@
     }
   },
   "backup": {
-    "title": "Backup",
+    "title": "Backup & Recovery",
     "intro": "Download a copy of everything HRmit stores on this computer and keep it somewhere safe. The file contains personal data of your candidates.",
     "demoIntro": "Demo mode: the backup is the demo data of this browser as a JSON file. The real app downloads the database and the CV files as one archive.",
     "contains": "The archive holds the database (recruitments, candidates, notes, templates, settings, email history) and the uploaded CV files.",
     "noKey": "The encryption key is not included, so the stored AI key and SMTP password stay unreadable; enter them again after a restore.",
-    "restore": "To restore, stop HRmit, put hrmit.db and the uploads folder from the archive into the data folder, and start it again.",
+    "restore": "To restore, use the Recovery section below, or by hand: stop HRmit, put hrmit.db and the uploads folder from the archive into the data folder, and start it again.",
     "download": "Download backup",
     "working": "Preparing…",
-    "done": "Saved {{name}} ({{size}})."
+    "done": "Saved {{name}} ({{size}}).",
+    "recoveryTitle": "Recovery",
+    "recoveryIntro": "Pick a backup file you downloaded here. Everything it holds replaces what HRmit has now: the database and the CV files. There is no undo, so download a fresh backup first if in doubt.",
+    "demoRecoveryIntro": "Demo mode: pick the JSON file you downloaded here. It replaces the demo data of this browser.",
+    "file": "Backup file",
+    "restoreButton": "Restore from file",
+    "restoring": "Restoring…",
+    "restoreConfirm": "Replace all current data with the backup? This cannot be undone.",
+    "restored": "Restored: {{candidates}} candidate(s), {{files}} CV file(s). Reloading…",
+    "notArchive": "This is not an HRmit backup file.",
+    "damaged": "The database in this backup is damaged."
   },
   "ai": {
     "title": "AI assistant",

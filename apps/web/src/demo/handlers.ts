@@ -39,6 +39,7 @@ import {
   type EmailTemplate,
   type EmailPreview,
   type Health,
+  type RestoreResult,
   type InterviewQuestionInput,
   type Meeting,
   type MeetingPreview,
@@ -459,6 +460,21 @@ export const handlers = [
         'content-disposition': `attachment; filename="hrmit-demo-backup-${stamp}.json"`,
       },
     })
+  }),
+  // Recovery: the JSON file from the download above replaces the store; the page reloads after.
+  http.post(`${base}/api/backup/restore`, async ({ request }) => {
+    const file = (await request.formData()).get('file')
+    let parsed: Partial<typeof store>
+    try {
+      parsed = JSON.parse(await (file as File).text()) as Partial<typeof store>
+    } catch {
+      return HttpResponse.json({ error: 'not a backup archive' }, { status: 415 })
+    }
+    if (!Array.isArray(parsed.jobs) || !Array.isArray(parsed.candidates))
+      return HttpResponse.json({ error: 'not a backup archive' }, { status: 415 })
+    Object.assign(store, parsed)
+    save()
+    return HttpResponse.json<RestoreResult>({ candidates: store.candidates.length, files: 0 })
   }),
   http.get(`${base}/api/settings/prompts`, () => HttpResponse.json(store.prompts)),
   http.put(`${base}/api/settings/prompts`, async ({ request }) => {

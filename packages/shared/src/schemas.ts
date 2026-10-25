@@ -13,6 +13,13 @@ export const healthSchema = z.object({
 })
 export type Health = z.infer<typeof healthSchema>
 
+/** Answer of POST /api/backup/restore: what the restored data holds. */
+export const restoreResultSchema = z.object({
+  candidates: z.number().int(),
+  files: z.number().int(),
+})
+export type RestoreResult = z.infer<typeof restoreResultSchema>
+
 export const jobStatusSchema = z.enum(['open', 'closed'])
 
 /**

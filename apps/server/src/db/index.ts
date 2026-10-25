@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
@@ -20,8 +20,14 @@ export const uploadsDir =
   dataDir === ':memory:' ? mkdtempSync(join(tmpdir(), 'hrmit-')) : join(dataDir, 'uploads')
 mkdirSync(uploadsDir, { recursive: true })
 
-const sqlite = new DatabaseSync(file)
-sqlite.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;')
+const open = () => {
+  const d = new DatabaseSync(file)
+  d.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;')
+  return d
+}
+// `let`, not `const`: a restore (0.5.4) closes the handle, swaps the file and opens it again;
+// the proxy below reads the variable on every call, so Drizzle never notices.
+let sqlite = open()
 
 // Drizzle has no node:sqlite driver yet, so we hand it the built-in one through sqlite-proxy.
 export const db = drizzle(
@@ -36,47 +42,66 @@ export const db = drizzle(
   { schema },
 )
 
-await migrate(db, async (queries) => sqlite.exec(queries.join(';\n')), {
-  migrationsFolder: fileURLToPath(new URL('../../drizzle', import.meta.url)),
-})
+/** Migrations, then the fixture seeds. Runs at start and again after a restore. */
+async function prepare() {
+  await migrate(db, async (queries) => sqlite.exec(queries.join(';\n')), {
+    migrationsFolder: fileURLToPath(new URL('../../drizzle', import.meta.url)),
+  })
 
-// First run: seed from the shared fixtures so the UI is not empty.
-const countOf = async (
-  table:
-    | typeof schema.jobs
-    | typeof schema.teams
-    | typeof schema.employees
-    | typeof schema.employeeNotes,
-) => (await db.select({ n: count() }).from(table))[0]?.n ?? 0
-// Teams first: fixture jobs point at them. 0.3.0 added these tables, so an existing database
-// gets them seeded once as well, with the user's jobs left unassigned.
-if ((await countOf(schema.teams)) === 0 && (await countOf(schema.employees)) === 0) {
-  await db.insert(schema.teams).values(fixtures.teams)
-  await db.insert(schema.employees).values(fixtures.employees)
-  await db.insert(schema.teamMembers).values(fixtures.teamMembers)
-}
-// 0.3.1 added notes: seeded once, only for employees that still exist (a fixture employee may be gone).
-if ((await countOf(schema.employeeNotes)) === 0) {
-  const ids = new Set(
-    (await db.select({ id: schema.employees.id }).from(schema.employees)).map((r) => r.id),
-  )
-  const notes = fixtures.employeeNotes.filter((n) => ids.has(n.employeeId))
-  if (notes.length) await db.insert(schema.employeeNotes).values(notes)
-}
-
-if ((await countOf(schema.jobs)) === 0) {
-  await db.insert(schema.jobs).values(fixtures.jobs)
-  await db.insert(schema.candidates).values(fixtures.candidates)
-  await db.insert(schema.interviewQuestions).values(fixtures.questionRows)
-  await db
-    .insert(schema.evaluations)
-    .values(
-      Object.entries(fixtures.evaluations).flatMap(([candidateId, list]) =>
-        list.map((e) => ({ candidateId: Number(candidateId), ...e })),
-      ),
+  // First run: seed from the shared fixtures so the UI is not empty.
+  const countOf = async (
+    table:
+      | typeof schema.jobs
+      | typeof schema.teams
+      | typeof schema.employees
+      | typeof schema.employeeNotes,
+  ) => (await db.select({ n: count() }).from(table))[0]?.n ?? 0
+  // Teams first: fixture jobs point at them. 0.3.0 added these tables, so an existing database
+  // gets them seeded once as well, with the user's jobs left unassigned.
+  if ((await countOf(schema.teams)) === 0 && (await countOf(schema.employees)) === 0) {
+    await db.insert(schema.teams).values(fixtures.teams)
+    await db.insert(schema.employees).values(fixtures.employees)
+    await db.insert(schema.teamMembers).values(fixtures.teamMembers)
+  }
+  // 0.3.1 added notes: seeded once, only for employees that still exist (a fixture employee may be gone).
+  if ((await countOf(schema.employeeNotes)) === 0) {
+    const ids = new Set(
+      (await db.select({ id: schema.employees.id }).from(schema.employees)).map((r) => r.id),
     )
+    const notes = fixtures.employeeNotes.filter((n) => ids.has(n.employeeId))
+    if (notes.length) await db.insert(schema.employeeNotes).values(notes)
+  }
+
+  if ((await countOf(schema.jobs)) === 0) {
+    await db.insert(schema.jobs).values(fixtures.jobs)
+    await db.insert(schema.candidates).values(fixtures.candidates)
+    await db.insert(schema.interviewQuestions).values(fixtures.questionRows)
+    await db
+      .insert(schema.evaluations)
+      .values(
+        Object.entries(fixtures.evaluations).flatMap(([candidateId, list]) =>
+          list.map((e) => ({ candidateId: Number(candidateId), ...e })),
+        ),
+      )
+  }
+
+  // Every start: insert template keys that are missing, so existing databases get new templates
+  // without touching ones the user edited (fixtures.emails are demo-only history, not seeded).
+  await db.insert(schema.emailTemplates).values(fixtures.emailTemplates).onConflictDoNothing()
 }
 
-// Every start: insert template keys that are missing, so existing databases get new templates
-// without touching ones the user edited (fixtures.emails are demo-only history, not seeded).
-await db.insert(schema.emailTemplates).values(fixtures.emailTemplates).onConflictDoNothing()
+await prepare()
+
+/**
+ * Replace the database with the bytes of a backup (a VACUUM INTO snapshot) and run the
+ * migrations on it, so a backup from an older version comes up to date. The WAL and SHM of
+ * the old file go too, or SQLite would replay them over the restored data.
+ */
+export async function replaceDatabase(bytes: Uint8Array): Promise<void> {
+  if (dataDir === ':memory:') throw new Error('restore needs a data directory')
+  sqlite.close()
+  for (const suffix of ['-wal', '-shm']) rmSync(file + suffix, { force: true })
+  writeFileSync(file, bytes)
+  sqlite = open()
+  await prepare()
+}

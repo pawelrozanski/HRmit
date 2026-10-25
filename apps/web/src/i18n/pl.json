@@ -136,9 +136,10 @@
     "tabs": {
       "general": "Ogólne",
       "ai": "Ustawienia AI",
+      "prompts": "Prompty AI",
       "email": "E-mail (SMTP)",
       "templates": "Szablony e-maili",
-      "backup": "Kopia zapasowa"
+      "backup": "Kopia i przywracanie"
     },
     "sections": "Sekcje ustawień",
     "language": "Język",
@@ -210,15 +211,25 @@
     }
   },
   "backup": {
-    "title": "Kopia zapasowa",
+    "title": "Kopia i przywracanie",
     "intro": "Pobierz kopię wszystkiego, co HRmit przechowuje na tym komputerze, i trzymaj ją w bezpiecznym miejscu. Plik zawiera dane osobowe Twoich kandydatów.",
     "demoIntro": "Tryb demo: kopia to dane demo z tej przeglądarki w pliku JSON. W prawdziwej aplikacji pobierana jest baza danych i pliki CV w jednym archiwum.",
     "contains": "Archiwum zawiera bazę danych (rekrutacje, kandydaci, notatki, szablony, ustawienia, historia e-maili) oraz wgrane pliki CV.",
     "noKey": "Klucz szyfrujący nie jest dołączany, więc zapisany klucz AI i hasło SMTP pozostają nieczytelne; po przywróceniu wpisz je ponownie.",
-    "restore": "Aby przywrócić: zatrzymaj HRmit, wgraj hrmit.db i folder uploads z archiwum do folderu data i uruchom ponownie.",
+    "restore": "Aby przywrócić, użyj sekcji Przywracanie poniżej albo ręcznie: zatrzymaj HRmit, wgraj hrmit.db i folder uploads z archiwum do folderu data i uruchom ponownie.",
     "download": "Pobierz kopię zapasową",
     "working": "Przygotowuję…",
-    "done": "Zapisano {{name}} ({{size}})."
+    "done": "Zapisano {{name}} ({{size}}).",
+    "recoveryTitle": "Przywracanie",
+    "recoveryIntro": "Wskaż plik kopii pobrany tutaj. Wszystko, co zawiera, zastępuje obecne dane HRmit: bazę i pliki CV. Nie da się tego cofnąć, więc w razie wątpliwości najpierw pobierz świeżą kopię.",
+    "demoRecoveryIntro": "Tryb demo: wskaż plik JSON pobrany tutaj. Zastępuje dane demo z tej przeglądarki.",
+    "file": "Plik kopii",
+    "restoreButton": "Przywróć z pliku",
+    "restoring": "Przywracam…",
+    "restoreConfirm": "Zastąpić wszystkie obecne dane kopią? Nie da się tego cofnąć.",
+    "restored": "Przywrócono: kandydatów: {{candidates}}, plików CV: {{files}}. Odświeżam…",
+    "notArchive": "To nie jest plik kopii HRmit.",
+    "damaged": "Baza danych w tej kopii jest uszkodzona."
   },
   "ai": {
     "title": "Asystent AI",

@@ -230,7 +230,26 @@ test('demo AI settings: persisted without the key, test always succeeds', async 
   // The backup is the whole store as a JSON download.
   const backup = await fetch('http://localhost/api/backup')
   expect(backup.headers.get('content-disposition')).toMatch(/hrmit-demo-backup-.*\.json"$/)
-  expect(Object.keys(await backup.json())).toContain('candidates')
+  const dump = (await backup.json()) as { candidates: unknown[] }
+  expect(Object.keys(dump)).toContain('candidates')
+  // Restore: the same JSON back replaces the store; junk is refused.
+  const form = new FormData()
+  form.append('file', new File([JSON.stringify({ ...dump, candidates: [] })], 'b.json'))
+  const restored = await fetch('http://localhost/api/backup/restore', {
+    method: 'POST',
+    body: form,
+  })
+  expect(await restored.json()).toEqual({ candidates: 0, files: 0 })
+  expect(persisted().candidates).toEqual([])
+  const junk = new FormData()
+  junk.append('file', new File(['nope'], 'b.json'))
+  expect(
+    (await fetch('http://localhost/api/backup/restore', { method: 'POST', body: junk })).status,
+  ).toBe(415)
+  const back = new FormData()
+  back.append('file', new File([JSON.stringify(dump)], 'b.json'))
+  await fetch('http://localhost/api/backup/restore', { method: 'POST', body: back })
+  expect(persisted().candidates).toHaveLength(dump.candidates.length)
   // Prompt texts round-trip through the store.
   const { AI_PROMPT_DEFAULTS, aiPromptsSchema } = await import('@hrmit/shared')
   expect(aiPromptsSchema.parse(await get('/api/settings/prompts'))).toEqual(AI_PROMPT_DEFAULTS)
