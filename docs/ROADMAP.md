@@ -145,6 +145,10 @@ _(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were t
 
 ## After the MVP
 
+### 0.5.5: Update check and the Windows installer
+
+_(done 2026-10-25; "Check for updates" asks GitHub for the newest tag, and in a git checkout a detached updater fast-forwards to it after an optional backup into `data/backups/`; an Electron build was tried for the installer and dropped in favour of the browser: `apps/windows` ships the build's `node.exe` as `HRmit.exe`, the bundled server and a launcher behind a desktop shortcut, packed by NSIS, about 25 MB, per user; it was installed, started from the shortcut, shut down and uninstalled on the development machine; the release workflow had not run before this tag; see ADR 0008)_
+
 ### 0.5.4: Recovery, the off switch and grouped settings
 
 _(done 2026-10-25; `POST /api/backup/restore` validates the archive, then `replaceDatabase()` closes the `node:sqlite` handle, swaps the file with its WAL and SHM, reopens it and runs migrations and seeds again, so a backup from an older version comes up to date; the server test runs on a temp data folder instead of `:memory:` because the swap needs a file; the prompt editor got its own settings tab; `POST /api/shutdown` answers and exits on the next tick, the button is hidden in the demo; the settings navigation is four labelled tab lists, General, AI, Mail and Files, with one keyboard handler over all of them; About HRmit links to the license)_

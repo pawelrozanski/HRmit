@@ -1,7 +1,7 @@
 {
   "name": "@hrmit/windows",
   "private": true,
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Windows installer: bundled Node, the server and a desktop shortcut that opens HRmit in the browser (ADR 0008).",
   "license": "MIT",
   "type": "module",

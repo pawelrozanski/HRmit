@@ -4,6 +4,8 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-10-25
+
 ### Added
 
 - Windows installer (ADR 0008): `HRmit-Setup-<version>.exe` on GitHub Releases, about 25 MB, built by a workflow on every version tag. It needs no administrator rights, Node or terminal, and adds an HRmit shortcut on the desktop and in the Start menu. The shortcut starts HRmit in the background and opens it in the browser at `http://127.0.0.1:7300`; "Shut down HRmit" stops it. Data lives in `%APPDATA%\HRmit\data` and stays on update and uninstall. Not signed yet; the README explains the SmartScreen warning. "Check for updates" links to the new installer there.
@@ -167,7 +169,8 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.4...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.5...HEAD
+[0.5.5]: https://github.com/pawelrozanski/HRmit/compare/v0.5.4...v0.5.5
 [0.5.4]: https://github.com/pawelrozanski/HRmit/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/pawelrozanski/HRmit/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/pawelrozanski/HRmit/compare/v0.5.1...v0.5.2
