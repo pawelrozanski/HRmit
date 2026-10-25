@@ -13,6 +13,7 @@ import { APP_ROOT as root } from '../config.ts'
 import { DashboardPage } from '../features/dashboard/DashboardPage.tsx'
 import { ChatPanel } from '../features/chat/ChatPanel.tsx'
 import { ChatProvider, useChat } from '../features/chat/ChatState.tsx'
+import { CandidatePage } from '../features/candidates/CandidatePage.tsx'
 import { CandidatesPage } from '../features/candidates/CandidatesPage.tsx'
 import { EmployeesPage } from '../features/employees/EmployeesPage.tsx'
 import { RecruitmentsPage } from '../features/recruitments/RecruitmentsPage.tsx'
@@ -101,6 +102,7 @@ function Shell() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="recruitments" element={<RecruitmentsPage />} />
           <Route path="recruitments/:id" element={<CandidatesPage />} />
+          <Route path="recruitments/:id/candidates/:candidateId" element={<CandidatePage />} />
           <Route path="jobs/:id" element={<JobRedirect />} />
           <Route path="employees" element={<EmployeesPage />} />
           <Route path="teams" element={<TeamsPage />} />

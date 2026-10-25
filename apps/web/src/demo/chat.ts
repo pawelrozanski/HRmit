@@ -557,8 +557,8 @@ export function demoAnswer(question: string, context: ChatContext, lang: AiLang)
           )
         : t(
             lang,
-            'No AI summary stored yet: upload a CV and use "Summarize CV" in the drawer.',
-            'Brak zapisanego streszczenia AI: wgraj CV i użyj „Streść CV” w szufladzie.',
+            'No AI summary stored yet: upload a CV and use "Summarize CV" on the candidate page.',
+            'Brak zapisanego streszczenia AI: wgraj CV i użyj „Streść CV” na stronie kandydata.',
           )
       const scores = avg.length
         ? t(

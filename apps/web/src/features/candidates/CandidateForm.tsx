@@ -56,7 +56,7 @@ export function CandidateForm({ jobId, candidate, open, onClose, onSaved }: Prop
     const parsed = candidateInputSchema.safeParse({
       ...Object.fromEntries(new FormData(e.currentTarget)),
       jobId,
-      // The stage is changed on the board or in the drawer, not here.
+      // The stage is changed on the board or on the candidate's page, not here.
       stage: candidate?.stage,
     })
     if (!parsed.success) return setErrors(fieldErrors(parsed.error.issues, t))

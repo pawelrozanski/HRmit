@@ -1,7 +1,7 @@
 # 0004. AI assists, never decides
 
 Date: 2026-10-19
-Status: accepted (the "no open chat" point is amended by [0007](0007-chat-assistant-read-only-tools.md); the rest stands)
+Status: accepted (the "no open chat" point is amended by [0007](0007-chat-assistant-read-only-tools.md), the "no fit or red flags" point by [0010](0010-cv-requirements-match.md) for the CV-against-requirements view only; the rest stands)
 
 ## Context
 

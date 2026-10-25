@@ -251,12 +251,13 @@
   },
   "prompts": {
     "title": "Prompts",
-    "intro": "The instruction the model gets before the data (job, CV, your question). The shipped texts keep the HRmit rule: describe, never judge, rank or score. If you change them, what the model does is your call and your responsibility. The structured outputs still have no score or verdict field.",
+    "intro": "The instruction the model gets before the data (job, CV, your question). The shipped texts keep the HRmit rule: describe, never judge, rank or score; the requirements check marks each requirement separately, with evidence and no total (ADR 0010). If you change them, what the model does is your call and your responsibility. The structured outputs still have no score or verdict field.",
     "keys": {
       "summarize": "Summarize CV",
       "competencies": "Extract competencies",
       "questions": "Interview questions",
-      "chat": "AI assistant chat"
+      "chat": "AI assistant chat",
+      "requirements": "CV against requirements"
     }
   },
   "backup": {
@@ -654,5 +655,28 @@
     "count_one": "{{count}} note",
     "count_other": "{{count}} notes",
     "assistant": "Drafted by the AI assistant, approved by you"
+  },
+  "match": {
+    "title": "CV against the requirements",
+    "run": "Compare with the requirements",
+    "disclaimer": "AI suggestion read from the CV only, one requirement at a time: green the CV shows it, amber partly, red not mentioned. No total, no ranking. Check the evidence; the decision is yours.",
+    "cloudHint": "With a cloud provider nothing is sent until you click: the CV and the requirements go out anonymized.",
+    "noRequirements": "This recruitment has no requirements yet. Add them in the recruitment's Details tab.",
+    "stale": "The requirements changed since this comparison. Run it again to compare with the current list.",
+    "status": {
+      "met": "In the CV",
+      "partial": "Partly",
+      "missing": "Not mentioned"
+    }
+  },
+  "candidatePage": {
+    "overview": "Overview",
+    "interview": "Interview",
+    "contact": "Contact"
+  },
+  "interview": {
+    "noQuestions": "This recruitment has no interview questions yet.",
+    "notYet": "Not scored yet ({{m}} questions in the guide).",
+    "open": "Open the scorecard"
   }
 }

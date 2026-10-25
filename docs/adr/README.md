@@ -13,6 +13,7 @@ Short records of decisions that are hard to reverse. One file per decision, numb
 | [0007](0007-chat-assistant-read-only-tools.md)     | Chat assistant over read-only tools (amends 0004)                      | accepted |
 | [0008](0008-windows-installer-browser-launcher.md) | Windows installer: bundled Node, browser launcher                      | accepted |
 | [0009](0009-chat-notes-scorecards-employees.md)    | Chat reads notes, scorecards, employees; writes by click (amends 0007) | accepted |
+| [0010](0010-cv-requirements-match.md)              | AI compares the CV with the requirements, per line (amends 0004)       | accepted |
 
 Template:
 

@@ -159,6 +159,12 @@ const scorecardOf = async (id: number) =>
 const storedFor = (candidateId: number) =>
   db.select().from(evaluations).where(eq(evaluations.candidateId, candidateId))
 
+test('GET /api/candidates/:id returns one candidate or 404', async () => {
+  const c = candidateSchema.parse(await (await app.request('/api/candidates/2')).json())
+  expect(c).toMatchObject({ id: 2, lastName: fixtures.candidates[1]!.lastName })
+  expect((await app.request('/api/candidates/9999')).status).toBe(404)
+})
+
 test('GET /api/candidates/:id/scorecard lists every question of the job, scored or not', async () => {
   const seeded = await scorecardOf(1)
   expect(seeded.candidateId).toBe(1)

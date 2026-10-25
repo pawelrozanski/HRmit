@@ -1,11 +1,12 @@
 import type { Candidate, PipelineStage } from '@hrmit/shared'
 import { Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
 import { Button } from '@/components/ui/button.tsx'
+import { APP_ROOT } from '@/config.ts'
 import { cn } from '@/lib/utils.ts'
 import { Switch } from '@/components/ui/switch.tsx'
 import { InterviewGuide } from '../recruitments/InterviewGuide.tsx'
@@ -14,26 +15,25 @@ import { RecruitmentForm } from '../recruitments/RecruitmentForm.tsx'
 import { KanbanBoard } from '../pipeline/KanbanBoard.tsx'
 import { useScreen } from '../chat/ChatState.tsx'
 import { BlindContext, useBlindSetting } from './BlindContext.ts'
-import { CandidateDrawer } from './CandidateDrawer.tsx'
 import { CandidateForm } from './CandidateForm.tsx'
 
 export function CandidatesPage() {
   const { t } = useTranslation()
   const { id = '' } = useParams()
   const [blind, toggleBlind] = useBlindSetting()
-  // ?candidate=ID (dashboard links) opens that drawer once; the param is then dropped.
-  const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
+  // ?view=guide opens a tab (the scorecard links to the guide); ?candidate=ID is the pre-0.6.2
+  // drawer link, now the candidate's page.
+  const [params] = useSearchParams()
   const openId = params.get('candidate')
-  const [selected, setSelected] = useState<Candidate | null>(null)
   const [moveError, setMoveError] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [view, setView] = useState<'pipeline' | 'guide' | 'job'>('pipeline')
+  const [view, setView] = useState<'pipeline' | 'guide' | 'job'>(() =>
+    params.get('view') === 'guide' ? 'guide' : params.get('view') === 'job' ? 'job' : 'pipeline',
+  )
   const [editingJob, setEditingJob] = useState(false)
   const teams = useApi(() => api.api.teams.$get().then((r) => r.json()), [])
-  // "This candidate" in the chat is the open drawer, else "this recruitment" is this page.
-  useScreen(
-    selected ? { view: 'candidate', id: selected.id } : { view: 'recruitment', id: Number(id) },
-  )
+  useScreen({ view: 'recruitment', id: Number(id) })
 
   // ponytail: no GET /jobs/:id yet; the list is three rows. Add the route when jobs grow.
   const job = useApi(
@@ -52,12 +52,6 @@ export function CandidatesPage() {
       }),
     [id],
   )
-  useEffect(() => {
-    if (!openId || !candidates.data) return
-    setSelected(candidates.data.find((c) => String(c.id) === openId) ?? null)
-    setParams({}, { replace: true })
-  }, [openId, candidates.data])
-
   const move = async (candidate: Candidate, stage: PipelineStage) => {
     const res = await api.api.candidates[':id'].stage.$patch({
       param: { id: String(candidate.id) },
@@ -69,20 +63,14 @@ export function CandidatesPage() {
     replace(moved)
   }
 
-  // After an edit or a CV upload: swap the row in the list and in the open drawer.
-  const replace = (c: Candidate) => {
+  const replace = (c: Candidate) =>
     candidates.setData((list) => list.map((x) => (x.id === c.id ? c : x)))
-    setSelected((s) => (s?.id === c.id ? c : s))
-  }
   const created = (c: Candidate) => {
     candidates.setData((list) => [...list, c])
     setCreating(false)
   }
-  const deleted = (c: Candidate) => {
-    candidates.setData((list) => list.filter((x) => x.id !== c.id))
-    setSelected(null)
-  }
 
+  if (openId) return <Navigate to={`candidates/${openId}`} replace />
   if (job.error || candidates.error) return <p className="text-destructive">{t('common.error')}</p>
 
   return (
@@ -146,21 +134,14 @@ export function CandidatesPage() {
         <p className="mt-4 text-muted-foreground">{t('common.loading')}</p>
       ) : (
         <div className="mt-4">
-          <KanbanBoard candidates={candidates.data} onOpen={setSelected} onMove={move} />
+          <KanbanBoard
+            candidates={candidates.data}
+            onOpen={(c) => navigate(`${APP_ROOT}/recruitments/${id}/candidates/${c.id}`)}
+            onMove={move}
+          />
         </div>
       )}
 
-      <CandidateDrawer
-        candidate={selected}
-        onClose={() => setSelected(null)}
-        onMove={move}
-        onChange={replace}
-        onDelete={deleted}
-        onOpenGuide={() => {
-          setSelected(null)
-          setView('guide')
-        }}
-      />
       {job.data && (
         <RecruitmentForm
           key={editingJob ? 'open' : 'closed'}

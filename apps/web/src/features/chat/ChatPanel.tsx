@@ -322,7 +322,7 @@ function Answer({ text, onNavigate }: { text: string; onNavigate: () => void }) 
             onClick={() =>
               go(
                 s.kind === 'candidate'
-                  ? `${APP_ROOT}/recruitments/${s.jobId}?candidate=${s.id}`
+                  ? `${APP_ROOT}/recruitments/${s.jobId}/candidates/${s.id}`
                   : s.kind === 'employee'
                     ? `${APP_ROOT}/employees?open=${s.id}`
                     : `${APP_ROOT}/recruitments/${s.id}`,

@@ -71,7 +71,6 @@ function load(): Store {
       return {
         questions: structuredClone(fixtures.questionRows),
         evaluations: seedEvaluations(),
-        prompts: AI_PROMPT_DEFAULTS,
         smtpSettings: DEMO_SMTP,
         emails: structuredClone(fixtures.emails),
         meetings: structuredClone(fixtures.meetings),
@@ -88,6 +87,8 @@ function load(): Store {
               chatEmployees: saved.aiSettings.chatEmployees ?? false,
             }
           : AI_SETTINGS_DEFAULTS,
+        // Prompts saved before 0.6.2 have no requirements text: the default fills it.
+        prompts: { ...AI_PROMPT_DEFAULTS, ...saved.prompts },
         // Jobs saved before 0.6.1 have no position details: the input schema's defaults fill them.
         jobs: (saved.jobs ?? []).map((j) => ({
           ...jobInputSchema.parse({ ...j, teamId: j.teamId ?? null }),

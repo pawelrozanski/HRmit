@@ -253,12 +253,13 @@
   },
   "prompts": {
     "title": "Prompty",
-    "intro": "Instrukcja, którą model dostaje przed danymi (ogłoszenie, CV, Twoje pytanie). Domyślne teksty trzymają zasadę HRmit: opisuj, nigdy nie oceniaj, nie rankinguj, nie punktuj. Jeśli je zmienisz, to, co robi model, jest Twoją decyzją i Twoją odpowiedzialnością. Ustrukturyzowane odpowiedzi nadal nie mają pola na ocenę ani werdykt.",
+    "intro": "Instrukcja, którą model dostaje przed danymi (ogłoszenie, CV, Twoje pytanie). Domyślne teksty trzymają zasadę HRmit: opisuj, nigdy nie oceniaj, nie rankinguj, nie punktuj; porównanie z wymaganiami oznacza każde wymaganie osobno, z uzasadnieniem i bez sumy (ADR 0010). Jeśli je zmienisz, to, co robi model, jest Twoją decyzją i Twoją odpowiedzialnością. Ustrukturyzowane odpowiedzi nadal nie mają pola na ocenę ani werdykt.",
     "keys": {
       "summarize": "Streszczenie CV",
       "competencies": "Wyciąganie kompetencji",
       "questions": "Pytania na rozmowę",
-      "chat": "Czat asystenta AI"
+      "chat": "Czat asystenta AI",
+      "requirements": "CV a wymagania"
     }
   },
   "backup": {
@@ -684,5 +685,28 @@
     "count_many": "{{count}} notatek",
     "count_other": "{{count}} notatki",
     "assistant": "Szkic asystenta AI, zatwierdzony przez Ciebie"
+  },
+  "match": {
+    "title": "CV a wymagania",
+    "run": "Porównaj z wymaganiami",
+    "disclaimer": "Sugestia AI na podstawie samego CV, osobno dla każdego wymagania: zielony – CV to pokazuje, żółty – częściowo, czerwony – brak wzmianki. Bez sumy i bez rankingu. Sprawdź uzasadnienie; decyzja należy do Ciebie.",
+    "cloudHint": "Przy dostawcy chmurowym nic nie wychodzi bez kliknięcia: CV i wymagania idą zanonimizowane.",
+    "noRequirements": "Ta rekrutacja nie ma jeszcze wymagań. Dodaj je w zakładce Szczegóły rekrutacji.",
+    "stale": "Wymagania zmieniły się od tego porównania. Uruchom je ponownie, żeby porównać z aktualną listą.",
+    "status": {
+      "met": "Jest w CV",
+      "partial": "Częściowo",
+      "missing": "Brak wzmianki"
+    }
+  },
+  "candidatePage": {
+    "overview": "Przegląd",
+    "interview": "Rozmowa",
+    "contact": "Kontakt"
+  },
+  "interview": {
+    "noQuestions": "Ta rekrutacja nie ma jeszcze pytań do rozmowy.",
+    "notYet": "Jeszcze bez ocen ({{m}} pytań w przewodniku).",
+    "open": "Otwórz arkusz ocen"
   }
 }

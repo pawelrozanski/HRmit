@@ -17,6 +17,7 @@ import {
   employeeNoteSchema,
   employeeWithTeamsSchema,
   fixtures,
+  requirementLines,
   interviewQuestionSchema,
   jobSchema,
   meetingPreviewSchema,
@@ -323,6 +324,18 @@ test('demo AI actions: 422 without CV, fixture answer after upload, persisted, d
   expect(persisted().candidates.find((c) => c.id === 2)).toMatchObject({
     aiSummaryJson: both.aiSummaryJson,
   })
+
+  // CV against the requirements: one item per job line, every status shows up on the demo CV.
+  const matched = candidateSchema.parse(await (await ai('requirements', 2)).json())
+  const items = matched.aiSummaryJson?.requirements?.items ?? []
+  expect(items.map((i) => i.requirement)).toEqual(
+    requirementLines(fixtures.jobs[0]!).map((l) => l.requirement),
+  )
+  expect(new Set(items.map((i) => i.status))).toEqual(new Set(['met', 'partial', 'missing']))
+  expect(candidateSchema.parse(await get('/api/candidates/2')).aiSummaryJson).toEqual(
+    matched.aiSummaryJson,
+  )
+  expect((await fetch('http://localhost/api/candidates/9999')).status).toBe(404)
 
   const gone = await fetch('http://localhost/api/ai/summary/2', { method: 'DELETE' })
   expect(candidateSchema.parse(await gone.json()).aiSummaryJson).toBeNull()

@@ -258,12 +258,61 @@ export const competenciesSchema = z.object({
 })
 export type Competencies = z.infer<typeof competenciesSchema>
 
+/**
+ * CV against the job's requirements (0.6.2, ADR 0010 amends 0004 here only): per requirement,
+ * whether the CV shows it, partly shows it or does not mention it, always with the evidence.
+ * One status per line, never summed: there is still no total, percentage or rank anywhere.
+ */
+export const MATCH_STATUSES = ['met', 'partial', 'missing'] as const
+export const matchStatusSchema = z.enum(MATCH_STATUSES)
+export type MatchStatus = z.infer<typeof matchStatusSchema>
+
+/** The job's requirements then nice-to-haves, one line each: what the prompt numbers from 1. */
+export const requirementLines = (job: Pick<Job, 'requirements' | 'niceToHave'>) =>
+  (['requirements', 'niceToHave'] as const).flatMap((field) =>
+    job[field]
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((requirement) => ({
+        requirement,
+        kind: field === 'requirements' ? ('required' as const) : ('niceToHave' as const),
+      })),
+  )
+
+/** What the model returns: the number of each requirement as given in the prompt. */
+export const requirementsMatchGenerationSchema = z.object({
+  items: z.array(
+    z.object({
+      index: z.number().int().describe('the number of the requirement in the list'),
+      status: matchStatusSchema.describe(
+        'met: the CV clearly shows it; partial: related or weaker experience; missing: the CV does not mention it',
+      ),
+      evidence: z.string().describe('where in the CV this shows, or what is missing; one sentence'),
+    }),
+  ),
+})
+
+/** Stored: the server puts the requirement text back from the job, so the model cannot alter it. */
+export const requirementsMatchSchema = z.object({
+  items: z.array(
+    z.object({
+      requirement: z.string(),
+      kind: z.enum(['required', 'niceToHave']),
+      status: matchStatusSchema,
+      evidence: z.string(),
+    }),
+  ),
+})
+export type RequirementsMatch = z.infer<typeof requirementsMatchSchema>
+
 const aiMeta = z.object({ generatedAt: z.string(), model: z.string() })
 
 /** Stored as candidate.aiSummaryJson: each action's last output plus when and by which model. */
 export const aiSummarySchema = z.object({
   summary: cvSummarySchema.extend(aiMeta.shape).optional(),
   competencies: competenciesSchema.extend(aiMeta.shape).optional(),
+  requirements: requirementsMatchSchema.extend(aiMeta.shape).optional(),
 })
 export type AiSummary = z.infer<typeof aiSummarySchema>
 

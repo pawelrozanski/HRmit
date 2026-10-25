@@ -13,17 +13,22 @@ import {
   getProvider,
   isLocalProvider,
   questionsGenerationSchema,
+  requirementLines,
+  requirementsMatchGenerationSchema,
+  type AiLang,
   type AiModels,
   type AiPreview,
   type AiSummary,
   type AiTestResult,
   type CvImport,
   type QuestionsProposal,
+  type RequirementsMatch,
 } from '@hrmit/shared'
 import { competenciesPrompt } from '../ai/prompts/competencies.ts'
 import { contactPrompt } from '../ai/prompts/contact.ts'
 import { questionsPrompt } from '../ai/prompts/questions.ts'
-import { summarizePrompt } from '../ai/prompts/summarize.ts'
+import { requirementsPrompt } from '../ai/prompts/requirements.ts'
+import { summarizePrompt, type JobText } from '../ai/prompts/summarize.ts'
 import { chatRoute } from './chat.ts'
 import { listQuestions, replaceQuestions } from './jobs.ts'
 import { createModel } from '../ai/provider.ts'
@@ -56,11 +61,26 @@ const loadCandidate = (id: string) =>
       aiSummaryJson: candidates.aiSummaryJson,
       title: jobs.title,
       description: jobs.description,
+      requirements: jobs.requirements,
+      niceToHave: jobs.niceToHave,
     })
     .from(candidates)
     .innerJoin(jobs, eq(jobs.id, candidates.jobId))
     .where(byId(id))
     .then((rows) => rows[0])
+
+/** Zip the model's numbered answer with the job's lines, in the job's order. */
+export function matchRequirements(
+  { items }: z.infer<typeof requirementsMatchGenerationSchema>,
+  job: JobText,
+): RequirementsMatch {
+  return {
+    items: requirementLines(job).flatMap((line, i) => {
+      const item = items.find((x) => x.index === i + 1)
+      return item ? [{ ...line, status: item.status, evidence: item.evidence }] : []
+    }),
+  }
+}
 
 /** Prompt debugging is opt-in and only ever sees the anonymized text (ADR 0005). */
 const LOG_PROMPTS = process.env.HRMIT_LOG_PROMPTS === '1'
@@ -74,21 +94,30 @@ const LOG_PROMPTS = process.env.HRMIT_LOG_PROMPTS === '1'
 const action = <K extends keyof AiSummary, S extends z.ZodType<object>>(
   key: K,
   schema: S,
-  prompt: typeof summarizePrompt,
-  promptKey: 'summarize' | 'competencies',
+  prompt: (job: JobText, cvText: string, lang: AiLang, text: string) => string,
+  promptKey: 'summarize' | 'competencies' | 'requirements',
+  // Turns the model output into what is stored; the identity for the plain actions.
+  store: (object: z.infer<S>, row: JobText) => object = (o) => o,
 ) =>
   new Hono().post('/:candidateId', zValidator('json', aiActionBodySchema), async (c) => {
     const where = byId(c.req.param('candidateId'))
     const row = await loadCandidate(c.req.param('candidateId'))
     if (!row) return c.json({ error: 'not found' }, 404)
     if (!row.cvText) return c.json({ error: 'no cv text' }, 422)
+    if (key === 'requirements' && requirementLines(row).length === 0)
+      return c.json({ error: 'no requirements' }, 422)
 
     const settings = await getAiSettings()
     const text = (await getAiPrompts())[promptKey]
     const local = isLocalProvider(settings)
     const lang = c.req.valid('json').lang
     const safe = prompt(
-      { title: row.title, description: anonymize(row.description, row).text },
+      {
+        title: row.title,
+        description: anonymize(row.description, row).text,
+        requirements: anonymize(row.requirements, row).text,
+        niceToHave: anonymize(row.niceToHave, row).text,
+      },
       anonymize(row.cvText, row).text,
       lang,
       text,
@@ -114,7 +143,11 @@ const action = <K extends keyof AiSummary, S extends z.ZodType<object>>(
     }
     const aiSummaryJson: AiSummary = {
       ...row.aiSummaryJson,
-      [key]: { ...object, generatedAt: new Date().toISOString(), model: settings.model },
+      [key]: {
+        ...store(object, row),
+        generatedAt: new Date().toISOString(),
+        model: settings.model,
+      },
     }
     const [candidate] = await db
       .update(candidates)
@@ -162,6 +195,18 @@ export const aiRoute = new Hono()
   .route(
     '/competencies',
     action('competencies', competenciesSchema, competenciesPrompt, 'competencies'),
+  )
+  // CV against the job's requirements (ADR 0010). The model answers by number; the text and
+  // kind come back from the job, an unknown or repeated number is dropped.
+  .route(
+    '/requirements',
+    action(
+      'requirements',
+      requirementsMatchGenerationSchema,
+      requirementsPrompt,
+      'requirements',
+      matchRequirements,
+    ),
   )
   // The chat assistant (ADR 0007): read-only tools, streamed NDJSON answer.
   .route('/chat', chatRoute)

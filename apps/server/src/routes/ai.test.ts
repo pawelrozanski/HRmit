@@ -129,6 +129,48 @@ test('AI actions: 404, 422 without CV text, then summary and competencies merged
   expect((await app.request('/api/ai/summary/9999', { method: 'DELETE' })).status).toBe(404)
 })
 
+test('POST /api/ai/requirements: numbered prompt, answer zipped with the job lines, 422 without requirements', async () => {
+  await putSettings({ ...CLOUD, apiKey: KEY })
+  // The model answers line 3 first, repeats 1 and invents 99: order and text come from the job.
+  generateObject.mockResolvedValueOnce({
+    object: {
+      items: [
+        { index: 3, status: 'partial', evidence: 'WCAG audits at an agency.' },
+        { index: 1, status: 'met', evidence: 'Four years of React.' },
+        { index: 1, status: 'missing', evidence: 'ignored duplicate' },
+        { index: 99, status: 'met', evidence: 'made up' },
+      ],
+    },
+  })
+  const c = candidateSchema.parse(await (await act('requirements', 1)).json())
+  const job = fixtures.jobs[0]!
+  const [first, , third] = job.requirements.split('\n')
+  expect(c.aiSummaryJson?.requirements?.items).toEqual([
+    { requirement: first, kind: 'required', status: 'met', evidence: 'Four years of React.' },
+    {
+      requirement: third,
+      kind: 'required',
+      status: 'partial',
+      evidence: 'WCAG audits at an agency.',
+    },
+  ])
+  const prompt = generateObject.mock.calls.at(-1)?.[0].prompt as string
+  expect(prompt).toContain(`1. ${first}`)
+  expect(prompt).toContain('5. Testing Library or Playwright (nice to have)')
+  expect(prompt).toContain('Candidate #1')
+  for (const pii of [amelia.lastName, amelia.email, amelia.phone]) expect(prompt).not.toContain(pii)
+  expect(prompt).not.toContain(String(job.salaryMin))
+
+  // A job without requirements has nothing to compare against.
+  await db.update(jobs).set({ requirements: '', niceToHave: '' }).where(eq(jobs.id, 1))
+  expect((await act('requirements', 1)).status).toBe(422)
+  await db
+    .update(jobs)
+    .set({ requirements: job.requirements, niceToHave: job.niceToHave })
+    .where(eq(jobs.id, 1))
+  await putSettings(AI_SETTINGS_DEFAULTS)
+})
+
 test('any catalog cloud provider gets the anonymized prompt (openai)', async () => {
   expect((await putSettings({ provider: 'openai', baseUrl: '', model: 'gpt-x' })).status).toBe(400)
   await putSettings({ provider: 'openai', baseUrl: 'https://api.openai.com/v1', model: 'gpt-x' })

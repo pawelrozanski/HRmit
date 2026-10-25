@@ -39,9 +39,9 @@ const keepOnBoard: Modifier = ({ transform, draggingNodeRect, scrollableAncestor
   return next
 }
 
-/** Five columns, one per stage. Drag a card to move it; the drawer has a keyboard fallback. */
+/** Five columns, one per stage. Drag a card to move it; the candidate's page has a keyboard fallback. */
 export function KanbanBoard({ candidates, onOpen, onMove }: Props) {
-  // 5px of movement before a drag starts, so a plain click still opens the drawer.
+  // 5px of movement before a drag starts, so a plain click still opens the candidate's page.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {

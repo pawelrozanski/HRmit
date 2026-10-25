@@ -36,6 +36,10 @@
   --border: color-mix(in oklch, var(--color-ink) 15%, white);
   --input: color-mix(in oklch, var(--color-ink) 25%, white);
   --ring: var(--color-brand);
+  /* CV against requirements (0.6.2): text colours that pass AA on white and cream. */
+  --match-met: var(--color-green-700);
+  --match-partial: var(--color-amber-700);
+  --match-missing: var(--color-red-700);
 }
 
 /* Dark, high contrast: brand orange carries text and accents, ink on brand for buttons.
@@ -60,6 +64,9 @@
   --border: color-mix(in srgb, white 35%, #0b0f14);
   --input: color-mix(in srgb, white 45%, #0b0f14);
   --ring: var(--color-brand);
+  --match-met: var(--color-green-400);
+  --match-partial: var(--color-amber-300);
+  --match-missing: var(--color-red-400);
 }
 
 @theme inline {
@@ -81,6 +88,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-match-met: var(--match-met);
+  --color-match-partial: var(--match-partial);
+  --color-match-missing: var(--match-missing);
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.625rem;

@@ -4,6 +4,22 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-10-25
+
+### Added
+
+- A page for every candidate at `/recruitments/:id/candidates/:candidateId`, replacing the side drawer: an overview with the requirements check, the interview at a glance (averages per competency and the interviewers' comments), the AI summary, notes, contact, CV, interviews and emails, and an Interview tab with the scorecard to fill in. Clicking a card on the board opens it; links from the dashboard and the assistant go there too.
+- CV against the requirements (ADR 0010): per requirement and nice-to-have of the recruitment, the AI marks what the CV shows in green (in the CV), amber (partly) or red (not mentioned), each with a sentence of evidence. No total, no percentage, no ranking. With a local model it runs by itself the first time the page opens; with a cloud provider only on a click, anonymized. Its prompt is editable in Settings → AI.
+- `GET /api/candidates/:id`.
+
+### Changed
+
+- Product rule 1 and ADR 0004 are amended for this one view, by the owner's decision; see ADR 0010 for the safeguards.
+
+### Removed
+
+- The candidate drawer.
+
 ## [0.6.1] - 2026-10-25
 
 ### Added

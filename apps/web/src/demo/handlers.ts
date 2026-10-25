@@ -25,6 +25,8 @@ import {
   smtpSettingsSchema,
   teamInputSchema,
   isLocalProvider,
+  requirementLines,
+  type MatchStatus,
   type AiPreview,
   type AiSummary,
   type AiModels,
@@ -606,6 +608,45 @@ export const handlers = [
       },
     ),
   ),
+  // CV against the requirements (ADR 0010). No model runs on GitHub Pages.
+  // ponytail: keyword overlap between each requirement line and the CV stands in for the model;
+  // good enough for the one fictional CV the demo attaches.
+  http.post(`${base}/api/ai/requirements/:candidateId`, async ({ params, request }) => {
+    const body = aiActionBodySchema.safeParse(await request.json())
+    if (!body.success) return invalid()
+    const candidate = store.candidates.find((c) => c.id === Number(params.candidateId))
+    if (!candidate) return notFound()
+    if (!candidate.cvText) return HttpResponse.json({ error: 'no cv text' }, { status: 422 })
+    const job = store.jobs.find((j) => j.id === candidate.jobId)!
+    if (requirementLines(job).length === 0)
+      return HttpResponse.json({ error: 'no requirements' }, { status: 422 })
+    await delay(1200)
+    const cv = candidate.cvText
+    const sentences = cv.split(/(?<=[.:])\s+|\n+/).filter(Boolean)
+    const items = requirementLines(job).map((line) => {
+      const words = line.requirement.toLowerCase().match(/[\p{L}\d+#]{4,}/gu) ?? []
+      const found = words.filter((w) => cv.toLowerCase().includes(w))
+      const status: MatchStatus =
+        found.length === 0 ? 'missing' : found.length >= words.length / 2 ? 'met' : 'partial'
+      const sentence = sentences.find((s) => found.some((w) => s.toLowerCase().includes(w)))
+      const evidence = sentence
+        ? `"${sentence.trim()}"`
+        : body.data.lang === 'pl'
+          ? 'CV o tym nie wspomina.'
+          : 'The CV does not mention it.'
+      return { ...line, status, evidence }
+    })
+    candidate.aiSummaryJson = {
+      ...candidate.aiSummaryJson,
+      requirements: { items, generatedAt: new Date().toISOString(), model: store.aiSettings.model },
+    }
+    save()
+    return HttpResponse.json(candidate)
+  }),
+  http.get(`${base}/api/candidates/:id`, ({ params }) => {
+    const candidate = store.candidates.find((c) => c.id === Number(params.id))
+    return candidate ? HttpResponse.json(candidate) : notFound()
+  }),
   // The fixture set of the job (new jobs reuse job 1's) after a model-like pause.
   http.post(`${base}/api/ai/questions/:jobId`, async ({ params, request }) => {
     if (!aiActionBodySchema.safeParse(await request.json()).success) return invalid()

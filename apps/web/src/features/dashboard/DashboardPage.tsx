@@ -34,7 +34,7 @@ const STAGE_TINT: Record<PipelineStage, string> = {
 }
 
 const candidateLink = (jobId: number, candidateId: number) =>
-  `${APP_ROOT}/recruitments/${jobId}?candidate=${candidateId}`
+  `${APP_ROOT}/recruitments/${jobId}/candidates/${candidateId}`
 
 /**
  * What needs attention today, from GET /api/dashboard. No AI: every number is a plain query.

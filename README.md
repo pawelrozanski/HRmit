@@ -13,19 +13,19 @@
 <p align="center">
   <a href="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml"><img src="https://github.com/pawelrozanski/HRmit/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-C2410C.svg" alt="MIT license" /></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.6.1-F26B1D.svg" alt="Version 0.6.1" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.6.2-F26B1D.svg" alt="Version 0.6.2" /></a>
 </p>
 
 ## What it does
 
-- **Dashboard** as the first screen: interviews in the next seven days, candidates waiting too long in a stage, missing scorecards, open recruitments with a funnel, failed emails. Plain queries, no AI, every row opens the right drawer.
+- **Dashboard** as the first screen: interviews in the next seven days, candidates waiting too long in a stage, missing scorecards, open recruitments with a funnel, failed emails. Plain queries, no AI, every row opens the right page or drawer.
 - **Recruitments and candidates** with a kanban pipeline: applied → screening → interview → offer / rejected. Drag cards, or use the stage select for keyboard use.
 - **CV upload** (PDF, DOCX, validated by magic bytes) with text extraction, stored on your disk.
 - **Import from CV**: a new candidate's name, email and phone prefilled from the uploaded CV by the local model (or a regex fallback), for you to check.
 - **Employees and teams**: the hiring side with positions, duties and a team lead per team; a recruitment can be assigned to a team and filtered by it. Employees are never sent to an AI provider.
 - **Employee notes**: plain-text notes on an employee (availability, agreements, preferences) with an optional title, added and read in a dialog, newest first, deleted with the employee.
 - **Messages to employees and teams**: a plain-text email to one employee from the drawer, or to picked members of a team (select all, leads only) from the team page, one mail per recipient through your SMTP settings; a history with sent/failed status next to the notes and on the team page.
-- **AI assistant** that summarizes a CV, extracts competencies and proposes structured interview questions per job. It describes; it never scores, ranks or rejects.
+- **AI assistant** that summarizes a CV, extracts competencies and proposes structured interview questions per job. It describes; it never scores, ranks or rejects. Since 0.6.2 each candidate has a page of their own where the AI marks, requirement by requirement, whether the CV shows it (green), partly (amber) or not at all (red), each with the line of the CV it read; there is no total and no ranking, and it runs by itself only with a local model.
 - **Chat assistant** on every page: ask "what do I have tomorrow?", "how is the Frontend recruitment going?", "who has been waiting the longest?". The model answers through tools over your data (tool calling), never from a dump of the database, and never ranks: asked who is best, it lists the facts from the scorecards and says the decision is yours. Since 0.6.0 it also reads notes, scorecards, the requirements of a recruitment and, if you allow it, employees, and it can draft a note that only your click saves. With a cloud provider it sees `Candidate #N` and `Employee #N`; the names are filled in by your browser.
 - **Structured interviews**: one editable question list per job, grouped by competency, the same for every candidate.
 - **Scorecards** with identical criteria, averages per competency, never a single ranking number. Works in **blind-screening** mode, which hides names and contact details.
@@ -58,7 +58,7 @@ AI works the same way. The default model runs on your machine through [Ollama](h
 
 ## Design decisions
 
-- **AI assists, never judges.** It summarizes, extracts competencies and proposes questions. It cannot rank, score or reject anyone: the output schemas have no field for it. Recruitment AI is high-risk under the EU AI Act, and GDPR art. 22 limits automated decisions. The decision is always yours. ([ADR 0004](docs/adr/0004-ai-assistant-not-judge.md))
+- **AI assists, never judges.** It summarizes, extracts competencies and proposes questions. It cannot rank, score or reject anyone: the output schemas have no field for it. The one exception is the per-requirement colour on the candidate page, with its evidence and no total ([ADR 0010](docs/adr/0010-cv-requirements-match.md)). Recruitment AI is high-risk under the EU AI Act, and GDPR art. 22 limits automated decisions. The decision is always yours. ([ADR 0004](docs/adr/0004-ai-assistant-not-judge.md))
 - **Local by default, cloud by choice, anonymized always.** ([ADR 0005](docs/adr/0005-byok-anonymization.md))
 - **The demo is the real app.** The same frontend is built with a flag that swaps the backend for a browser-side mock. No separate mock-up to drift. ([ADR 0003](docs/adr/0003-demo-mode-msw.md))
 - **One language, one repo.** TypeScript end to end, with types flowing from the server's routes into the UI. ([ADR 0001](docs/adr/0001-stack.md))
@@ -134,7 +134,7 @@ Short version; the full review is in [docs/SECURITY.md](docs/SECURITY.md).
 
 ## Roadmap and out of scope
 
-Stages 0 to 11 of [docs/ROADMAP.md](docs/ROADMAP.md) are shipped as 0.1.0, CV import, the settings sidebar and the dark theme as 0.2.0, employees and teams as 0.3.0, employee notes as 0.3.1, titled notes in dialogs as 0.3.2, the AI provider catalog as 0.3.3, messages to employees and teams as 0.4.0, the dashboard and the chat assistant as 0.5.0, custom email templates as 0.5.1, editable prompts as 0.5.2, the backup download as 0.5.3, recovery, the off switch and the grouped settings as 0.5.4, the update check and the Windows installer as 0.5.5, the assistant reading notes, scorecards and employees and drafting notes for your approval as 0.6.0, the position details of a recruitment (level, requirements, nice-to-haves, salary range) as 0.6.1; see [CHANGELOG.md](CHANGELOG.md). Tracked but not planned: inbound applications over IMAP, Google Meet, a desktop installer, multi-user with authentication, a local NER model for anonymization, stage history and audit log.
+Stages 0 to 11 of [docs/ROADMAP.md](docs/ROADMAP.md) are shipped as 0.1.0, CV import, the settings sidebar and the dark theme as 0.2.0, employees and teams as 0.3.0, employee notes as 0.3.1, titled notes in dialogs as 0.3.2, the AI provider catalog as 0.3.3, messages to employees and teams as 0.4.0, the dashboard and the chat assistant as 0.5.0, custom email templates as 0.5.1, editable prompts as 0.5.2, the backup download as 0.5.3, recovery, the off switch and the grouped settings as 0.5.4, the update check and the Windows installer as 0.5.5, the assistant reading notes, scorecards and employees and drafting notes for your approval as 0.6.0, the position details of a recruitment (level, requirements, nice-to-haves, salary range) as 0.6.1, the candidate page with the CV compared to the requirements as 0.6.2; see [CHANGELOG.md](CHANGELOG.md). Tracked but not planned: inbound applications over IMAP, Google Meet, a desktop installer, multi-user with authentication, a local NER model for anonymization, stage history and audit log.
 
 Issues and pull requests are welcome; please keep commits small and follow Conventional Commits.
 

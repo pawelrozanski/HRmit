@@ -30,7 +30,7 @@ test('landing renders and leads to the demo', async ({ page }) => {
   await expectNoSeriousA11y(page)
 })
 
-test('kanban, drawer, reset and language', async ({ page }) => {
+test('kanban, candidate page, reset and language', async ({ page }) => {
   await page.goto('./demo/recruitments')
   await page.getByRole('link', { name: /Frontend Developer/ }).click()
   await expect(page.getByRole('heading', { name: 'Frontend Developer (React)' })).toBeVisible()
@@ -38,15 +38,19 @@ test('kanban, drawer, reset and language', async ({ page }) => {
     await expect(page.getByRole('region', { name: stage })).toBeVisible()
   await expectNoSeriousA11y(page)
 
-  // Keyboard path: the card is a button, the drawer's stage select moves the candidate.
+  // Keyboard path: the card is a button that opens the candidate's page (0.6.2), whose stage
+  // select moves the candidate.
   const card = page.getByRole('button', { name: 'Priya Lennox' })
   await card.focus()
   await page.keyboard.press('Enter')
-  const drawer = page.getByRole('dialog')
-  await expect(drawer.getByRole('heading', { name: 'Priya Lennox' })).toBeVisible()
-  await expect(drawer.getByText('AI assistant')).toBeVisible()
-  await drawer.getByRole('combobox', { name: 'Move to stage' }).selectOption('offer')
-  await page.keyboard.press('Escape')
+  await expect(page).toHaveURL(/\/recruitments\/1\/candidates\/3$/)
+  await expect(page.getByRole('heading', { name: 'Priya Lennox' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'CV against the requirements' })).toBeVisible()
+  await expectNoSeriousA11y(page)
+  await page.getByRole('combobox', { name: 'Move to stage' }).selectOption('offer')
+  await page.getByRole('tab', { name: 'Interview' }).click()
+  await expect(page.getByRole('radiogroup').first()).toBeVisible()
+  await page.getByRole('link', { name: /Frontend Developer/ }).click()
   await expect(page.getByRole('region', { name: 'Offer' }).getByText('Priya Lennox')).toBeVisible()
 
   // Persisted in localStorage, so it survives a reload and is gone after "Reset demo".
@@ -248,8 +252,7 @@ test('email templates: tiles, dialog, custom template in the send dialog', async
   // The send dialog lists it and renders its placeholders.
   await page.goto('./demo/recruitments/1')
   await page.getByRole('button', { name: 'Priya Lennox' }).click()
-  const drawer = page.getByRole('dialog')
-  await drawer.getByRole('button', { name: 'Send email' }).click()
+  await page.getByRole('button', { name: 'Send email' }).click()
   const send = page.getByRole('dialog', { name: /Send email to/ })
   await send.getByRole('combobox', { name: 'Template' }).selectOption({ label: 'Offer' })
   await expect(send.getByLabel('Subject')).toHaveValue('Offer: Frontend Developer (React)')
@@ -411,7 +414,7 @@ test('recovery: the downloaded backup goes back in and the app reloads', async (
   await page.goto('./demo/recruitments/1')
   await page.getByRole('button', { name: 'Priya Lennox' }).click()
   page.once('dialog', (d) => d.accept())
-  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Delete' }).click()
   await expect(page.getByRole('button', { name: 'Priya Lennox' })).toHaveCount(0)
 
   await page.goto('./demo/settings/backup')

@@ -13,7 +13,7 @@ const SCORES = [1, 2, 3, 4, 5] as const
 
 /**
  * Structured interview scorecard (ADR 0004): the job's questions, a human's 1 to 5 score and a
- * note on each, averaged per competency. Deliberately no total and no comparison: the drawer
+ * note on each, averaged per competency. Deliberately no total and no comparison: the page
  * shows one candidate, and the numbers describe answers, not a verdict. Nothing identifying is
  * rendered, so blind mode needs no special case.
  */

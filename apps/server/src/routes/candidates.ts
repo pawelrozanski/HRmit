@@ -116,6 +116,14 @@ export const candidatesRoute = new Hono()
       .returning(candidateColumns)
     return c.json(row, 201)
   })
+  // One candidate, for the candidate page (0.6.2).
+  .get('/:id', async (c) => {
+    const [row] = await db
+      .select(candidateColumns)
+      .from(candidates)
+      .where(byId(c.req.param('id')))
+    return row ? c.json(row) : c.json({ error: 'not found' }, 404)
+  })
   // Full replace of the editable fields; a stage change here is stamped like PATCH /stage.
   .put('/:id', zValidator('json', candidateInputSchema), async (c) => {
     const where = byId(c.req.param('id'))

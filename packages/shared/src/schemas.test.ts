@@ -18,6 +18,9 @@ import {
   pipelineStageSchema,
   questionsGenerationSchema,
   questionsProposalSchema,
+  requirementLines,
+  requirementsMatchGenerationSchema,
+  requirementsMatchSchema,
   teamMemberLinkSchema,
   teamRowSchema,
 } from './schemas.ts'
@@ -85,6 +88,9 @@ test('AI output schemas have no score, rank or verdict field anywhere', () => {
     aiSummarySchema,
     questionsGenerationSchema,
     questionsProposalSchema,
+    // ADR 0010: a status per requirement, still no total, rank or verdict key.
+    requirementsMatchGenerationSchema,
+    requirementsMatchSchema,
     // Chat tools (ADR 0007): what the model is handed has no verdict field either.
     ...Object.values(chatToolInputs),
     ...Object.values(chatToolOutputs),
@@ -153,4 +159,12 @@ test('fixture teams and employees pass the schemas; one lead per team, valid lin
   expect(employeeInputSchema.parse(input)).toMatchObject({ hiredAt: null, duties: '' })
   expect(() => employeeInputSchema.parse({ ...input, hiredAt: '2026-13-01' })).toThrow()
   expect(jobInputSchema.parse({ title: 'x' }).teamId).toBeNull()
+})
+
+test('requirementLines: requirements then nice-to-haves, blank lines dropped', () => {
+  expect(requirementLines({ requirements: ' React \n\nTypeScript', niceToHave: 'Figma' })).toEqual([
+    { requirement: 'React', kind: 'required' },
+    { requirement: 'TypeScript', kind: 'required' },
+    { requirement: 'Figma', kind: 'niceToHave' },
+  ])
 })

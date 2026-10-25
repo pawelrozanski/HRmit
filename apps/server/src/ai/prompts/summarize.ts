@@ -1,4 +1,7 @@
-import { AI_PROMPT_DEFAULTS, renderTemplate, type AiLang } from '@hrmit/shared'
+import { AI_PROMPT_DEFAULTS, renderTemplate, type AiLang, type Job } from '@hrmit/shared'
+
+/** The job fields a CV action may see; requirements only the requirements match uses. */
+export type JobText = Pick<Job, 'title' | 'description' | 'requirements' | 'niceToHave'>
 
 export const LANG: Record<AiLang, string> = { en: 'English', pl: 'Polish' }
 

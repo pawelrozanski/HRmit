@@ -44,7 +44,7 @@ export function ProposalCard({ proposal, onChange, onNavigate }: Props) {
     target === 'candidate' ? refs.candidates[draft.id]?.name : refs.employees[draft.id]?.name
   const link =
     target === 'candidate'
-      ? `${APP_ROOT}/recruitments/${refs.candidates[draft.id]?.jobId ?? ''}?candidate=${draft.id}`
+      ? `${APP_ROOT}/recruitments/${refs.candidates[draft.id]?.jobId ?? ''}/candidates/${draft.id}`
       : `${APP_ROOT}/employees?open=${draft.id}`
 
   const store = async () => {
@@ -59,7 +59,7 @@ export function ProposalCard({ proposal, onChange, onNavigate }: Props) {
     if (res.status !== 201) return setFailed(true)
     const saved = await res.json()
     onChange({ ...proposal, saved })
-    // The drawer under the panel may show this person's notes: hand it the new row.
+    // The page under the panel may show this person's notes: hand it the new row.
     window.dispatchEvent(new CustomEvent(NOTE_SAVED, { detail: saved }))
   }
 
