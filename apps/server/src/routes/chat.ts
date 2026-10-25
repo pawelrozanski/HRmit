@@ -41,7 +41,7 @@ const DESCRIPTIONS: Record<ChatToolName, string> = {
   searchEmployees:
     'Employees (interviewers, hiring managers): position, duties, teams and role. By id, by part of a name or position, or by team name.',
   proposeNote:
-    'Draft a note about a candidate or an employee for the recruiter to approve. Saves nothing: the recruiter sees the draft and decides. Only when asked to note something down.',
+    'Call this whenever the recruiter asks you to note, write down, record or save something about a candidate or an employee. It drafts the note for the recruiter to approve and saves nothing itself. Never call it unasked.',
 }
 
 /**

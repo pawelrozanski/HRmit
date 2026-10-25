@@ -145,6 +145,10 @@ _(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were t
 
 ## After the MVP
 
+### 0.6.0: Assistant reads notes, scorecards and employees, and drafts notes
+
+_(done 2026-10-25; ADR 0009 amends 0007 in three places, each with a safeguard: the chat may propose a note but only a click saves it, notes are read but anonymized for a cloud provider, employees are read with a local provider always and with a cloud one only behind a new switch in Settings → AI; candidates got a `candidate_notes` table shaped like `employee_notes`, both with a `source` column, and migration 0013 moved the old free-text field into the first note while leaving the column in place; the scorecard rating is keyed `rating` so the no-verdict test stays as it was; eleven tools instead of seven after merging the employee lookups into `searchEmployees` and the notes of both kinds into `getNotes`, the step limit went from 5 to 8; the security review's captured payload found that the inflected matching of the four-letter name "Theo" swallowed the word "the", fixed in `anonymize()`; qwen2.5:7b-instruct picked the right read tools in both languages and called `proposeNote` inside a longer "compare and note it down" request, but a bare "note down a summary" never reached `proposeNote` in either language, and "who is best" in Polish once answered without a tool, see ARCHITECTURE §5.3; verified locally against Ollama and in the demo build in the embedded browser)_
+
 ### 0.5.5: Update check and the Windows installer
 
 _(done 2026-10-25; "Check for updates" asks GitHub for the newest tag, and in a git checkout a detached updater fast-forwards to it after an optional backup into `data/backups/`; an Electron build was tried for the installer and dropped in favour of the browser: `apps/windows` ships the build's `node.exe` as `HRmit.exe`, the bundled server and a launcher behind a desktop shortcut, packed by NSIS, about 25 MB, per user; it was installed, started from the shortcut, shut down and uninstalled on the development machine; the release workflow had not run before this tag; see ADR 0008)_

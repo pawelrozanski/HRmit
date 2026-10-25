@@ -4,6 +4,25 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-25
+
+### Added
+
+- The AI assistant reads more of your data (ADR 0009): the full description and interview guide of a recruitment with its team, a candidate's scorecard (the interviewers' ratings and comments per question, averages per competency, never a total), the notes on a candidate or an employee, and the position, duties and teams of employees. Suggested questions follow: "Show the interview ratings" and "Note down a summary of the interview" in the candidate drawer, "What are the requirements?" in a recruitment, "What do the notes say?" and "What is this person's role?" in the employee drawer.
+- The assistant can draft a note. It never saves one: the draft appears as a card under the answer with Save, Edit and Discard, you read the whole text, and Save stores it through the ordinary notes endpoint. Such a note is marked "Drafted by the AI assistant, approved by you" in the drawer.
+- Notes on candidates: a dated list with optional titles in the candidate drawer, like the one employees had. The old free-text "Notes" field became the candidate's first note.
+- Settings → AI: "Employee data in the assistant (cloud)", off by default. With a cloud provider the assistant cannot read employees at all until you turn it on; then names become "Employee #N" and notes are anonymized like candidate data. A local provider may always.
+
+### Changed
+
+- With a cloud provider the chat now sends notes and interviewer comments after anonymization; the panel's hint and the consent dialog say so. Every candidate's and employee's name, email and phone is replaced in that text, declensions included.
+- The chat's step limit is 8 model turns instead of 5, so a question that needs the recruitment, the candidate, the scorecard and a note fits in one answer.
+- The "Who is the best candidate?" demo answer still refuses to rank and now shows rated/total questions per competency.
+
+### Fixed
+
+- Anonymization in inflected mode treated the word "the" as the name "Theo" and replaced it with "Candidate #2". Four-letter names now keep their last letter.
+
 ## [0.5.5] - 2026-10-25
 
 ### Added

@@ -1,7 +1,7 @@
 # 0007. Chat assistant over read-only tools
 
 Date: 2026-10-25
-Status: accepted (amends the "no open chat" point of [0004](0004-ai-assistant-not-judge.md); everything else in 0004 stays in force)
+Status: accepted (amends the "no open chat" point of [0004](0004-ai-assistant-not-judge.md); everything else in 0004 stays in force). The read-only, no-notes and no-employees points are amended by [0009](0009-chat-notes-scorecards-employees.md)
 
 ## Context
 
