@@ -28,6 +28,7 @@ apps/web/src/api/        the ONE place that calls the backend (hono/client, type
 apps/web/src/demo/       MSW handlers + localStorage store; code-split, only in VITE_DEMO builds
 apps/web/src/features/   one folder per feature (jobs, candidates, pipeline, ai, settings, email)
 apps/web/src/i18n/       en.json, pl.json
+apps/windows/            Windows installer: bundled Node + launcher that opens the browser (ADR 0008); `pnpm --filter @hrmit/windows dist`
 apps/server/src/routes/  one Hono sub-app per resource, chained with .route() in app.ts
 apps/server/src/db/      Drizzle schema + migrations
 apps/server/src/ai/      provider factory, prompts, output schemas

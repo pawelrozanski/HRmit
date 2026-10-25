@@ -53,6 +53,7 @@ HRmit/
 │   │       ├── features/    # jobs, candidates, pipeline, ai, settings, email, ...
 │   │       ├── i18n/        # en.json, pl.json
 │   │       └── pages/       # Landing (/), app routes (/demo/* on Pages, /* locally)
+│   ├── windows/             # Windows installer: bundled Node, browser launcher (ADR 0008)
 │   └── server/              # Hono on Node
 │       └── src/
 │           ├── routes/      # one file per resource, exported as a typed Hono app
@@ -64,7 +65,7 @@ HRmit/
 │   └── shared/              # zod schemas, TS types, enums, anonymize(), demo fixtures
 ├── docs/                    # this file, adr/, ROADMAP.md
 ├── data/                    # runtime data, gitignored (HRMIT_DATA_DIR overrides)
-└── .github/workflows/       # ci.yml (lint, test, build), pages.yml (deploy demo)
+└── .github/workflows/       # ci.yml (lint, test, build), pages.yml (deploy demo), release.yml (Windows installer on a tag)
 ```
 
 Why a monorepo: the web app imports the server's route _types_ (not its code) and gets a fully typed API client for free. The shared package holds everything both sides need: validation schemas, enums like pipeline stages, the anonymizer, and the demo fixtures that also seed the local database.
@@ -202,6 +203,8 @@ Design notes:
 - **The anonymized label is derived**, never stored: `Candidate #<id>`.
 - **Settings is a key-value table.** Keys like `ai.provider`, `ai.baseUrl`, `ai.model`, `ai.apiKey`, `ai.prompt.<key>`, `smtp.host`, `smtp.port`, `smtp.secure`, `smtp.user`, `smtp.pass`, `smtp.from`, `smtp.companyName`. Keys on a secret list (`ai.apiKey`, `smtp.pass`) are encrypted on write and never returned by the API, which answers `hasApiKey: true` or `hasPass: true` instead.
 - **Backup and restore** (0.5.3, 0.5.4). `GET /api/backup` answers with a `.tar.gz` holding `hrmit.db` (a `VACUUM INTO` snapshot, so the WAL is folded in and the copy is consistent) and every file under `uploads/`, packed by a 40-line ustar writer in `apps/server/src/backup/tar.ts` plus `node:zlib`, no dependency; `master.key` is never included (docs/SECURITY.md). `POST /api/backup/restore` takes the same archive as a multipart file, checks it (gunzip and tar parse, `hrmit.db` present, upload names flat with no path parts, the database opens read-only, passes `PRAGMA integrity_check` and has the `jobs` and `candidates` tables), then `replaceDatabase()` in `db/index.ts` closes the `node:sqlite` handle, deletes the old file with its `-wal` and `-shm`, writes the new one, reopens it and runs the migrations and seeds again, so an older backup comes up to date; the Drizzle proxy reads the handle variable per call, so nothing else changes. The `uploads/` folder is replaced whole. The UI reloads the page afterwards since every cache is stale. The demo serves its localStorage store as one JSON file and takes it back the same way.
+- **Update** (0.5.5). "Check for updates" in Settings → General calls `GET /api/update`, which reads the tag list from the GitHub API (the only call to GitHub, and only on that click) and compares the highest `vX.Y.Z` with `VERSION`. `POST /api/update` checks again on the server, refuses (409) outside a git checkout, when up to date or when tracked files have local changes, writes a backup to `data/backups/` when the checkbox is on (default), and starts `apps/server/src/update/updater.ts` as a detached `node` process: `git fetch` of the tag, `git merge --ff-only`, `pnpm install --frozen-lockfile` only when the lockfile changed, then it rewrites the server entry file so `tsx watch` restarts once more. It runs outside the server because the merge makes `tsx watch` restart the server. Progress lives in `data/update.json` (`GET /api/update/status`), command output in `data/update.log`; the dialog polls and reloads when the server reports the target version. Without `tsx watch` (`pnpm start`) the dialog asks for a manual restart; the Docker image has no `.git` and the dialog shows the rebuild steps. (ponytail: no lock against two runs; the dialog disables its button.)
+- **Windows installer** (0.5.5, ADR 0008). `apps/windows/build.js` bundles the server into one ESM file with esbuild (a `createRequire` banner for the CommonJS dependencies). It copies the migrations, the web build, `launcher.mjs`, the icon and the building `node.exe` as `HRmit.exe` into `dist/`, and `installer.nsi` packs that into a per-user NSIS installer. The desktop and Start menu shortcut runs `HRmit.exe launcher.mjs` minimized. When `127.0.0.1:7300/api/health` does not answer, the launcher starts `server.mjs` detached and hidden, with `PORT`, `HRMIT_DATA_DIR` (`%APPDATA%\HRmit\data`), `HRMIT_WEB_DIST`, `HRMIT_MIGRATIONS_DIR` and `HRMIT_INSTALLER`, and its output appended to `%APPDATA%\HRmit\hrmit.log`. In every case it then opens the address in the default browser. Stopping is the Shutdown button. The update check answers `install: 'installer'`, and the dialog links to the new installer.
 
 ## 4. API layer and demo mode
 
@@ -239,6 +242,7 @@ Calling `api.api.candidates.$get()` in the UI is type-checked against the server
 | settings    | get (secrets masked), update                                                                                                                                                                                                                                                                                                                                                |
 | backup      | `GET /backup` (snapshot + CVs as .tar.gz), `POST /backup/restore` (the same file back)                                                                                                                                                                                                                                                                                      |
 | shutdown    | `POST /shutdown`: answers `{ok: true}`, then the process exits (the off switch in General)                                                                                                                                                                                                                                                                                  |
+| update      | `GET /update` (newest `vX.Y.Z` tag on GitHub vs. the running version), `POST /update` (`{backup}`; starts the detached updater, 202), `GET /update/status`                                                                                                                                                                                                                  |
 
 Every request body is validated with the shared zod schemas through `@hono/zod-validator`.
 

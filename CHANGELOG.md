@@ -4,6 +4,11 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+### Added
+
+- Windows installer (ADR 0008): `HRmit-Setup-<version>.exe` on GitHub Releases, about 25 MB, built by a workflow on every version tag. It needs no administrator rights, Node or terminal, and adds an HRmit shortcut on the desktop and in the Start menu. The shortcut starts HRmit in the background and opens it in the browser at `http://127.0.0.1:7300`; "Shut down HRmit" stops it. Data lives in `%APPDATA%\HRmit\data` and stays on update and uninstall. Not signed yet; the README explains the SmartScreen warning. "Check for updates" links to the new installer there.
+- Check for updates: a button in Settings → General opens a dialog that asks GitHub for the newest release. When one is newer it offers to update, with "Back up my data first" checked by default (saved to `data/backups/`). The update fetches the release tag, fast-forwards the git checkout, installs dependencies when the lockfile changed, and the page reloads when the restarted server reports the new version. Refused with a message for a checkout with local changes; the Docker image gets the rebuild steps instead. Hidden in the demo.
+
 ## [0.5.4] - 2026-10-25
 
 ### Added

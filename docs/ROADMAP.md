@@ -188,7 +188,6 @@ _(done 2026-10-21; additive migration 0008 adds `employees`, `teams`, `team_memb
 
 - Inbound applications via IMAP (`imapflow`).
 - Google Meet integration (OAuth).
-- Desktop installer (Tauri).
 - Multi-user with authentication.
 - Local NER model for anonymization.
 - Stage history and audit log.

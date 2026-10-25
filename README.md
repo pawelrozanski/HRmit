@@ -71,7 +71,13 @@ Full picture in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); the review notes a
 
 A clickable demo with fictional candidates lives at **https://pawelrozanski.github.io/HRmit/**. It is the same app built with `VITE_DEMO=true`: a service worker in your browser answers every API call from fixtures and keeps your changes in `localStorage`. Nothing is sent anywhere; AI answers are pre-recorded. "Reset demo" in the banner restores the fixtures.
 
-## Getting started
+## Download for Windows
+
+Get **`HRmit-Setup-<version>.exe`** from the [latest release](https://github.com/pawelrozanski/HRmit/releases/latest) and run it. It installs for your user only, so no administrator rights are needed, and puts an **HRmit** icon on the desktop and in the Start menu. Clicking it starts HRmit in the background and opens it in your browser at http://127.0.0.1:7300. To stop HRmit, use Settings → General → Shut down HRmit. Your data stays in `%APPDATA%\HRmit\data` on your computer and is kept when you update or uninstall.
+
+The installer is not signed yet, so Windows shows "Windows protected your PC" the first time. Click **More info**, then **Run anyway**. To update, use Settings → General → Check for updates, which links to the new installer; run it over the old version.
+
+## Getting started (from source)
 
 Requirements: [Node 24+](https://nodejs.org) and pnpm (`npm install -g pnpm`).
 
