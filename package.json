@@ -1,7 +1,7 @@
 {
   "name": "hrmit",
   "private": true,
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Local-first ATS with an AI assistant. Your recruitment data stays home.",
   "license": "MIT",
   "type": "module",

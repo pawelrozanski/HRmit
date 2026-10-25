@@ -4,6 +4,8 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-10-25
+
 ### Added
 
 - Shut down HRmit: a button in Settings → General stops the server on this computer after a confirm (`POST /api/shutdown`, answers then exits). Hidden in the demo.
@@ -13,7 +15,7 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 - The prompt editor moved from AI settings to its own tab, Settings → AI prompts.
 - The Backup tab is called Backup & Recovery.
-- The settings tab list is grouped: General on its own, then AI (AI settings, AI prompts), Mail (Email (SMTP), Email templates) and Files (Backup & Recovery), each group a labelled tab list with a line above it.
+- The settings tab list is grouped: General, then AI (AI settings, AI prompts), Mail (Email (SMTP), Email templates) and Files (Backup & Recovery), each group a labelled tab list with a line above it.
 - About HRmit links to the license next to the changelog and GitHub.
 
 ## [0.5.3] - 2026-10-25
@@ -160,7 +162,8 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.4...HEAD
+[0.5.4]: https://github.com/pawelrozanski/HRmit/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/pawelrozanski/HRmit/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/pawelrozanski/HRmit/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/pawelrozanski/HRmit/compare/v0.5.0...v0.5.1
