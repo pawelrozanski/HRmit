@@ -236,6 +236,7 @@ Calling `api.api.candidates.$get()` in the UI is type-checked against the server
 | templates   | list, create, update, delete (custom only), restore (built-in only)                                                                                                                                                                                                                                                                                                         |
 | meetings    | create (generates Jitsi link and sends the `.ics` invite)                                                                                                                                                                                                                                                                                                                   |
 | settings    | get (secrets masked), update                                                                                                                                                                                                                                                                                                                                                |
+| backup      | `GET /backup`: the database snapshot and the CV files as one .tar.gz                                                                                                                                                                                                                                                                                                        |
 
 Every request body is validated with the shared zod schemas through `@hono/zod-validator`.
 
@@ -258,7 +259,7 @@ if (import.meta.env.VITE_DEMO === 'true') {
 - **Emails** in demo are recorded with `status: 'demo'` and shown in an "Outbox" view instead of being sent.
 - A fixed banner reads: _Demo mode. All candidates are fictional._
 - Routing: `/` is the landing page, `/demo/*` is the app. In the local build the app lives at `/*` and the landing page is not rendered. Vite `base` is `/HRmit/` for GitHub Pages.
-- App routes (relative to the mount point): `/` redirects to `/dashboard`, `/dashboard` the attention board (§4.3), `/recruitments/:id` pipeline and interview guide (`/jobs/:id` redirects there), `/employees`, `/teams` and `/teams/:id`, `/settings` a layout with a vertical tab list and nested routes `general` (language, theme, about), `ai`, `email`, `templates`; `/settings` redirects to `/settings/general` and the old `/templates` to `/settings/templates`.
+- App routes (relative to the mount point): `/` redirects to `/dashboard`, `/dashboard` the attention board (§4.3), `/recruitments/:id` pipeline and interview guide (`/jobs/:id` redirects there), `/employees`, `/teams` and `/teams/:id`, `/settings` a layout with a vertical tab list and nested routes `general` (language, theme, about), `ai`, `email`, `templates`, `backup` (0.5.3, one download button); `/settings` redirects to `/settings/general` and the old `/templates` to `/settings/templates`.
 
 Why this counts as the same frontend and not a mock-up: the handlers are a second implementation of the API contract, validated by the same zod schemas. If a demo handler returns a wrong shape, the shared schema test fails.
 

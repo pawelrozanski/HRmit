@@ -145,6 +145,10 @@ _(done 2026-10-19; the logo is a hand-written SVG under 1 KB; screenshots were t
 
 ## After the MVP
 
+### 0.5.3: Backup download
+
+_(done 2026-10-25; `GET /api/backup` streams nothing yet: the archive is built in memory from a `VACUUM INTO` snapshot and the uploads, fine for a local ATS and marked `ponytail:` for streaming if a data folder ever passes a few hundred MB; restore stays a manual copy into `data/`, an upload-and-restore route is the natural next step)_
+
 ### 0.5.2: Editable prompts
 
 _(done 2026-10-25; the instruction texts moved from the server prompt files to `packages/shared/src/aiPrompts.ts` as defaults, the server appends the data after the text, overrides live in `settings` under `ai.prompt.<key>` only when they differ from the default; no migration; the assistant button moved next to Dashboard in the header)_

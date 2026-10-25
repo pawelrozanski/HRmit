@@ -4,6 +4,16 @@ All notable changes to HRmit are documented here. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-10-25
+
+### Added
+
+- Settings → Backup: one button downloads `hrmit-backup-<date>-<time>.tar.gz` with the database (a consistent snapshot) and the uploaded CV files. The encryption key is not included, so the stored AI key and SMTP password have to be entered again after a restore; the page says how to restore by hand. `GET /api/backup`, archive written by a small ustar writer and `node:zlib`, no new dependency. The demo downloads its data as a JSON file.
+
+### Fixed
+
+- Playwright: the keyboard-order test still expected the assistant button after Settings; it follows Dashboard since 0.5.2. The 0.5.2 CI run was red for that reason.
+
 ## [0.5.2] - 2026-10-25
 
 ### Added
@@ -138,7 +148,8 @@ First release: the MVP of a local-first ATS with an AI assistant, delivered as r
 
 - `/api/*` rejects requests whose `Origin` or `Host` is not loopback, closing cross-site form posts and DNS rebinding against the login-less local server.
 
-[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/pawelrozanski/HRmit/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/pawelrozanski/HRmit/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/pawelrozanski/HRmit/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/pawelrozanski/HRmit/compare/v0.5.0...v0.5.1
 [0.3.1]: https://github.com/pawelrozanski/HRmit/compare/v0.3.0...v0.3.1
