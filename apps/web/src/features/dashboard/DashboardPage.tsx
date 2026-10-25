@@ -1,4 +1,4 @@
-import { PIPELINE_STAGES, type Dashboard, type PipelineStage } from '@hrmit/shared'
+import { PIPELINE_STAGES, type Dashboard } from '@hrmit/shared'
 import {
   Briefcase,
   CalendarClock,
@@ -16,6 +16,7 @@ import { Link } from 'react-router'
 import { api } from '@/api/client.ts'
 import { useApi } from '@/api/useApi.ts'
 import { Badge } from '@/components/ui/badge.tsx'
+import { STAGE_STYLE, StageBadge } from '../pipeline/StageBadge.tsx'
 import { Switch } from '@/components/ui/switch.tsx'
 import { APP_ROOT } from '@/config.ts'
 import { BlindContext, useBlind, useBlindSetting } from '../candidates/BlindContext.ts'
@@ -24,14 +25,6 @@ import { candidateName } from '../candidates/candidateName.ts'
 
 const STUCK_KEY = 'hrmit-stuckDays'
 const DEFAULT_STUCK_DAYS = 7
-// Brand tints from light to full, one per stage: a second cue next to the numbers and legend.
-const STAGE_TINT: Record<PipelineStage, string> = {
-  applied: 'bg-brand/15',
-  screening: 'bg-brand/30',
-  interview: 'bg-brand/50',
-  offer: 'bg-brand/70',
-  rejected: 'bg-ink/20 dark:bg-white/25',
-}
 
 const candidateLink = (jobId: number, candidateId: number) =>
   `${APP_ROOT}/recruitments/${jobId}/candidates/${candidateId}`
@@ -280,7 +273,7 @@ function Stuck({
           <Row key={r.candidateId} to={candidateLink(r.jobId, r.candidateId)}>
             <Name r={r} />
             <span className="text-muted-foreground">{r.jobTitle}</span>
-            <Badge variant="outline">{t(`stage.${r.stage}`)}</Badge>
+            <StageBadge stage={r.stage} />
             <span className="ml-auto text-muted-foreground tabular-nums">
               {t('dashboard.stuck.days', { count: r.days })}
             </span>
@@ -352,7 +345,7 @@ function OpenJobs({ rows }: { rows: Dashboard['openJobs'] }) {
                       <span
                         key={s}
                         style={{ flexGrow: j.stages[s] }}
-                        className={`flex min-w-6 items-center justify-center border-r last:border-r-0 ${STAGE_TINT[s]}`}
+                        className={`flex min-w-6 items-center justify-center border-r last:border-r-0 ${STAGE_STYLE[s].tint}`}
                       >
                         {j.stages[s]}
                       </span>

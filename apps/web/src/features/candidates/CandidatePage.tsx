@@ -21,6 +21,7 @@ import { candidateName } from './candidateName.ts'
 import { CvSection } from './CvSection.tsx'
 import { InterviewSummary } from './InterviewSummary.tsx'
 import { Scorecard } from './Scorecard.tsx'
+import { StageBadge } from '../pipeline/StageBadge.tsx'
 
 /**
  * The candidate's own page (0.6.2), replacing the drawer: an overview that reads like a
@@ -87,7 +88,10 @@ export function CandidatePage() {
         ← {job.data.title}
       </Link>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold">{candidateName(c, blind, t)}</h2>
+        <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold">
+          {candidateName(c, blind, t)}
+          <StageBadge stage={c.stage} className="h-6 text-sm" />
+        </h2>
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm">
             <Switch checked={blind} onCheckedChange={toggleBlind} />

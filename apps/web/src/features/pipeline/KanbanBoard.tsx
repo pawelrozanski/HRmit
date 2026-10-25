@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils.ts'
 import { useBlind } from '../candidates/BlindContext.ts'
 import { candidateName } from '../candidates/candidateName.ts'
+import { STAGE_STYLE, StageBadge } from './StageBadge.tsx'
 
 type Props = {
   candidates: Candidate[]
@@ -82,12 +83,13 @@ function Column({
       ref={setNodeRef}
       aria-label={t(`stage.${stage}`)}
       className={cn(
-        'flex min-h-40 flex-col gap-2 rounded-lg border bg-muted/40 p-2 transition-colors',
+        'flex min-h-40 flex-col gap-2 rounded-lg border border-t-4 bg-muted/40 p-2 transition-colors',
+        STAGE_STYLE[stage].edge,
         isOver && 'border-brand bg-brand/10',
       )}
     >
       <h3 className="flex items-center justify-between px-1 text-sm font-semibold">
-        {t(`stage.${stage}`)}
+        <StageBadge stage={stage} />
         <span className="text-muted-foreground font-normal">{candidates.length}</span>
       </h3>
       {candidates.map((c) => (
